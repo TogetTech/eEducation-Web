@@ -11,6 +11,7 @@
 
   |功能概述|代码入口|功能描述|  
   | ---- | ----- | ----- |
+  | 登录入口 | [entry-home.tsx](./src/pages/entry-home.tsx) | 学生和老师的登录页面 |
   |老师1v1教学授课 | [one-to-one.tsx](./src/pages/classroom/one-to-one.tsx) | 1个老师和1个学生默认连麦进入教室 |
   |小班课场景：老师1v16学生教学授课| [small-class.tsx](./src/pages/classroom/small-class.tsx) | 1个老师和至多16个学生默认连麦进入教室 |
   |大班课场景：老师1v多学生，默认以观众身份进入频道，举手向老师发起连麦，老师接受连麦并且统一以后，连麦互动。| [big-class.tsx](./src/pages/classroom/big-class.tsx) | 1个老师默认连麦进入教室，学生进入无限制人数 |
@@ -73,6 +74,8 @@
 WARN: IF YOU ENABLED APP CERTIFICATE, PLEASE SIGN YOUR TOKEN IN YOUR SERVER SIDE AND OBTAIN IT FROM YOUR OWN TRUSTED SERVER API
 ```
 
+# 注意uid生成规则请预留1000以下作为云录制和屏幕共享使用。
+
 # 搭建之前先获取 agora appid和netless sdktoken
   按照.env.example
   修改为.env.local
@@ -96,6 +99,8 @@ REACT_APP_AGORA_OSS_BUCKET_FOLDER=你的oss存储目录
 REACT_APP_AGORA_OSS_BUCKET_REGION=你的oss存储节点地区
 REACT_APP_AGORA_OSS_BUCKET_KEY=你的oss存储key或者存储id
 REACT_APP_AGORA_OSS_BUCKET_SECRET=你的oss的存储秘钥
+REACT_APP_AGORA_OPEN_EDU_API=你使用的教育业务场景化demo api
+REACT_APP_AGORA_OPEN_EDU_AUTH_KEY=你使用的教育场景化demo api key
 ```
 
 # Web发布和开发操作  

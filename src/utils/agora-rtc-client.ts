@@ -1,6 +1,6 @@
+import { RoomStore } from './../stores/room';
 import EventEmitter from 'events';
 import AgoraRTC from 'agora-rtc-sdk';
-import { roomStore } from '../stores/room';
 
 if (process.env.REACT_APP_AGORA_LOG !== 'true') {
   AgoraRTC.Logger.setLogLevel(AgoraRTC.Logger.NONE);
@@ -182,7 +182,7 @@ class AgoraRTCClient {
         resolve();
         this.destroyLocalStream();
         this._published = false;
-      }, 300);
+      }, 180);
     })
   }
 
@@ -265,8 +265,13 @@ class AgoraRTCClient {
   }
 
   async exit () {
-    await this.leave();
-    await this.destroy();
+    try {
+      await this.leave();
+    } catch(err) {
+      throw err;
+    } finally {
+      await this.destroy();
+    }
   }
 
   getDevices (): Promise<Device[]> {
@@ -296,7 +301,9 @@ export default class AgoraWebClient {
   public published: boolean;
   public tmpStream: any;
 
-  constructor() {
+  private roomStore: RoomStore;
+
+  constructor(deps: {roomStore: RoomStore}) {
     this.localUid = 0;
     this.channel = '';
     this.rtc = new AgoraRTCClient();
@@ -306,6 +313,8 @@ export default class AgoraWebClient {
     this.tmpStream = null;
     this.joined = false;
     this.published = false;
+    
+    this.roomStore = deps.roomStore;
   }
 
   async getDevices () {
@@ -338,7 +347,7 @@ export default class AgoraWebClient {
     await this.rtc.join(this.localUid, channel, token);
     dual && await this.rtc.enableDualStream();
     this.joined = true;
-    roomStore.setRTCJoined(true);
+    this.roomStore.setRTCJoined(true);
   }
 
   async leaveChannel() {
@@ -349,7 +358,7 @@ export default class AgoraWebClient {
     this.rtc.destroy();
     this.rtc.destroyClient();
     this.joined = false;
-    roomStore.setRTCJoined(false);
+    this.roomStore.setRTCJoined(false);
   }
 
   async enableDualStream() {
@@ -377,8 +386,9 @@ export default class AgoraWebClient {
     this.shareClient = new AgoraRTCClient();
     await this.shareClient.createLocalStream({
       video: false,
-      audio: true,
+      audio: false,
       screen: true,
+      screenAudio: true,
       streamID: SHARE_ID,
       microphoneId: '',
       cameraId: ''
@@ -394,7 +404,7 @@ export default class AgoraWebClient {
     await this.shareClient.leave();
     await this.shareClient.destroy();
     await this.shareClient.destroyClient();
-    roomStore.removeLocalSharedStream();
+    this.roomStore.removeLocalSharedStream();
     this.shared = false;
   }
 

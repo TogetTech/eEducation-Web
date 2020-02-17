@@ -9,19 +9,19 @@ import AgoraWebClient from '../utils/agora-rtc-client';
 import {get} from 'lodash';
 import { isElectron } from '../utils/platform';
 import GlobalStorage from '../utils/custom-storage';
-import { whiteboard } from './whiteboard';
+import { t } from '../utils/i18n';
 
 function canJoin({onlineStatus, roomType, channelCount, role}: {onlineStatus: any, role: string, channelCount: number, roomType: number}) {
   const result = {
     permitted: true,
     reason: ''
   }
-  const channelCountLimit = [2, 17, 17];
+  const channelCountLimit = [2, 17, Infinity];
 
   let maximum = channelCountLimit[roomType];
   if (channelCount >= maximum) {
     result.permitted = false;
-    result.reason = 'The number of students and teacher have reached upper limit';
+    result.reason = t('toast.teacher_and_student_over_limit');
     return result;
   }
 
@@ -32,7 +32,7 @@ function canJoin({onlineStatus, roomType, channelCount, role}: {onlineStatus: an
     const isOnline = teacher;
     if (isOnline) {
       result.permitted = false;
-      result.reason = 'Teacher already existed';
+      result.reason = t('toast.teacher_exists');
       return result;
     }
   }
@@ -40,7 +40,7 @@ function canJoin({onlineStatus, roomType, channelCount, role}: {onlineStatus: an
   if (role === 'student') {
     if (totalCount+1 > maximum) {
       result.permitted = false;
-      result.reason = 'Student have reached upper limit';
+      result.reason = t('toast.student_over_limit');
       return result;
     }
   }
@@ -77,6 +77,7 @@ export interface ClassState {
 }
 
 type RtcState = {
+  rtcToken: string
   published: boolean
   joined: boolean
   users: Set<number>
@@ -107,11 +108,16 @@ export type SessionInfo = {
 
 export type RtmState = {
   joined: boolean
+  rtmToken: string
   memberCount: number
 }
 
 export type RoomState = {
+  rtcToken: string
+  rtmToken: string
   rtmLock: boolean
+  uuid: string
+  homePage: string
   me: AgoraUser
   users: Map<string, AgoraUser>
   course: ClassState
@@ -120,6 +126,7 @@ export type RoomState = {
   rtm: RtmState
   mediaDevice: MediaDeviceState
   messages: List<ChatMessage>
+  language: string
 }
 
 export type AgoraMediaStream = {
@@ -138,8 +145,6 @@ export class RoomStore {
   set state (newState) {
     this._state = newState;
   }
-  public rtmClient: AgoraRTMClient = new AgoraRTMClient();
-  public rtcClient: AgoraWebClient | AgoraElectronClient = isElectron ? new AgoraElectronClient () : new AgoraWebClient();
   public readonly defaultState: RoomState = Object.freeze({
     rtmLock: false,
     me: {
@@ -189,18 +194,24 @@ export class RoomStore {
       microphone: 0
     },
     messages: List<ChatMessage>(),
-    ...GlobalStorage.read('agora_room')
+    language: navigator.language,
+    ...GlobalStorage.read('edu_agora_room')
   });
 
   private applyLock: number = 0;
 
   public windowId: number = 0;
 
+  public rtmClient: AgoraRTMClient;
+  public rtcClient: AgoraWebClient | AgoraElectronClient;
+
   constructor() {
     this.subject = null;
     this._state = {
       ...this.defaultState
     };
+    this.rtmClient = new AgoraRTMClient();
+    this.rtcClient = isElectron ? new AgoraElectronClient ({roomStore: this}) : new AgoraWebClient({roomStore: this});
   }
 
   initialize() {
@@ -239,19 +250,12 @@ export class RoomStore {
   }
 
   isTeacher(peerId: string) {
-    if (!peerId) return false;
-    const user = this.state.users.get(peerId)
-    if (!user) return false;
-    if (user.role === 'teacher') return true;
+    if (peerId === this.state.course.teacherId) return true;
     return false;
   }
 
   isStudent (peerId: string) {
-    if (!peerId) return false;
-    const user = this.state.users.get(peerId);
-    if (!user) return false;
-    if (user.role === 'student') return true;
-    return false;
+    if (peerId !== this.state.course.teacherId) return true;
   }
 
   addLocalStream(stream: AgoraStream) {
@@ -380,7 +384,7 @@ export class RoomStore {
     this.commit(this.state);
   }
 
-  async handlePeerMessage(cmd: RoomMessage, peerId: string) {
+  async handlePeerMessage({cmd, account}: {cmd: RoomMessage, account: string}, peerId: string) {
     if (!peerId) return console.warn('state is not assigned');
     const myUid = this.state.me.uid;
     console.log("Teacher: ", this.isTeacher(myUid) , ", peerId: ", this.isStudent(peerId));
@@ -400,8 +404,8 @@ export class RoomStore {
         }
         case RoomMessage.muteBoard: {
           globalStore.showToast({
-            message: `Teacher already cancel your whiteboard`,
-            type: 'notice'
+            type: 'notice',
+            message: t('toast.teacher_cancel_whiteboard'),
           });
           return await this.updateMe({...me, grantBoard: 0});
         }
@@ -416,29 +420,29 @@ export class RoomStore {
         }
         case RoomMessage.unmuteBoard: {
           globalStore.showToast({
-            message: `Teacher already permit your whiteboard`,
-            type: 'notice'
+            type: 'notice',
+            message: t('toast.teacher_accept_whiteboard')
           });
           return await this.updateMe({...me, grantBoard: 1});
         }
         case RoomMessage.acceptCoVideo: {
           globalStore.showToast({
             type: 'co-video',
-            message: 'teacher already accept co-video'
+            message: t("toast.teacher_accept_co_video")
           });
           return;
         }
         case RoomMessage.rejectCoVideo: {
           globalStore.showToast({
             type: 'co-video',
-            message: 'teacher already rejected co-video'
+            message: t("toast.teacher_reject_co_video")
           });
           return;
         }
         case RoomMessage.cancelCoVideo: {
           globalStore.showToast({
             type: 'co-video',
-            message: 'teacher already canceled co-video'
+            message: t("toast.teacher_cancel_co_video")
           });
           return;
         }
@@ -466,7 +470,7 @@ export class RoomStore {
             this.commit(this.state);
             globalStore.showNotice({
               reason: 'peer_hands_up',
-              text: `"${applyUser.account}" wants to interact with you`
+              text: t('notice.student_interactive_apply', {reason: applyUser.account}),
             });
           }
           return;
@@ -479,7 +483,7 @@ export class RoomStore {
 
             globalStore.showToast({
               type: 'co-video',
-              message: 'student canceled co-video'
+              message: t('toast.student_cancel_co_video')
             });
           }
           return;
@@ -492,7 +496,6 @@ export class RoomStore {
 
   async mute(uid: string, type: string) {
     const me = this.state.me;
-    console.log(">>>>> mute, uid, ", uid, " type: ", type);
     if (me.uid === `${uid}`) {
       if (type === 'audio') {
         await this.updateAttrsBy(me.uid, {
@@ -572,39 +575,78 @@ export class RoomStore {
   }
 
   async loginAndJoin(payload: any, pass: boolean = false) {
-    const {roomType, role, uid, rid, token} = payload;
-    await this.rtmClient.login(uid, token);
-    const channelMemberCount = await this.rtmClient.getChannelMemberCount([rid]);
-    const channelCount = channelMemberCount[rid];
-    let accounts = await this.rtmClient.getChannelAttributeBy(rid);
-    const onlineStatus = await this.rtmClient.queryOnlineStatusBy(accounts);
-    const argsJoin = {
-      channelCount,
-      onlineStatus,
-      role,
-      accounts,
-      roomType
-    };
-    const result = pass === false ? canJoin(argsJoin) : {permitted: true, reason: ''};
-    if (result.permitted) {
-      let res = await this.rtmClient.join(rid);
-      this.state = {
-        ...this.state,
-        rtm: {
-          ...this.state.rtm,
-          joined: true
+    const {roomType, roomName, role, uid, rid, rtcToken, rtmToken} = payload;
+    await this.rtmClient.login(uid, rtmToken);
+
+    let result = {permitted: true, reason: ''};
+    try {
+      const channelMemberCount = await this.rtmClient.getChannelMemberCount([rid]);
+      const channelCount = channelMemberCount[rid];
+      let accounts = await this.rtmClient.getChannelAttributeBy(rid);
+      const onlineStatus = await this.rtmClient.queryOnlineStatusBy(accounts);
+      const argsJoin = {
+        channelCount,
+        onlineStatus,
+        role,
+        accounts,
+        roomType
+      };
+      result = pass === false ? canJoin(argsJoin) : {permitted: true, reason: ''};
+      if (result.permitted) {
+        let res = await this.rtmClient.join(rid);
+        const teacher = accounts.find(it => it.role === 'teacher');
+        this.state = {
+          ...this.state,
+          rtm: {
+            ...this.state.rtm,
+            joined: true
+          },
+          rtmToken,
+          rtcToken,
+          course: {
+            rid,
+            roomName,
+            teacherId: get(teacher, 'uid', ''),
+            roomType,
+            boardId: get(teacher, 'whiteboard_uid', ''),
+            sharedId: get(teacher, 'shared_uid', 0),
+            linkId: get(teacher, 'link_uid', 0),
+            lockBoard: get(teacher, 'lock_board', 0),
+            courseState: get(teacher, 'class_state', 0),
+            muteChat: get(teacher, 'mute_chat', 0),
+
+            // mute_chat: this.state.course.muteChat,
+            // class_state: this.state.course.courseState,
+            // whiteboard_uid: this.state.course.boardId,
+            // link_uid: this.state.course.linkId,
+            // shared_uid: this.state.course.sharedId,
+
+            // rid: string
+            // roomName: string
+            // teacherId: string
+            // roomType: number
+            // boardId: string // whiteboard_uuid
+            // sharedId: number // shared_uid
+            // linkId: number // link_uid
+            // lockBoard: number // lock_board
+            // courseState: number 
+            // muteChat: number
+          }
         }
+        const grantBoard = role === 'teacher' ? 1 : 0;
+        await this.updateMe({...payload, grantBoard});
+        this.commit(this.state);
+        return;
       }
-      const grantBoard = role === 'teacher' ? 1 : 0;
-      console.log(">>>>>>>>>>#room: ", grantBoard);
-      await this.updateMe({...payload, grantBoard});
-      this.commit(this.state);
-      return;
-    }
-    await this.rtmClient.logout();
-    throw {
-      type: 'not_permitted',
-      reason: result.reason
+      throw {
+        type: 'not_permitted',
+        reason: result.reason
+      }
+    } catch (err) {
+      if (this.rtmClient._logged) {
+        await this.rtmClient.logout();
+      }
+      throw err;
     }
   }
 
@@ -687,7 +729,7 @@ export class RoomStore {
     const {role, uid, account, rid, video, audio, chat, boardId, linkId, sharedId, muteChat, grantBoard} = user;
     const key = role === 'teacher' ? 'teacher' : uid;
     const me = this.state.me;
-    const attrs = {
+    const attrs: any = {
       uid: me.uid,
       account: me.account,
       chat: me.chat,
@@ -729,6 +771,21 @@ export class RoomStore {
       })
       console.log("teacher attrs: >>>> ", attrs);
     }
+    const roomType = user.roomType;
+    this.state = {
+      ...this.state,
+      me: {
+        ...this.state.me,
+        ...me,
+        boardId,
+        linkId,
+        sharedId,
+        grantBoard
+      }
+    }
+    this.commit({
+      ...this.state,
+    })
     let res = await this.rtmClient.updateChannelAttrsByKey(key, attrs);
     return res;
   }
@@ -813,7 +870,8 @@ export class RoomStore {
         linkId: info.linkId,
         sharedId: info.sharedId,
         boardId: info.boardId,
-      }
+      },
+      homePage: info.homePage,
     }
     this.commit(this.state);
   }
@@ -821,17 +879,19 @@ export class RoomStore {
   async exitAll() {
     try {
       await this.rtmClient.exit();
-      await this.rtcClient.exit();
     } catch(err) {
       console.warn(err);
-    } finally {
-      GlobalStorage.clear('agora_room');
-      this.state = {} as RoomState;
-      this.state = {
-        ...this.defaultState
-      }
-      this.commit(this.state);
     }
+    try {
+      await this.rtcClient.exit();
+    } catch (err) {
+      console.warn(err);
+    }
+    GlobalStorage.clear('edu_agora_room');
+    this.state = {
+      ...this.defaultState
+    }
+    this.commit(this.state);
   }
 
   setScreenShare(shared: boolean) {

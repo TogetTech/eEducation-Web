@@ -10,6 +10,7 @@
 
   |Feature|code entry|description|  
   | ---- | ----- | ----- |
+  | login page | [entry-home.tsx](./src/pages/entry-home.tsx) | Teacher & Student Login Page |
   | 1v1 | [one-to-one.tsx](./src/pages/classroom/one-to-one.tsx) | One teacher co-video with one student |
   | 1v16: small-class scenario| [small-class.tsx](./src/pages/classroom/small-class.tsx) | One teacher co-video with 16 students |
   | 1vN：big-class scenario | [big-class.tsx](./src/pages/classroom/big-class.tsx) | One teacher co-video with one student, student can join class with audience role, only send co-video with teacher, teacher permit co-video will become host and co-video. |
@@ -36,7 +37,7 @@
 
 ### For Windows Electron Developer
   * npm install electron@5.0.8 arch=ia32 manually  
-  ```
+  ```  
   npm install electron@5.0.8 --arch=ia32 --save-dev
   ```  
   * find the `agora_electron` from package.json, replace it with below code snippet  
@@ -46,7 +47,7 @@
       "prebuilt": true,
       "platform": "win32"
     },
-  ```
+  ```  
 
 ### Setup
 
@@ -55,6 +56,8 @@
 ```
 WARN: IF YOU ENABLED APP CERTIFICATE, PLEASE SIGN YOUR TOKEN IN YOUR SERVER SIDE AND OBTAIN IT FROM YOUR OWN TRUSTED SERVER API
 ```
+
+# Please Guarantee uid < 1000, For Cloud Recording and Screen Sharing.
 
 # obtain agora appid 和 netless sdktoken
   rename .env.example to .env.local
@@ -71,13 +74,15 @@ REACT_APP_NETLESS_APP_JOIN_API=https://cloudcapiv4.herewhite.com/room/join?token
 # agora recording service end-point
 REACT_APP_AGORA_RECORDING_SERVICE_URL=https://api.agora.io/v1/apps/%s/cloud_recording/
 # oss for cloud recording storage
-REACT_APP_AGORA_RECORDING_OSS_URL=云录制OSS地址
+REACT_APP_AGORA_RECORDING_OSS_URL=cloud recording oss url
 # oss parameters for whiteboard courseware
 REACT_APP_AGORA_OSS_BUCKET_NAME=your_oss_bucket_name
 REACT_APP_AGORA_OSS_BUCKET_FOLDER=your_oss_folder
 REACT_APP_AGORA_OSS_BUCKET_REGION=your_oss_region
 REACT_APP_AGORA_OSS_BUCKET_KEY=your_oss_bucket_ak
 REACT_APP_AGORA_OSS_BUCKET_SECRET=your_oss_bucket_sk
+REACT_APP_AGORA_OPEN_EDU_API=agora_open_edu_api_endpoint
+REACT_APP_AGORA_OPEN_EDU_AUTH_KEY=agora_open_edu_api_auth_key
 ```
 
 # Build Web 

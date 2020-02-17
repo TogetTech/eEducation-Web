@@ -1,5 +1,7 @@
 /// <reference types="react-scripts" />
 
+// declare module '*.scss';
+
 declare module 'agora-rtc-sdk' {
   const AgoraRTC: any;
   export default AgoraRTC;

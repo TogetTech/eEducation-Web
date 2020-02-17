@@ -6,8 +6,17 @@ const {
 } = require('customize-cra');
 
 const isDev = process.env.BROWSER === 'none';
+const isProd = process.env.ENV === 'production';
+
+const sourceMap = () => config => {
+  config.devtool = isProd ? 'cheap-module-source-map' : 'cheap-module-eval-source-map'
+  console.log("mode", config.mode, isProd, config.devtool);
+
+  return config;
+}
 
 module.exports = override(
+  sourceMap(),
   isDev && addWebpackExternals({
     "agora-electron-sdk": "commonjs2 agora-electron-sdk"
   }),
