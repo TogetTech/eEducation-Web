@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route } from 'react-router-dom';
+import { Route, Redirect } from 'react-router-dom';
 import CustomBrowserRouter from '../containers/custom-browser-router';
 import ThemeContainer from '../containers/theme-container';
 import Home from './home';
@@ -14,9 +14,10 @@ import { RootProvider } from '../containers/root-container';
 import SmallClass from './classroom/small-class';
 import OneToOne from './classroom/one-to-one';
 import BigClass from './classroom/big-class';
+import EntryHome from './entry-home';
+import {PageNotFound} from './404';
 
 export default function () {
-
   return (
     <ThemeContainer>
       <CustomBrowserRouter>
@@ -24,8 +25,12 @@ export default function () {
         <RootProvider>
           <Loading />
           <Toast />
+          <Route exact path="/entry/:id/:role">
+            <EntryHome />
+          </Route>
           <Route exact path="/">
-            <Home />
+            {/* <Home /> */}
+            <Redirect to="/404" />
           </Route>
           <Route exact path="/device_test">
             <DeviceTest />
@@ -47,6 +52,9 @@ export default function () {
           </Route>
           <Route exact path="/replay/:uuid/:startTime/:endTime/:mediaUrl">
             <ReplayContainer />
+          </Route>
+          <Route exact path="/404">
+            <PageNotFound />
           </Route>
         </RootProvider>
         </PlatformContainer>

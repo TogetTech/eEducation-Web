@@ -11,6 +11,7 @@ import { globalStore } from '../../stores/global';
 import { platform } from '../../utils/platform';
 import AgoraWebClient, { AgoraStreamSpec, SHARE_ID } from '../../utils/agora-rtc-client';
 import { AgoraElectronClient } from '../../utils/agora-electron-client';
+import { t } from '../../utils/i18n';
 
 export const roomTypes = [
   {value: 0, text: 'One-on-One', path: 'one-to-one'},
@@ -31,8 +32,10 @@ export function RoomPage({ children }: any) {
     const roomType = roomStore.state.course.roomType;
     const roomName = roomStore.state.course.roomName;
 
+    const homePage = roomStore.state.homePage;
+
     if (!rid || !me.uid) {
-      history.push('/');
+      history.goBack();
     }
 
     const uid = me.uid;
@@ -52,6 +55,7 @@ export function RoomPage({ children }: any) {
       sharedId: me.sharedId,
       lockBoard: me.lockBoard,
       grantBoard: me.grantBoard,
+      homePage
     }
     lock.current = true;
     if (roomStore.state.rtm.joined) return;
@@ -62,9 +66,10 @@ export function RoomPage({ children }: any) {
       }).catch((err: any) => {
         globalStore.showToast({
           type: 'rtmClient',
-          message: 'login failure'
+          message: t('toast.login_failure'),
         });
-        history.push('/');
+        history.goBack();
+        // history.push(homePage);
         console.warn(err)
       }).finally(() => {
         globalStore.stopLoading();
@@ -73,9 +78,10 @@ export function RoomPage({ children }: any) {
     }).catch((err: any) => {
       globalStore.showToast({
         type: 'rtmClient',
-        message: 'login failure'
+        message: t('toast.login_failure'),
       });
-      history.push('/');
+      history.goBack();
+      // history.push(homePage || '/');
       console.warn(err)
     })
     .finally(() => {
@@ -94,11 +100,10 @@ export function RoomPage({ children }: any) {
   const isBigClass = Boolean(location.pathname.match(/big-class/));
   const isSmallClass = Boolean(location.pathname.match(/small-class/));
   
-  const prevRoute = useRef<string>(location.pathname);
   useEffect(() => {
-    console.log("[route] prevRoute: ", prevRoute.current);
     return () => {
       globalStore.removeUploadNotice();
+      globalStore.setMessageCount(0);
       roomStore.exitAll()
       .then(() => {
       })
@@ -166,7 +171,7 @@ export function RoomPage({ children }: any) {
         streamID: uid,
         video: true,
         audio: true,
-        mirror: false,
+        mirror: true,
         screen: false,
         microphoneId: mediaDevice.microphoneId,
         cameraId: mediaDevice.cameraId,
@@ -293,7 +298,7 @@ export function RoomPage({ children }: any) {
           .joinChannel({
             uid: +roomState.me.uid, 
             channel: roomState.course.rid,
-            token: '',
+            token: roomState.rtcToken,
             dual: isSmallClass
           }).then(() => {
             
@@ -381,7 +386,7 @@ export function RoomPage({ children }: any) {
         nativeClient.joinChannel({
           uid: +roomState.me.uid, 
           channel: roomState.course.rid,
-          token: '',
+          token: roomState.rtcToken,
           dual: isSmallClass
         });
         roomStore.setRTCJoined(true);

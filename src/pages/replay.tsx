@@ -1,16 +1,18 @@
-import React, { useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useEffect, useMemo, useRef, useCallback, useState } from 'react';
 import './replay.scss';
 import Slider from '@material-ui/core/Slider';
 import { Subject } from 'rxjs';
 import { Player, PlayerPhase } from 'white-web-sdk';
-import { useParams } from 'react-router';
+import { useParams, useLocation } from 'react-router';
 import moment from 'moment';
 import { Progress } from '../components/progress/progress';
 import { globalStore } from '../stores/global';
-import { WhiteboardAPI } from '../utils/api';
+import { WhiteboardAPI, RTMRestful } from '../utils/api';
 import { whiteboard } from '../stores/whiteboard';
 import "video.js/dist/video-js.css";
 import { getOSSUrl } from '../utils/helper';
+import { t } from '../utils/i18n';
+import GlobalStorage from '../utils/custom-storage';
 
 export interface IPlayerState {
   beginTimestamp: number
@@ -262,6 +264,11 @@ export const Replay: React.FC<{}> = () => {
   }
 
   const {uuid, startTime, endTime, mediaUrl} = useParams();
+  const location = useLocation();
+
+  const searchParams = new URLSearchParams(location.search);
+
+  const rid: string = searchParams.get('rid') as string;
 
   const duration = useMemo(() => {
     if (!startTime || !endTime) return 0;
@@ -293,14 +300,14 @@ export const Replay: React.FC<{}> = () => {
             onCatchErrorWhenRender: error => {
               error && console.warn(error);
               globalStore.showToast({
-                message: `Replay Failed please refresh browser`,
+                message: t('toast.replay_failed'),
                 type: 'notice'
               });
             },
             onCatchErrorWhenAppendFrame: error => {
               error && console.warn(error);
               globalStore.showToast({
-                message: `Replay Failed please refresh browser`,
+                message: t('toast.replay_failed'),
                 type: 'notice'
               });
             },
@@ -317,12 +324,13 @@ export const Replay: React.FC<{}> = () => {
             onStoppedWithError: (error) => {
               error && console.warn(error);
               globalStore.showToast({
-                message: `Replay Failed please refresh browser`,
+                message: t('toast.replay_failed'),
                 type: 'notice'
               });
               store.setReplayFail(true);
             },
             onScheduleTimeChanged: (scheduleTime) => {
+              console.log("onScheduleTimeChanged scheduleTime ", scheduleTime);
               if (lock.current) return;
               store.setCurrentTime(scheduleTime);
             }
@@ -348,21 +356,71 @@ export const Replay: React.FC<{}> = () => {
     return moment(state.currentTime).format("mm:ss");
   }, [state.currentTime]);
 
+  const loadRTM = useRef<boolean>(false);
+  const [rtmMessage, setRtmMessage] = useState<{count: any, messages: any[]}>(GlobalStorage.getRtmMessage());
+  const rtmRecord = new RTMRestful(process.env.REACT_APP_AGORA_CUSTOMER_ID as string, process.env.REACT_APP_AGORA_CUSTOMER_CERTIFICATE as string);
+
+  useEffect(() => {
+    if (startTime && endTime) {
+      loadRTM.current = true;
+      const begin = moment(+startTime).utc().format("YYYY-MM-DDTHH:mm:ss");
+      const ended = moment(+endTime).utc().format("YYYY-MM-DDTHH:mm:ss");
+      // rtmRecord.getAllChannelMessages(
+      //   {
+      //    rid: rid,
+      //    startTime: begin,
+      //    endTime: ended,
+      //   }
+      // )
+      // .then((e: any) => {
+      //   loadRTM.current = false;
+      //   const messages = e.filter((it: any) => it.message_type === "group_message");
+      //   const chatMessages = messages.reduce((collect: any[], value: any) => {
+      //     const payload = value.payload;
+      //     const json = JSON.parse(payload);
+      //     if (json.content) {
+      //       return collect.concat({
+      //         account: json.account,
+      //         content: json.content,
+      //         ms: value.ms,
+      //         src: value.src
+      //       });
+      //     }
+      //     return collect;
+      //   }, []);
+      //   setRtmMessage(chatMessages);
+      // })
+      // .catch((err: any) => {
+      //   console.warn(err);
+      // })
+    }
+  }, [startTime, endTime, rid]);
+
   const PlayerCover = useCallback(() => {
     if (!player) {
-      return (<Progress title={"loading..."} />)
+      return (<Progress title={t("replay.loading")} />)
     }
 
     if (player.phase === PlayerPhase.Playing) return null;
 
     return (
       <div className="player-cover">
-        {player.phase === PlayerPhase.Buffering ? <Progress title={"loading..."} />: null}
+        {player.phase === PlayerPhase.Buffering ? <Progress title={t("replay.loading")} />: null}
         {player.phase === PlayerPhase.Pause || player.phase === PlayerPhase.Ended || player.phase === PlayerPhase.WaitingFirstFrame ? 
           <div className="play-btn" onClick={handlePlayerClick}></div> : null}
       </div>
     )
   }, [player]);
+
+  const ref = useRef(null);
+
+  // const scrollDown = (current: any) => {
+  //   current.scrollTop = current.scrollHeight;
+  // }
+
+  // useEffect(() => {
+  //   scrollDown(ref.current);
+  // }, [messages]);
 
   return (
     <div className="replay">
@@ -412,7 +470,13 @@ export const Replay: React.FC<{}> = () => {
         <div className="video-player">
           <video id="white-sdk-video-js" className="video-js video-layout" style={{width: "100%", height: "100%", objectFit: "cover"}}></video>
         </div>
-        <div className="chat-holder"></div>
+        <div className="chat-holder chat-board chat-messages-container">
+          {/* <div className="chat-messages" ref={ref}>
+            {rtmMessage && rtmMessage.messages && rtmMessage.messages.map((item: any, key: number) => (
+              <Message key={key} nickname={item.account} content={item.content} link={item.link} sender={false} />
+            ))}
+          </div>  */}
+        </div>
       </div>
     </div>
   )

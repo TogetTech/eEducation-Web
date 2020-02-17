@@ -1,9 +1,9 @@
 import { APP_ID } from './agora-rtc-client';
 import EventEmitter from 'events';
 import { btoa } from './helper';
-import { roomStore } from '../stores/room';
+import { roomStore, RoomStore } from '../stores/room';
 // @ts-ignore
-const AgoraRtcEngine = window.rtcEngine;
+export const AgoraRtcEngine = window.rtcEngine;
 
 if (AgoraRtcEngine) {
   AgoraRtcEngine.initialize(APP_ID);
@@ -59,9 +59,10 @@ export class AgoraElectronClient {
   public readonly rtcEngine: any
   public published: boolean;
   public shared: boolean;
+  private roomStore: RoomStore;
   subscribeVideoSource: boolean = false;
 
-  constructor() {
+  constructor(deps: {roomStore: RoomStore}) {
     this.rtcEngine = AgoraRtcEngine;
     this.published = false;
     this.localUid = 0;
@@ -69,6 +70,7 @@ export class AgoraElectronClient {
     this.shared = false;
     this.rid = '';
     this.bus = new EventEmitter();
+    this.roomStore = deps.roomStore;
   }
 
   private isLocal(uid: number) {
@@ -286,8 +288,13 @@ export class AgoraElectronClient {
   }
 
   exit () {
-    this.leave();
-    this.destroyClient();
+    try {
+      this.leave();
+    } catch(err) {
+      throw err;
+    } finally {
+      this.destroyClient();
+    }
   }
 
   publish() {
@@ -303,4 +310,4 @@ export class AgoraElectronClient {
   }
 }
 
-export const nativeRTCClient = new AgoraElectronClient();
+// export const nativeRTCClient = roomStore.rtcClient as AgoraElectronClient;

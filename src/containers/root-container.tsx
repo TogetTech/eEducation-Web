@@ -5,6 +5,7 @@ import { WhiteboardState, whiteboard } from '../stores/whiteboard';
 import { useHistory, useLocation } from 'react-router-dom';
 import { resolveMessage, resolvePeerMessage, resolveChannelAttrs, jsonParse } from '../utils/helper';
 import GlobalStorage from '../utils/custom-storage';
+import { t } from '../utils/i18n';
 
 export type IRootProvider = {
   globalState: GlobalState
@@ -83,24 +84,24 @@ export const RootProvider: React.FC<any> = ({children}) => {
       if (reason === 'LOGIN_FAILURE') {
         globalStore.showToast({
           type: 'rtmClient',
-          message: 'login failure'
+          message: t('toast.login_failure'),
         });
-        history.push('/');
+        history.goBack();
         return;
       }
       if (reason === 'REMOTE_LOGIN' || newState === 'ABORTED') {
         globalStore.showToast({
           type: 'rtmClient',
-          message: 'kick'
+          message: t('toast.kicked'),
         });
-        history.push('/');
+        history.goBack();
         return;
       }
     });
     rtmClient.on("MessageFromPeer", ({ message: { text }, peerId, props }: { message: { text: string }, peerId: string, props: any }) => {
       const body = resolvePeerMessage(text);
       resolveMessage(peerId, body);
-      roomStore.handlePeerMessage(body.cmd, peerId)
+      roomStore.handlePeerMessage(body, peerId)
       .then(() => {
       }).catch(console.warn);
     });
@@ -109,16 +110,6 @@ export const RootProvider: React.FC<any> = ({children}) => {
       console.log('[rtm-client] updated resolved attrs', channelAttrs);
       console.log('[rtm-client] updated origin attributes', attributes);
       roomStore.updateRoomAttrs(channelAttrs)
-    });
-    rtmClient.on("MemberJoined", (memberId: string) => {
-    });
-    rtmClient.on("MemberLeft", (memberId: string) => {
-      if (roomStore.state.applyUid === +memberId) {
-        roomStore.updateCourseLinkUid(0)
-        .then(() => {
-          globalStore.removeNotice();
-        }).catch(console.warn);
-      }
     });
     rtmClient.on("MemberCountUpdated", (count: number) => {
       !ref.current && roomStore.updateMemberCount(count);
@@ -133,6 +124,12 @@ export const RootProvider: React.FC<any> = ({children}) => {
         id: memberId,
       }
       console.log("[rtmClient] ChannelMessage", msg);
+      const isChatroom = globalStore.state.active === 'chatroom';
+      if (!isChatroom) {
+        globalStore.setMessageCount(globalStore.state.newMessageCount+1);
+      } else {
+        globalStore.setMessageCount(0);
+      }
       roomStore.updateChannelMessage(chatMessage);
     });
     return () => {
@@ -148,16 +145,20 @@ export const RootProvider: React.FC<any> = ({children}) => {
     }
 
     const room = value.roomState;
-    GlobalStorage.save('agora_room', {
+    GlobalStorage.save('edu_agora_room', {
       me: room.me,
       course: room.course,
       mediaDevice: room.mediaDevice,
+      rtcToken: room.rtcToken,
+      rtmToken: room.rtmToken,
+      homePage: room.homePage,
     });
+    GlobalStorage.save('edu_language', value.globalState.language);
     // WARN: DEBUG ONLY MUST REMOVED IN PRODUCTION
     //@ts-ignore
     window.room = roomState;
     //@ts-ignore
-    window.state = globalState;
+    window.globalState = globalState;
     //@ts-ignore
     window.whiteboard = whiteboardState;
   }, [value, location]);

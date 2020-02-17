@@ -17,14 +17,19 @@ const useStyles = makeStyles ((theme: Theme) => ({
   }
 }));
 
-const ALPHABETICAL = /^[a-zA-Z0-9]*/
+// const ALPHABETICAL = /^[a-zA-Z0-9]*/
 
 export default function (props: any) {
   const classes = useStyles();
 
   const onChange = (evt: any) => {
-    const val = evt.target.value.match(ALPHABETICAL)[0];
-    props.onChange(val ? val : '');
+    if (props.pattern) {
+      const val = evt.target.value.match(props.pattern)[0];
+      props.onChange(val ? val : '');
+    } else {
+      const val = evt.target.value;
+      props.onChange(val ? val: '');
+    }
   }
   return (
     <>
