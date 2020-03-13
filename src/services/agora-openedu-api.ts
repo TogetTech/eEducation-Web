@@ -1,16 +1,19 @@
+import { globalStore } from './../stores/global';
 import { AgoraFetch } from "../utils/fetch";
+import { getIntlError, setIntlError } from "./i18n-error";
 
 const AUTHORIZATION_KEY: string = process.env.REACT_APP_AGORA_OPEN_EDU_AUTH_KEY as string;
 
-const PREFIX = process.env.ENV === 'production' ? process.env.REACT_APP_AGORA_OPEN_EDU_API as string : '';
-
-const APP_ID = process.env.REACT_APP_AGORA_APP_ID as string;
+const PREFIX = process.env.ENV === 'production' ? process.env.REACT_APP_AGORA_OPEN_EDU_API as string :
+//  process.env.REACT_APP_AGORA_OPEN_EDU_API as string;
+'';
 
 interface AgoraFetchJsonInit {
   url: string
   method: string
   data?: any
   token?: string
+  authorization?: string
   authToken?: string
 }
 
@@ -19,22 +22,27 @@ const AgoraFetchJson = async ({
   method,
   data,
   token,
-  authToken
+  authToken,
+  authorization,
 }: AgoraFetchJsonInit) => {
   const opts: any = {
     method,
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Basic ${authToken}`,
+      // 'Authorization': `Basic ${authToken}`,
     }
   }
 
-  if (data) {
-    opts.body = JSON.stringify(data);
+  if (authorization) {
+    opts.headers['Authorization'] = authorization;
   }
 
   if (token) {
     opts.token = token;
+  }
+
+  if (data) {
+    opts.body = JSON.stringify(data);
   }
 
   let resp = await AgoraFetch(`${PREFIX}${url}`, opts);
@@ -51,28 +59,56 @@ export interface EntryRoomParams {
 
 export class AgoraOpenEduApi {
 
-  appID: string = APP_ID;
-  authorization: string = AUTHORIZATION_KEY;
+  appID: string = '';
+  token: string = '';
+  authorization: string = '';
 
-  // async config() {
-  //   let json = await AgoraFetchJson({
-  //     url: `${OPEN_EDU_API}/edu/v1/config`,
-  //     method: 'GET',
-  //   });
-  //   if (json.code !== 0) throw json.msg;
-  //   // this.appID = json.data.appId;
-  //   // this.authorization = json.data.authorization;
-  //   return {
-  //     appId: json.data.appId,
-  //     room: json.data.room,
-  //   }
-  // }
+  private async fetchWrapper (props: any) {
+
+    const params = props;
+
+    if (this.authorization) {
+      params.authorization = this.authorization
+    }
+    if (this.token) {
+      params.token = this.token
+    }
+    if (this.appID) {
+      params.appID = this.appID
+    }
+    let resp = await AgoraFetchJson(params);
+    if (resp.code !== 0) {
+      globalStore.showToast({
+        type: 'requsetMessage', 
+        message: getIntlError(resp.code)
+      })
+      throw {api_error: getIntlError(resp.code)}
+    }
+
+    return resp
+  }
+
+  async config() {
+    let json = await this.fetchWrapper({
+      url: `/edu/v1/config`,
+      method: 'GET',
+    })
+    this.appID = json.data.appId;
+    this.authorization = json.data.authorization;
+
+    setIntlError(json.data.multiLanguage || null)
+
+    return {
+      appId: json.data.appId,
+      room: json.data.room,
+    }
+  }
 
   async roomInfo(roomId: string) {
-    let json = await AgoraFetchJson({
+    await this.config();
+    let json = await this.fetchWrapper({
       url: `/edu/v2/apps/${this.appID}/room/${roomId}`,
       method: 'GET',
-      authToken: this.authorization,
     });
     return {
       code: json.code,
@@ -86,16 +122,18 @@ export class AgoraOpenEduApi {
    * @param params {@link EntryRoomParams}
    */
   async entry(params: EntryRoomParams) {
-    let json = await AgoraFetchJson({
+    const {appId} = await this.config();
+    let json = await this.fetchWrapper({
       url: `/edu/v2/apps/${this.appID}/room/entry`,
       method: 'POST',
       data: params,
       authToken: this.authorization,
     });
+    const data = json.data
     return {
-      code: json.code,
-      msg: json.msg,
-      data: json.data,
+      room: data.room,
+      user: data.user,
+      appId,
     }
   }
 

@@ -223,6 +223,10 @@ export class Root {
     window.location.reload();
   }
 
+  getLanguage() {
+    return GlobalStorage.read('edu_language')
+  }
+
   setActive(active: string) {
     if (active !== 'chatroom') {
       this.state = {

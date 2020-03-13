@@ -14,7 +14,7 @@ import { roomStore } from '../stores/room';
 import { genUid, genUUID } from '../utils/helper';
 import MD5 from 'js-md5';
 import { globalStore, roomTypes } from '../stores/global';
-import { t } from '../utils/i18n';
+import { t } from '../i18n';
 import GlobalStorage from '../utils/custom-storage';
 import {useAsync} from 'react-use';
 import { AgoraFetch } from '../utils/fetch';
@@ -51,6 +51,8 @@ interface HomePageProps {
 
 function HomePage({type: roomType, roomId, title, startTime, endTime, role}: HomePageProps) {
   const classes = useStyles();
+
+  document.title = t(`home.short_title.title`)
 
   const history = useHistory();
 
@@ -93,54 +95,22 @@ function HomePage({type: roomType, roomId, title, startTime, endTime, role}: Hom
       });
       return;
     }
+    
+    const path = roomTypes[roomType].path;
 
-    const resp: any = await agoraOpenEduApi.entry({
+    ref.current = true;
+    globalStore.showLoading();
+    roomStore.LoginToRoom({
       roomId,
       userName: session.yourName,
       password: session.password,
       role,
       uuid: genUUID(),
-    });
-
-    if (resp.code !== 0) {
-      globalStore.showToast({
-        type: 'loginFailure',
-        message: t('toast.api_login_failured', {reason: resp.msg}),
-      })
-      return;
-    }
-
-    const {room, user} = resp.data;
-
-    const userRole = user.role === 1 ? 'teacher' : 'student';
-    const payload = {
-      uid: `${user.uid}`,
-      rid: room.channelName,
-      role: userRole,
-      roomName: room.roomName,
-      roomType: room.type,
-      video: 1,
-      audio: 1,
-      chat: 1,
-      account: session.yourName,
-      rtmToken: user.rtmToken,
-      rtcToken: user.rtcToken,
-      boardId: room.boardId,
-      linkId: 0,
-      sharedId: user.screenId,
-      lockBoard: 0,
-      homePage: `/entry/${roomId}/${userRole}`
-    }
-    
-    const path = roomTypes[payload.roomType].path;
-
-    ref.current = true;
-    globalStore.showLoading();
-    // console.log("loginAndJoin", payload);
-    roomStore.loginAndJoin(payload).then(() => {
-      roomStore.updateSessionInfo(payload);
+    }).then(() => {
+      // roomStore.updateSessionInfo(payload);
       history.push(`/classroom/${path}`);
     }).catch((err: any) => {
+      if (err.hasOwnProperty('api_error')) return
       if (err.reason) {
         globalStore.showToast({
           type: 'rtmClient',
@@ -184,7 +154,7 @@ function HomePage({type: roomType, roomId, title, startTime, endTime, role}: Hom
           </div>
           <div className="setting-container">
             <Icon className="icon-setting" onClick={handleSetting}/>
-            {/* <LangSelect
+            <LangSelect
             value={GlobalStorage.getLanguage().language !== 'zh-CN' ? 1 : 0}
             onChange={(evt: any) => {
               const value = evt.target.value;
@@ -197,7 +167,7 @@ function HomePage({type: roomType, roomId, title, startTime, endTime, role}: Hom
             items={[
               {text: '中文', name: 'zh-CN'},
               {text: 'En', name: 'en'}
-            ]}></LangSelect> */}
+            ]}></LangSelect>
           </div>
         </div>
       </div>

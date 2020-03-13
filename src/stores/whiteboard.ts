@@ -11,7 +11,7 @@ import { isEmpty, get } from 'lodash';
 import { roomStore } from './room';
 import { handleRegion } from '../utils/helper';
 import { globalStore } from './global';
-import { t } from './../utils/i18n';
+import { t } from './../i18n';
 
 const ENABLE_LOG = process.env.REACT_APP_AGORA_LOG === 'true';
 const RECORDING_UID = 1;
@@ -73,6 +73,7 @@ type JoinParams = {
   rid: string
   uid?: string
   location?: string
+  boardToken: string
   userPayload: {
     userId: string,
     identity: string
@@ -295,9 +296,10 @@ class Whiteboard extends EventEmitter {
     this.commit(this.state);
   }
 
-  async join({rid, uid, location, userPayload}: JoinParams) {
+  async join(params: JoinParams) {
     await this.leave();
-    const {uuid, roomToken} = await this.connect(rid, uid);
+    const {rid, uid, location, userPayload, boardToken} = params;
+    // const {uuid, roomToken} = await this.connect(rid, uid);
     const identity = userPayload.identity === 'host' ? 'host' : 'guest';
 
     plugins.setPluginContext("video", {identity});
@@ -307,11 +309,11 @@ class Whiteboard extends EventEmitter {
     const disableOperations: boolean = location!.match(/big-class/) && identity !== 'host' ? true : false;
     // const isWritable: boolean = location!.match(/big-class/) && identity !== 'host' ? false : true;
 
-    console.log(`[White] disableDeviceInputs, ${disableDeviceInputs}, disableOperations, ${disableOperations}, location: ${location}`);
+    console.log(`[White] disableDeviceInputs, ${disableDeviceInputs}, disableOperations, ${disableOperations}, location: ${location}, roomToken: ${boardToken}`);
 
     const room = await this.client.joinRoom({
-      uuid,
-      roomToken,
+      uuid: uid as string,
+      roomToken: boardToken,
       disableBezier: true,
       disableDeviceInputs,
       disableOperations,

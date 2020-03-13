@@ -14,7 +14,7 @@ import { roomStore } from '../stores/room';
 import { genUid } from '../utils/helper';
 import MD5 from 'js-md5';
 import { globalStore, roomTypes } from '../stores/global';
-import { t } from '../utils/i18n';
+import { t } from '../i18n';
 import GlobalStorage from '../utils/custom-storage';
 
 const useStyles = makeStyles ((theme: Theme) => ({
@@ -135,19 +135,20 @@ function HomePage() {
           <div className="setting-container">
             <Icon className="icon-setting" onClick={handleSetting}/>
             <LangSelect
-            value={GlobalStorage.getLanguage().language !== 'zh-CN' ? 1 : 0}
-            onChange={(evt: any) => {
-              const value = evt.target.value;
-              if (value === 0) {
-                globalStore.setLanguage('zh-CN');
-              } else {
-                globalStore.setLanguage('en');
-              }
-            }}
-            items={[
-              {text: '中文', name: 'zh-CN'},
-              {text: 'En', name: 'en'}
-            ]}></LangSelect>
+              value={GlobalStorage.getLanguage().language !== 'zh-CN' ? 1 : 0}
+              onChange={(evt: any) => {
+                const value = evt.target.value;
+                if (value === 0) {
+                  globalStore.setLanguage('zh-CN');
+                } else {
+                  globalStore.setLanguage('en');
+                }
+              }}
+              items={[
+                {text: '中文', name: 'zh-CN'},
+                {text: 'En', name: 'en'}
+              ]}
+            ></LangSelect>
           </div>
         </div>
       </div>

@@ -11,7 +11,7 @@ import { globalStore } from '../../stores/global';
 import { platform } from '../../utils/platform';
 import AgoraWebClient, { AgoraStreamSpec, SHARE_ID } from '../../utils/agora-rtc-client';
 import { AgoraElectronClient } from '../../utils/agora-electron-client';
-import { t } from '../../utils/i18n';
+import { t } from '../../i18n';
 
 export const roomTypes = [
   {value: 0, text: 'One-on-One', path: 'one-to-one'},
@@ -50,14 +50,16 @@ export function RoomPage({ children }: any) {
       chat: me.chat,
       account: me.account,
       token: '',
-      boardId: me.boardId,
       linkId: me.linkId,
       sharedId: me.sharedId,
       lockBoard: me.lockBoard,
       grantBoard: me.grantBoard,
+      boardToken: roomStore.state.boardToken,
+      boardId: roomStore.state.boardId,
       homePage
     }
     lock.current = true;
+    console.log(">>>> joined again", roomStore.state)
     if (roomStore.state.rtm.joined) return;
     globalStore.showLoading();
     roomStore.loginAndJoin(payload, true).then(() => {
@@ -211,7 +213,7 @@ export function RoomPage({ children }: any) {
   ]);
 
   useEffect(() => {
-    if (!roomState.me.uid || !roomState.course.rid) return;
+    if (!roomState.me.uid || !roomState.course.rid || !roomState.appID) return;
     if (classroom) {
       if (platform === 'web') {
         const webClient = roomStore.rtcClient as AgoraWebClient;
@@ -296,6 +298,7 @@ export function RoomPage({ children }: any) {
         // WARN: IF YOU ENABLED APP CERTIFICATE, PLEASE SIGN YOUR TOKEN IN YOUR SERVER SIDE AND OBTAIN IT FROM YOUR OWN TRUSTED SERVER API
         webClient
           .joinChannel({
+            appId: roomState.appID,
             uid: +roomState.me.uid, 
             channel: roomState.course.rid,
             token: roomState.rtcToken,
@@ -407,7 +410,7 @@ export function RoomPage({ children }: any) {
         }
       }
     }
-  }, [roomState.me.uid, roomState.course.rid]);
+  }, [JSON.stringify([roomState.me.uid, roomState.course.rid, roomState.appID])]);
 
   return (
     <div className={`classroom ${roomType.path}`}>

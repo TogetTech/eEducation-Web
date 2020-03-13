@@ -9,14 +9,15 @@ import AgoraWebClient from '../utils/agora-rtc-client';
 import {get} from 'lodash';
 import { isElectron } from '../utils/platform';
 import GlobalStorage from '../utils/custom-storage';
-import { t } from '../utils/i18n';
+import { t } from '../i18n';
+import { agoraOpenEduApi } from '../services/agora-openedu-api';
 
 function canJoin({onlineStatus, roomType, channelCount, role}: {onlineStatus: any, role: string, channelCount: number, roomType: number}) {
   const result = {
     permitted: true,
     reason: ''
   }
-  const channelCountLimit = [2, 17, Infinity];
+  const channelCountLimit = [2, 17, 32];
 
   let maximum = channelCountLimit[roomType];
   if (channelCount >= maximum) {
@@ -113,8 +114,11 @@ export type RtmState = {
 }
 
 export type RoomState = {
+  appID: string
   rtcToken: string
   rtmToken: string
+  boardId: string
+  boardToken: string
   rtmLock: boolean
   uuid: string
   homePage: string
@@ -147,6 +151,8 @@ export class RoomStore {
   }
   public readonly defaultState: RoomState = Object.freeze({
     rtmLock: false,
+    boardId: '',
+    boardToken: '',
     me: {
       account: "",
       uid: "",
@@ -574,9 +580,54 @@ export class RoomStore {
     }
   }
 
+  async LoginToRoom(payload: any, pass: boolean = false) {
+    const {userName, roomName, role, type} = payload
+
+    const me = this.state.me;
+    const {room, user, appId} = await agoraOpenEduApi.entry(payload);
+
+    await this.loginAndJoin({
+      account: user.userName,
+      roomType: room.type,
+      roomName: room.roomName,
+      role: user.role === 1 ? 'teacher' : 'studnet',
+      uid: `${user.uid}`,
+      rid: room.channelName,
+      rtcToken: '',
+      rtmToken: '',
+      appId,
+      video: me.video || 1,
+      audio: me.audio || 1,
+      chat: me.chat || 1,
+      boardId: room.boardId,
+      boardToken: room.boardToken,
+    }, pass)
+
+    const params = {
+      uid: `${user.uid}`,
+      rid: room.channelName,
+      role: user.role === 1 ? 'teacher' : 'studnet',
+      roomName: room.roomName,
+      roomType: room.type,
+      video: me.video || 1,
+      audio: me.audio || 1,
+      chat: me.chat || 1,
+      account: user.userName,
+      token: '',
+      boardId: me.boardId,
+      linkId: me.linkId,
+      sharedId: me.sharedId,
+      lockBoard: me.lockBoard,
+      grantBoard: me.grantBoard,
+    }
+
+    this.updateSessionInfo(params)
+  }
+
   async loginAndJoin(payload: any, pass: boolean = false) {
-    const {roomType, roomName, role, uid, rid, rtcToken, rtmToken} = payload;
-    await this.rtmClient.login(uid, rtmToken);
+    const {boardId, boardToken, roomType, roomName, role, uid, rid, rtcToken, rtmToken, appId} = payload;
+
+    await this.rtmClient.login(appId, uid, rtmToken);
 
     let result = {permitted: true, reason: ''};
     try {
@@ -597,9 +648,16 @@ export class RoomStore {
         const teacher = accounts.find(it => it.role === 'teacher');
         this.state = {
           ...this.state,
+          appID: appId,
+          boardId,
+          boardToken,
           rtm: {
             ...this.state.rtm,
             joined: true
+          },
+          me: {
+            ...this.state.me,
+            boardId: boardId,
           },
           rtmToken,
           rtcToken,
@@ -804,7 +862,7 @@ export class RoomStore {
         sharedId: it.shared_uid,
         linkId: it.link_uid,
         lockBoard: it.lock_board,
-        grantBoard: it.grant_board
+        grantBoard: it.grant_board,
       });
     }, Map<string, AgoraUser>());
 

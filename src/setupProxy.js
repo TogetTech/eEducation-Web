@@ -11,6 +11,13 @@ module.exports = function (app) {
   //   })
   // );
   OPEN_EDU_API && app.use(
+    '/edu/v1/',
+    proxy({
+      target: OPEN_EDU_API,
+      changeOrigin: true,
+    })
+  )
+  OPEN_EDU_API && app.use(
     '/edu/v2/',
     proxy({
       target: OPEN_EDU_API,

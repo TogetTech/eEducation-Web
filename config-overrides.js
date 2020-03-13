@@ -5,19 +5,21 @@ const {
   useBabelRc
 } = require('customize-cra');
 
-const isDev = process.env.BROWSER === 'none';
+const isElectron = process.env.BROWSER === 'none';
+// TODO: You can customize your env
+// TODO: 这里你可以定制自己的env
 const isProd = process.env.ENV === 'production';
 
 const sourceMap = () => config => {
-  config.devtool = isProd ? 'cheap-module-source-map' : 'cheap-module-eval-source-map'
-  console.log("mode", config.mode, isProd, config.devtool);
-
+  // TODO: Please use 'source-map' in production environment
+  // TODO: 建议上发布环境用 'source-map'
+  config.devtool = isProd ? 'source-map' : 'cheap-module-eval-source-map'
   return config;
 }
 
 module.exports = override(
   sourceMap(),
-  isDev && addWebpackExternals({
+  isElectron && addWebpackExternals({
     "agora-electron-sdk": "commonjs2 agora-electron-sdk"
   }),
   addBabelPlugins(

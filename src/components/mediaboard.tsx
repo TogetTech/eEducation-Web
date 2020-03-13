@@ -22,7 +22,7 @@ import { platform } from '../utils/platform';
 import AgoraWebClient, { SHARE_ID } from '../utils/agora-rtc-client';
 import "white-web-sdk/style/index.css";
 import { ViewMode } from 'white-web-sdk';
-import { t } from './../utils/i18n';
+import { t } from './../i18n';
 
 const pathName = (path: string): string => {
   const reg = /\/([^/]*)\//g;
@@ -229,14 +229,14 @@ const MediaBoard: React.FC<MediaBoardProps> = ({
     if (current.type === 'dynamic') {
       if (_idx > current.currentPage) {
         room.pptNextStep();
-        console.log("room.pptNextStep");
+        // console.log("room.pptNextStep");
       } else {
         room.pptPreviousStep();
-        console.log("room.pptPreviousStep");
+        // console.log("room.pptPreviousStep");
       }
     } else {
       room.setSceneIndex(_idx);
-      console.log("room.setSceneIndex", _idx);
+      // console.log("room.setSceneIndex", _idx);
     }
     whiteboard.updateRoomState();
   }
@@ -249,7 +249,7 @@ const MediaBoard: React.FC<MediaBoardProps> = ({
       }
     }
     return false;
-  }, []);
+  }, [location, me.role]);
 
 const items = [
   {
@@ -384,7 +384,8 @@ const items = [
       lock.current = true;
       whiteboard.join({
         rid: roomStore.state.course.rid,
-        uid: me.boardId,
+        uid: roomStore.state.boardId,
+        boardToken: roomStore.state.boardToken,
         location: location.pathname,
         userPayload: {
           userId: roomStore.state.me.uid,
@@ -399,26 +400,27 @@ const items = [
       })
     }
 
-    if (!lock.current && course.boardId && me.boardId !== course.boardId && whiteboard.state.room) {
-      lock.current = true;
-      whiteboard.join({
-        rid: roomStore.state.course.rid,
-        uid: course.boardId,
-        location: location.pathname,
-        userPayload: {
-          userId: roomStore.state.me.uid,
-          identity: roomStore.state.me.role === 'teacher' ? 'host' : 'guest'
-        }
-      })
-      .then(() => {
-        console.log("rejoin whiteboard success");
-      }).catch(console.warn)
-      .finally(() => {
-        lock.current = false;
-      })
-    }
+    // if (!lock.current && course.boardId && me.boardId !== course.boardId && whiteboard.state.room) {
+    //   lock.current = true;
+    //   whiteboard.join({
+    //     rid: roomStore.state.course.rid,
+    //     uid: course.boardId,
+    //     boardToken: me.boardToken as string,
+    //     location: location.pathname,
+    //     userPayload: {
+    //       userId: roomStore.state.me.uid,
+    //       identity: roomStore.state.me.role === 'teacher' ? 'host' : 'guest'
+    //     }
+    //   })
+    //   .then(() => {
+    //     console.log("rejoin whiteboard success");
+    //   }).catch(console.warn)
+    //   .finally(() => {
+    //     lock.current = false;
+    //   })
+    // }
 
-  }, [rtmState.joined, me.boardId, course.boardId]);
+  }, [rtmState.joined, roomStore.state.boardId, roomStore.state.boardToken]);
 
   const [uploadPhase, updateUploadPhase] = useState<string>('');
   const [convertPhase, updateConvertPhase] = useState<string>('');

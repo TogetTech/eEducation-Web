@@ -30,6 +30,10 @@ export class CustomStorage {
     return {language};
   }
 
+  isChinese() {
+    return (this.getLanguage().language as string).match(/^zh/) ? 'zh-CN' : 'en';
+  }
+
   getRtmMessage (): {count: any, messages: any[]} {
     const channelMessages = GlobalStorage.read('channelMessages');
     if (isEmpty(channelMessages)) return {

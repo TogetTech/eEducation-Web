@@ -300,12 +300,14 @@ export default class AgoraWebClient {
   public joined: boolean;
   public published: boolean;
   public tmpStream: any;
+  public appId: string;
 
   private roomStore: RoomStore;
 
   constructor(deps: {roomStore: RoomStore}) {
     this.localUid = 0;
     this.channel = '';
+    this.appId = '';
     this.rtc = new AgoraRTCClient();
     this.bus = new EventEmitter();
     this.shared = false;
@@ -334,8 +336,10 @@ export default class AgoraWebClient {
   }
 
   async joinChannel({
+    appId,
     uid, channel, dual, token
   }: {
+    appId: string,
     uid: number,
     channel: string,
     dual: boolean,
@@ -343,7 +347,8 @@ export default class AgoraWebClient {
   }) {
     this.localUid = uid;
     this.channel = channel;
-    await this.rtc.createClient(APP_ID, true);
+    this.appId = appId
+    await this.rtc.createClient(appId, true);
     await this.rtc.join(this.localUid, channel, token);
     dual && await this.rtc.enableDualStream();
     this.joined = true;
@@ -393,7 +398,7 @@ export default class AgoraWebClient {
       microphoneId: '',
       cameraId: ''
     })
-    await this.shareClient.createClient(APP_ID);
+    await this.shareClient.createClient(this.appId);
     await this.shareClient.join(SHARE_ID, this.channel, token);
     await this.shareClient.publish();
     this.shared = true;

@@ -65,7 +65,8 @@ export default class AgoraRTMClient {
     this._currentChannel = null;
     this._currentChannelName = null;
     this._channelAttrsKey = null;
-    this._client = AgoraRTM.createInstance(APP_ID, { enableLogUpload: ENABLE_LOG, logFilter });
+    this._client = null
+    // this._client = AgoraRTM.createInstance(APP_ID, { enableLogUpload: ENABLE_LOG, logFilter });
   }
 
   public removeAllListeners(): any {
@@ -92,15 +93,22 @@ export default class AgoraRTMClient {
     this._bus.off(evtName, cb);
   }
 
-  async login (uid: string, token?: string) {
-    await this._client.login({uid, token});
-    this._client.on("ConnectionStateChanged", (newState: string, reason: string) => {
-      this._bus.emit("ConnectionStateChanged", {newState, reason});
-    });
-    this._client.on("MessageFromPeer", (message: any, peerId: string, props: any) => {
-      this._bus.emit("MessageFromPeer", {message, peerId, props});
-    });
-    this._logged = true;
+  async login (appID: string, uid: string, token?: string) {
+    const rtmClient = AgoraRTM.createInstance(appID, { enableLogUpload: ENABLE_LOG, logFilter });
+    try {
+      await rtmClient.login({uid, token});
+      rtmClient.on("ConnectionStateChanged", (newState: string, reason: string) => {
+        this._bus.emit("ConnectionStateChanged", {newState, reason});
+      });
+      rtmClient.on("MessageFromPeer", (message: any, peerId: string, props: any) => {
+        this._bus.emit("MessageFromPeer", {message, peerId, props});
+      });
+      this._client = rtmClient
+      this._logged = true;
+    } catch(err) {
+      rtmClient.removeAllListeners()
+      throw err
+    }
     return
   }
 

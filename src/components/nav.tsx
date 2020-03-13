@@ -13,7 +13,7 @@ import { isElectron, platform } from '../utils/platform';
 import { useRoomState } from '../containers/root-container';
 import { roomStore } from '../stores/room';
 import { globalStore } from '../stores/global';
-import { t } from '../utils/i18n';
+import { t } from '../i18n';
 
 const networkQualityIcon: {[key: string]: string} = {
   'excellent': 'network-good',

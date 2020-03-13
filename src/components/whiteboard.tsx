@@ -2,7 +2,7 @@ import React, {useEffect, useRef} from 'react';
 import './whiteboard.scss';
 import { Room } from 'white-web-sdk';
 import { whiteboard } from '../stores/whiteboard';
-import { t } from './../utils/i18n';
+import { t } from './../i18n';
 import { Progress } from '../components/progress/progress';
 
 interface WhiteBoardProps {

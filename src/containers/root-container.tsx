@@ -5,7 +5,7 @@ import { WhiteboardState, whiteboard } from '../stores/whiteboard';
 import { useHistory, useLocation } from 'react-router-dom';
 import { resolveMessage, resolvePeerMessage, resolveChannelAttrs, jsonParse } from '../utils/helper';
 import GlobalStorage from '../utils/custom-storage';
-import { t } from '../utils/i18n';
+import { t } from '../i18n';
 
 export type IRootProvider = {
   globalState: GlobalState
