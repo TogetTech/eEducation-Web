@@ -84,8 +84,8 @@ const en = {
     'missing_your_name': 'missing your name',
     'missing_password': 'missing password',
     'missing_role': 'missing role',
-    'account': 'nickname',
-    'password': 'password',
+    'account': 'Name',
+    'password': 'Password',
   },
   'room': {
     'chat_room': 'Chat Room',
