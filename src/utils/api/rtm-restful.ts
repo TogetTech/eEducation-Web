@@ -102,6 +102,8 @@ export class RTMRestful {
     return messages;
   }
 
+  // NOTE: 请按照开发者自己的业务后台api接入逻辑修改
+  // 修改以后的返回结果会影响rtm-player.tsx里的 serializeMessage参数
   async getAllChannelMessages(params: QueryChannelMessage) {
     let count = await this.fetchChannelMessageCount(params);
     if (count === 0) {

@@ -61,6 +61,7 @@ const RtmPlayer = ({currentSeekTime, senderId, ...props}: RtmReplayProps) => {
     }
   }, [loading]);
 
+  // NOTE: 这里是把getAllChannelMessages返回的结果反序列化成回放组件里需要的结构
   const serializeMessage = (item: any) => {
     const {account, content, link} = JSON.parse(item.payload);
     return {
