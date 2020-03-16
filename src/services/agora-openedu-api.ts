@@ -4,9 +4,7 @@ import { getIntlError, setIntlError } from "./i18n-error";
 
 const AUTHORIZATION_KEY: string = process.env.REACT_APP_AGORA_OPEN_EDU_AUTH_KEY as string;
 
-const PREFIX = process.env.ENV === 'production' ? process.env.REACT_APP_AGORA_OPEN_EDU_API as string :
-//  process.env.REACT_APP_AGORA_OPEN_EDU_API as string;
-'';
+const PREFIX = process.env.REACT_APP_AGORA_OPEN_EDU_API as string;
 
 interface AgoraFetchJsonInit {
   url: string
