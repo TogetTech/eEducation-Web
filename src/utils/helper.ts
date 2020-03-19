@@ -5,7 +5,8 @@ import OSS from 'ali-oss';
 export interface OSSConfig {
   accessKeyId: string,
   accessKeySecret: string,
-  region: string,
+  // region: string,
+  endpoint: string,
   bucket: string,
   folder: string,
 }
@@ -14,7 +15,8 @@ export const ossConfig: OSSConfig = {
   "accessKeyId": process.env.REACT_APP_AGORA_OSS_BUCKET_KEY as string,
   "accessKeySecret": process.env.REACT_APP_AGORA_OSS_BUCKET_SECRET as string,
   "bucket": process.env.REACT_APP_AGORA_OSS_BUCKET_NAME as string,
-  "region": process.env.REACT_APP_AGORA_OSS_BUCKET_REGION as string,
+  "endpoint": process.env.REACT_APP_AGORA_CDN_URL as string,
+  // "region": process.env.REACT_APP_AGORA_OSS_BUCKET_REGION as string,
   "folder": process.env.REACT_APP_AGORA_OSS_BUCKET_FOLDER as string
 }
 
