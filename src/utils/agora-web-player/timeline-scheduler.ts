@@ -63,9 +63,9 @@ export class TimelineScheduler extends EventEmitter {
   }
 
   public start () {
-    if (this.state === 'started') {
-      return this.log.warn('Please stop previous scheduler')
-    }
+    // if (this.state === 'started') {
+    //   return this.log.warn('Please stop previous scheduler')
+    // }
     this._visibilityHandler = (evt: any) => {
       if(document.hidden) {
         this.log.warn('switch raf to setTimeout', Date.now())
@@ -122,7 +122,7 @@ export class TimelineScheduler extends EventEmitter {
   }
 
   public stop () {
-    if (this.state !== 'started') return
+    // if (this.state !== 'started') return
 
     this.state = 'paused'
 
@@ -149,6 +149,7 @@ export class TimelineScheduler extends EventEmitter {
 
     if (this.state === 'ended') {
       this.currentTime = this.startTime
+      console.log("use startTime as currentTime")
     }
 
     this.emit('seek-changed', this.currentDuration)

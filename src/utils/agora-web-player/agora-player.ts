@@ -85,7 +85,7 @@ export class AgoraPlayer extends EventEmitter {
     this.phaseState = 'init'
     this.on('phaseChanged', (phaseState: any) => {
       callback.onPhaseChanged(phaseState)
-      this.log.info('phaseChanged', phaseState)
+      // this.log.info('phaseChanged', phaseState)
     })
   }
 
@@ -150,7 +150,6 @@ export class AgoraPlayer extends EventEmitter {
 
   seekTo(seconds: number) {
     const duration = this.player.duration()
-    // console.log("duration", duration, seconds, this.player.ended())
     if (this.player.ended() && seconds !== 0) return
     this.player.currentTime(Math.min(seconds, duration))
   }

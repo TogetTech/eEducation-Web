@@ -1,14 +1,38 @@
 import React, { useEffect, useMemo, useRef, useCallback, useState } from 'react';
 import "video.js/dist/video-js.css";
 import './replay.scss';
+import { WhiteboardAPI, RTMRestful } from '../utils/api';
+import { whiteboard } from '../stores/whiteboard';
 import Slider from '@material-ui/core/Slider';
 import { Subject, Scheduler } from 'rxjs';
 import { useParams, useLocation, Redirect } from 'react-router';
 import moment from 'moment';
 import { Progress } from '../components/progress/progress';
-import { getOSSUrl } from '../utils/helper';
+import { RTMReplayer, RtmPlayerState } from '../components/whiteboard/agora/rtm-player';
 import { t } from '../i18n';
 import {AgoraPlayer, PhaseState, TimelineScheduler} from '../utils/agora-web-player/agora-player';
+import { globalStore } from '../stores/global';
+import { PlayerPhase } from 'white-web-sdk';
+
+interface IObserver<T> {
+  subscribe: (setState: (state: T) => void) => void
+  unsubscribe: () => void
+  defaultState: T
+}
+
+function useObserver<T>(store: IObserver<T>) {
+  const [state, setState] = React.useState<T>(store.defaultState);
+  React.useEffect(() => {
+    store.subscribe((state: any) => {
+      setState(state);
+    });
+    return () => {
+      store.unsubscribe();
+    }
+  }, []);
+
+  return state;
+}
 
 
 export interface IPlayerState {
@@ -16,51 +40,54 @@ export interface IPlayerState {
   duration: number
   roomToken: string
   mediaURL: string
-  isPlaying: boolean
   progress: number
-  player: any
 
   currentTime: number
   phase: any
-  isFirstScreenReady: boolean
-  isPlayerSeeking: boolean
   seenMessagesLength: number
-  isChatOpen: boolean
-  isVisible: boolean
-  replayFail: boolean
+  player: any
+  timelineScheduler: any
+  videoPlayer: any
 }
 
-export const defaultState: IPlayerState = {
+export const defaultState: IPlayerState = Object.freeze({
   beginTimestamp: 0,
   duration: 0,
   roomToken: '',
   mediaURL: '',
-  isPlaying: false,
   progress: 0,
-  player: null,
 
   currentTime: 0,
-  phase: 'init',
-  isFirstScreenReady: false,
-  isPlayerSeeking: false,
+  phase: 'waiting',
   seenMessagesLength: 0,
-  isChatOpen: false,
-  isVisible: false,
-  replayFail: false,
-}
+  player: null,
+  videoPlayer: null,
+  timelineScheduler: null
+})
 
 class ReplayStore {
   public subject: Subject<IPlayerState> | null;
-  public state: IPlayerState | null;
+  private _state: IPlayerState | null;
+  public defaultState: IPlayerState = defaultState;
 
   constructor() {
     this.subject = null;
-    this.state = null;
+    this._state = {
+      ...this.defaultState
+    };
+  }
+
+  get state () {
+    return this._state
+  }
+
+  set state(newState) {
+    this._state = newState
   }
 
   initialize() {
     this.subject = new Subject<IPlayerState>();
-    this.state = defaultState;
+    this.state = {...this.defaultState};
     this.subject.next(this.state);
   }
 
@@ -79,7 +106,7 @@ class ReplayStore {
     this.subject && this.subject.next(state);
   }
 
-  updatePhase(phase: any) {
+  updatePlayState(phase: any) {
     if (!this.state) return
 
     this.state = {
@@ -107,43 +134,203 @@ class ReplayStore {
     }
     this.commit(this.state);
   }
+
+  addWhiteboardPlayer(player: any) {
+    if (!this.state) return
+    this.state = {
+      ...this.state,
+      player: player
+    }
+    this.commit(this.state)
+  }
+
+  addVideoPlayer(player: any) {
+    if (!this.state) return
+    this.state = {
+      ...this.state,
+      videoPlayer: player
+    }
+    this.commit(this.state)
+  }
+
+  addTimeline(scheduler: any) {
+    if (!this.state) return
+    this.state = {
+      ...this.state,
+      timelineScheduler: scheduler
+    }
+    this.commit(this.state)
+  }
+
+  async joinRoom(_uuid: string) {
+    return await WhiteboardAPI.joinRoom(_uuid);
+  }
 }
 
 const store = new ReplayStore();
+
+//@ts-ignore
+window.replayStore = store
 
 const ReplayContext = React.createContext({} as IPlayerState);
 
 const useReplayContext = () => React.useContext(ReplayContext);
 
 const ReplayContainer: React.FC<{}> = () => {
-  const [state, setState] = React.useState<IPlayerState>(defaultState)
+  const replayState = useObserver<IPlayerState>(store)
 
   const location = useLocation()
   const {startTime, endTime} = useParams()
   const searchParams = new URLSearchParams(location.search)
+  const uuid = searchParams.get("uuid") as string
   const url = searchParams.get("url") as string
+  const rid = searchParams.get("rid") as string
+  const senderId = searchParams.get("senderId") as string
 
-  React.useEffect(() => {
-    store.subscribe((state: any) => {
-      setState(state);
-    });
-    return () => {
-      store.unsubscribe();
+  const value = replayState;
+
+  console.log("replayState ", value)
+
+  // const [playState, updatePlayState] = useState<string>('paused')
+
+  useEffect(() => {
+
+    const startTimestamp: number = +(startTime as string)
+    const endTimestamp: number = +(endTime as string)
+    const duration = Math.abs(endTimestamp - startTimestamp)
+
+    const initPlayer = async () => {
+      const videoPlayer = new AgoraPlayer(url, {
+        onPhaseChanged: state => {
+          console.log("[agore-replay phase] video phase ", state)
+          if (state === 'ready') {
+            store.updatePlayState('ready')
+          }
+
+          if (state !== 'playing') {
+            store.state?.timelineScheduler.stop();
+            console.log("[agore-replay phase] timeline stop in video phase ")
+          }
+        }
+      })
+  
+      //@ts-ignore
+      window.videoPlayer = videoPlayer
+      store.addVideoPlayer(videoPlayer)
+      console.log("state", replayState.videoPlayer)
+  
+      const timeline = new TimelineScheduler(30, (args: any) => {
+        store.setCurrentTime(args.duration)
+        store.updateProgress(args.progress)
+      }, startTimestamp, endTimestamp)
+  
+      timeline.on('seek-changed', (duration: number) => {
+        if (store.state && store.state.videoPlayer && store.state.player) {
+          if (duration / 1000 < store.state.videoPlayer.player.duration()) {
+            store.state.videoPlayer.seekTo(duration / 1000)
+            store.state.player.seekToScheduleTime(duration)
+          }
+        }
+      })
+  
+      timeline.on("state-changed", async (state: any) => {
+        console.log("[agore-replay phase] timeline " ,state, 'store is not empty?: ', store.state !== null)
+        if (store.state && store.state.videoPlayer && store.state.player) {
+          if (state === 'started') {
+            store.state.videoPlayer.play()
+            store.state.player.play()
+            store.updatePlayState('playing')
+          } else {
+            store.state.videoPlayer.pause()
+            store.state.player.pause()
+            store.updatePlayState('paused')
+          }
+        }
+      })
+      store.addTimeline(timeline)
+
+
+      if (uuid) {
+        let {roomToken} = await store.joinRoom(uuid)
+        console.log("roomTOken", roomToken)
+        let player = await WhiteboardAPI.replayRoom(whiteboard.client, {
+          beginTimestamp: startTimestamp,
+          duration: duration,
+          room: uuid,
+          roomToken,
+        },  {
+          onCatchErrorWhenRender: error => {
+            error && console.warn(error);
+            globalStore.showToast({
+              message: t('toast.replay_failed'),
+              type: 'notice'
+            });
+          },
+          onCatchErrorWhenAppendFrame: error => {
+            error && console.warn(error);
+            globalStore.showToast({
+              message: t('toast.replay_failed'),
+              type: 'notice'
+            });
+          },
+          onPhaseChanged: phase => {
+            console.log("[agore-replay phase] whiteboard ", phase)
+
+            let whiteboardPlayStatus = 'ready';
+
+            if (phase === PlayerPhase.Playing) {
+              whiteboardPlayStatus = 'playing'
+            } else if (phase === PlayerPhase.Pause ||
+              phase === PlayerPhase.Ended ||
+              phase === PlayerPhase.WaitingFirstFrame) {
+              whiteboardPlayStatus = 'paused'
+              store.state?.timelineScheduler.stop()
+            } else {
+              whiteboardPlayStatus = 'waiting'
+            }
+            store.updatePlayState(whiteboardPlayStatus)
+          },
+          onStoppedWithError: (error) => {
+            error && console.warn(error);
+            globalStore.showToast({
+              message: t('toast.replay_failed'),
+              type: 'notice'
+            });
+          },
+          // onScheduleTimeChanged: (scheduleTime) => {
+          //   console.log(scheduleTime)
+          //   store.setCurrentTime(scheduleTime);
+          // }
+        })
+        store.addWhiteboardPlayer(player)
+        console.log("[agore-replay phase] join whiteboard")
+      }
     }
-  }, []);
 
-  if (!startTime || !endTime || !url) {
+    initPlayer()
+  }, [])
+
+
+  useEffect(() => {
+    console.log("phase", value.phase)
+  }, [value])
+
+  if (!startTime || !endTime || !url || !rid || !uuid) {
     return <Redirect to="/404"></Redirect>
   }
-
-  const value = state;
 
   return (
     <ReplayContext.Provider value={value}>
       <TimelineReplay
+        senderId={senderId}
         startTime={+startTime}
         endTime={+endTime}
         mediaUrl={url}
+        rid={rid}
+        player={value.player}
+        videoPlayer={value.videoPlayer}
+        timelineScheduler={value.timelineScheduler}
+        playState={value.phase}
       />
     </ReplayContext.Provider>
   )
@@ -151,84 +338,69 @@ const ReplayContainer: React.FC<{}> = () => {
 
 export default ReplayContainer;
 
-export type TimelineReplayProps = {
-  startTime: number
-  endTime: number
-  mediaUrl: string
-}
-
-export const TimelineReplay: React.FC<TimelineReplayProps> = ({
+export const TimelineReplay: React.FC<any> = ({
   startTime,
   endTime,
-  mediaUrl
+  mediaUrl,
+  rid,
+  videoPlayer,
+  player,
+  timelineScheduler,
+  senderId,
+  playState
 }) => {
   const state = useReplayContext()
 
-  const videoPlayer = useState<AgoraPlayer>(() => new AgoraPlayer(mediaUrl, {
-    onPhaseChanged: state => {
-      console.log("video phaseState", state)
-      // updatePhase(state)
-      store.updatePhase(state);
-    }
-  }))[0]
-
-  const timeLinePlayer = useState<TimelineScheduler>(() => {
-    const timeline = new TimelineScheduler(30, (args: any) => {
-      store.setCurrentTime(args.duration)
-      store.updateProgress(args.progress)
-    }, startTime, endTime)
-
-    timeline.on('seek-changed', (duration: number) => {
-      if (duration / 1000 < videoPlayer?.player.duration()) {
-        videoPlayer?.seekTo(duration / 1000)
-      }
-    })
-
-    timeline.on("state-changed", async (state: any) => {
-      if (state === 'started' ) {
-        videoPlayer?.play()
-      } else {
-        videoPlayer?.pause()
-      }
-    })
-
-    //@ts-ignore DEBUG ONLY
-    window.timeline = timeline
-    return timeline;
-  })[0]
-
   const playerElementRef = useRef<any>(null)
+  const whiteboardElementRef = useRef<any>(null)
+
+
+  const onWindowResize = () => {
+    if (state.player) {
+      state.player.refreshViewSize()
+    }
+  }
 
   useEffect(() => {
-    if (playerElementRef.current && videoPlayer) {
-      videoPlayer.initVideo(playerElementRef.current.id)
-      return () => {
-        videoPlayer.destroy()
+    if (playerElementRef.current) {
+      if (videoPlayer) {
+        videoPlayer.initVideo(playerElementRef.current.id)
+        return () => {
+          videoPlayer.destroy()
+        }
       }
     }
-  }, [playerElementRef, videoPlayer])
+  }, [videoPlayer, playerElementRef])
 
-  const [playState, updatePlayState] = useState<string>('paused')
+  useEffect(() => {
+    if (whiteboardElementRef.current) {
+      if (player) {
+        console.log("bind", player)
+        player.bindHtmlElement(whiteboardElementRef.current as HTMLDivElement);
+        window.addEventListener('resize', onWindowResize);
+        return () => {
+          window.removeEventListener('resize', onWindowResize);
+        }
+      }
+    }
+  }, [player, whiteboardElementRef])
 
   const handlePlayerClick = () => {
-    if (!store.state || !videoPlayer) return;
+    if (!store.state || !videoPlayer || !timelineScheduler) return;
 
-    if (timeLinePlayer.state === 'paused') {
-      timeLinePlayer.start()
-      updatePlayState('start')
+    if (timelineScheduler.state === 'paused') {
+      timelineScheduler.start()
       return
     }
 
-    if (timeLinePlayer.state === 'started') {
-      timeLinePlayer.stop()
-      updatePlayState('paused')
+    if (timelineScheduler.state === 'started') {
+      timelineScheduler.stop()
       return
     }
 
-    if (timeLinePlayer.state === 'ended') {
-      timeLinePlayer.seekTo(0)
-      timeLinePlayer.start()
-      updatePlayState('start')
+    if (timelineScheduler.state === 'ended') {
+      timelineScheduler.seekTo(0)
+      // timelineScheduler.start()
       return
     }
   }
@@ -253,20 +425,40 @@ export const TimelineReplay: React.FC<TimelineReplayProps> = ({
   }, [state.currentTime]);
 
   const PlayerCover = useCallback(() => {
-    if (!videoPlayer) {
+
+    document.title = playState
+
+    if (!videoPlayer || !player || playState === 'waiting' || playState === 'loading') {
       return (<Progress title={t("replay.loading")} />)
     }
 
-    if (playState === 'start') return null;
+    if (playState === 'playing') return null;
 
     return (
       <div className="player-cover">
-        {videoPlayer.phaseState === 'loading' ? <Progress title={t("replay.loading")} />: null}
-        {videoPlayer.phaseState === 'paused' || 'ended' || 'waiting' ? 
+        {playState !== 'playing' ? 
           <div className="play-btn" onClick={handlePlayerClick}></div> : null}
       </div>
     )
-  }, [videoPlayer, playState]);
+  }, [videoPlayer, player, playState]);
+
+  const onMouseDown = () => {
+    if (timelineScheduler) {
+      console.log("seek to replay. down")
+      timelineScheduler.stop()
+      store.updatePlayState('paused')
+    }
+  }
+
+  const onMouseUp = () => {
+    if (timelineScheduler) {
+      console.log("seek to replay. up")
+      timelineScheduler.seekTo(state.currentTime)
+      // timelineScheduler.start(
+      
+      // store.updatePlayState('playing')
+    }
+  }
 
   return (
     <div className="replay">
@@ -274,24 +466,17 @@ export const TimelineReplay: React.FC<TimelineReplayProps> = ({
         <PlayerCover />
         <div className="player">
           <div className="agora-logo"></div>
-          <div id="whiteboard" className="whiteboard"></div>
+          <div ref={whiteboardElementRef} id="whiteboard" className="whiteboard"></div>
           <div className="video-menu">
             <div className="control-btn">
-              <div className={`btn ${playState === 'start' ? 'paused' : 'play'}`} onClick={handlePlayerClick}></div>
+              <div className={`btn ${playState === 'playing' ? 'paused' : 'play'}`} onClick={handlePlayerClick}></div>
             </div>
             <div className="progress">
               <Slider
                 className='custom-video-progress'
                 value={state.currentTime}
-                onMouseDown={() => {
-                  timeLinePlayer.stop()
-                  updatePlayState('paused')
-                }}
-                onMouseUp={() => {
-                  timeLinePlayer.seekTo(state.currentTime)
-                  timeLinePlayer.start()
-                  updatePlayState('start')
-                }}
+                onMouseDown={onMouseDown}
+                onMouseUp={onMouseUp}
                 onChange={handleChange}
                 min={0}
                 max={duration}
@@ -309,6 +494,20 @@ export const TimelineReplay: React.FC<TimelineReplayProps> = ({
       <div className="video-container">
         <div className="video-player">
           <div ref={playerElementRef} id="player" style={{width: "100%", height: "100%", objectFit: "cover"}}></div>
+        </div>
+        <div className="chat-holder chat-board chat-messages-container">
+          <RTMReplayer
+            senderId={senderId}
+            rid={rid}
+            startTime={startTime}
+            endTime={endTime}
+            currentSeekTime={state.currentTime}
+            onPhaseChanged={(e: RtmPlayerState) => {
+              if (e !== RtmPlayerState.load) {
+                timelineScheduler?.stop();
+              }
+            }}
+          ></RTMReplayer>
         </div>
       </div>
     </div>

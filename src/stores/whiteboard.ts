@@ -14,6 +14,7 @@ import { globalStore } from './global';
 import { t } from '../i18n';
 
 const ENABLE_LOG = process.env.REACT_APP_AGORA_LOG === 'true';
+const OSS_PREFIX = process.env.REACT_APP_AGORA_RECORDING_OSS_URL as string;
 const RECORDING_UID = 1;
 
 interface SceneFile {
@@ -421,6 +422,9 @@ class Whiteboard extends EventEmitter {
       recording: true,
       startTime: +Date.now(),
     };
+    roomStore.updateRecording({
+      startTime: this.state.startTime
+    })
     this.commit(this.state);
   }
 
@@ -434,6 +438,10 @@ class Whiteboard extends EventEmitter {
       recording: false,
       endTime: +Date.now(),
     };
+    roomStore.updateRecording({
+      endTime: this.state.endTime,
+      videoFullUrl: `${OSS_PREFIX}/${mediaUrl}`
+    })
     this.commit(this.state);
     return mediaUrl;
   }

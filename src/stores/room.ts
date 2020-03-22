@@ -127,6 +127,12 @@ export type RtmState = {
   memberCount: number
 }
 
+export type RoomRecording = {
+  videoFullUrl: string,
+  startTime: number,
+  endTime: number
+}
+
 export type RoomState = {
   rtmLock: boolean
   rtmToken: string
@@ -140,6 +146,7 @@ export type RoomState = {
   mediaDevice: MediaDeviceState
   messages: List<ChatMessage>
   language: string
+  recording: RoomRecording
 }
 
 export type AgoraMediaStream = {
@@ -600,6 +607,19 @@ export class RoomStore {
         await this.rtmClient.sendPeerMessage(`${uid}`, { cmd: RoomMessage.unmuteBoard });
       }
     }
+  }
+
+  updateRecording(recordState: Partial<RoomRecording>) {
+    if (!this.state) return
+
+    this.state = {
+      ...this.state,
+      recording: {
+        ...this.state.recording,
+        ...recordState
+      }
+    }
+    this.commit(this.state)
   }
 
   async loginAndJoin(payload: any, pass: boolean = false) {
