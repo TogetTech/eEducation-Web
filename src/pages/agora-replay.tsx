@@ -217,7 +217,6 @@ const ReplayContainer: React.FC<{}> = () => {
       //@ts-ignore
       window.videoPlayer = videoPlayer
       store.addVideoPlayer(videoPlayer)
-      console.log("state", replayState.videoPlayer)
   
       const timeline = new TimelineScheduler(30, (args: any) => {
         store.setCurrentTime(args.duration)
@@ -252,7 +251,6 @@ const ReplayContainer: React.FC<{}> = () => {
 
       if (uuid) {
         let {roomToken} = await store.joinRoom(uuid)
-        console.log("roomTOken", roomToken)
         let player = await WhiteboardAPI.replayRoom(whiteboard.client, {
           beginTimestamp: startTimestamp,
           duration: duration,
@@ -296,11 +294,7 @@ const ReplayContainer: React.FC<{}> = () => {
               message: t('toast.replay_failed'),
               type: 'notice'
             });
-          },
-          // onScheduleTimeChanged: (scheduleTime) => {
-          //   console.log(scheduleTime)
-          //   store.setCurrentTime(scheduleTime);
-          // }
+          }
         })
         store.addWhiteboardPlayer(player)
         console.log("[agore-replay phase] join whiteboard")
@@ -400,7 +394,6 @@ export const TimelineReplay: React.FC<any> = ({
 
     if (timelineScheduler.state === 'ended') {
       timelineScheduler.seekTo(0)
-      // timelineScheduler.start()
       return
     }
   }
@@ -454,9 +447,6 @@ export const TimelineReplay: React.FC<any> = ({
     if (timelineScheduler) {
       console.log("seek to replay. up")
       timelineScheduler.seekTo(state.currentTime)
-      // timelineScheduler.start(
-      
-      // store.updatePlayState('playing')
     }
   }
 
