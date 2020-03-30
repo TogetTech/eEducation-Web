@@ -137,6 +137,8 @@ export const RootProvider: React.FC<any> = ({children}) => {
         link: msg.link,
         ts: +Date.now(),
         id: memberId,
+        //@ts-ignore
+        agora_link: msg.agora_link
       }
       console.log("[rtmClient] ChannelMessage", msg);
       const isChatroom = globalStore.state.active === 'chatroom';

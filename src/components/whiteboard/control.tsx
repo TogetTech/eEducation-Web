@@ -6,6 +6,7 @@ import moment from 'moment';
 import { globalStore } from '../../stores/global';
 import { getOSSUrl } from '../../utils/helper';
 import { t } from '../../i18n';
+import { Room } from 'white-web-sdk';
 interface ControlItemProps {
   name: string
   onClick: (evt: any, name: string) => void
@@ -94,17 +95,22 @@ export default function Control({
         if (whiteboard.state.endTime 
           && whiteboard.state.startTime) {
           const {endTime, startTime, roomUUID} = whiteboard.clearRecording();
+          const boardId = (whiteboard.state.room as Room).uuid
           await roomStore.rtmClient.sendChannelMessage(JSON.stringify({
             account: me.account,
             url: getOSSUrl(mediaUrl),
-            link: `/replay/${roomUUID}/${startTime}/${endTime}/${mediaUrl}`
+            link: `/replay/${roomUUID}/${startTime}/${endTime}/${mediaUrl}`,
+            startTime,
+            endTime,
+            agora_link: `/agora_replay/${startTime}/${endTime}?rid=${roomStore.state.course.rid}&uuid=${roomUUID}&url=${getOSSUrl(mediaUrl)}`
           }));
           const message = {
             account: me.account,
             id: me.uid,
             link: `/replay/${roomUUID}/${startTime}/${endTime}/${mediaUrl}`,
             text: '',
-            ts: +Date.now()
+            ts: +Date.now(),
+            agora_link: `/agora_replay/${startTime}/${endTime}?rid=${roomStore.state.course.rid}&uuid=${roomUUID}&url=${getOSSUrl(mediaUrl)}`
           }
           roomStore.updateChannelMessage(message);
           return;

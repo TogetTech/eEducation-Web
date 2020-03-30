@@ -6,6 +6,7 @@ interface MessageProps {
   nickname: string
   content: string
   link?: string
+  agora_link?: string
   sender?: boolean
   children?: any
   ref?: any
@@ -19,7 +20,8 @@ export const Message: React.FC<MessageProps> = ({
   sender,
   children,
   ref,
-  className
+  className,
+  agora_link
 }) => {
 
   const roomState = useRoomState();
@@ -32,13 +34,13 @@ export const Message: React.FC<MessageProps> = ({
             <Link to={`${link}?rid=${roomState.course.rid}&senderId=${roomState.me.uid}`} target="_blank">netless replayer</Link>
           </div>
           <div>
-            <Link to={`/agora_replay/${roomState.recording.startTime}/${roomState.recording.endTime}?rid=${roomState.course.rid}&uuid=${roomState.course.boardId}&senderId=${roomState.me.uid}&url=${roomState.recording.videoFullUrl}`} target="_blank">agora web replayer</Link>
+            <Link to={`${agora_link}&senderId=${roomState.me.uid}`} target="_blank">agora web replayer</Link>
           </div>
         </>
       )
     }
     return link ? link : content;
-  }, [content, link, roomState.course])
+  }, [content, link, agora_link , roomState.course, roomState.me.uid])
 
   return (
   <div ref={ref} className={`message ${sender ? 'sent': 'receive'} ${className ? className : ''}`}>

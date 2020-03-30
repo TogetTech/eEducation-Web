@@ -208,7 +208,7 @@ const ReplayContainer: React.FC<{}> = () => {
           }
 
           if (state !== 'playing') {
-            store.state?.timelineScheduler.stop();
+            // store.state?.timelineScheduler.stop();
             console.log("[agore-replay phase] timeline stop in video phase ")
           }
         }
@@ -239,6 +239,11 @@ const ReplayContainer: React.FC<{}> = () => {
             store.state.videoPlayer.play()
             store.state.player.play()
             store.updatePlayState('playing')
+          } else if (state === 'ended') {
+            store.state.videoPlayer.pause()
+            store.state.player.pause()
+            store.updatePlayState('ended')
+            console.log("set ended>>>", state)
           } else {
             store.state.videoPlayer.pause()
             store.state.player.pause()
@@ -382,18 +387,19 @@ export const TimelineReplay: React.FC<any> = ({
   const handlePlayerClick = () => {
     if (!store.state || !videoPlayer || !timelineScheduler) return;
 
-    if (timelineScheduler.state === 'paused') {
+    if (store.state.phase === 'paused' || store.state.phase === 'ready') {
       timelineScheduler.start()
       return
     }
 
-    if (timelineScheduler.state === 'started') {
+    if (store.state.phase === 'started' || store.state.phase === 'playing') {
       timelineScheduler.stop()
       return
     }
 
-    if (timelineScheduler.state === 'ended') {
+    if (store.state.phase === 'ended') {
       timelineScheduler.seekTo(0)
+      timelineScheduler.start()
       return
     }
   }
@@ -447,6 +453,7 @@ export const TimelineReplay: React.FC<any> = ({
     if (timelineScheduler) {
       console.log("seek to replay. up")
       timelineScheduler.seekTo(state.currentTime)
+      timelineScheduler.start()
     }
   }
 

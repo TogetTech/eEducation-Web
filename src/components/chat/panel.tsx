@@ -46,7 +46,7 @@ export default function ChatPanel ({
       <div className="chat-messages-container">
         <div className="chat-messages" ref={ref}>
           {messages.map((item: ChatMessage, key: number) => (
-            <Message key={key} nickname={item.account} content={item.text} link={item.link} sender={item.id === roomState.me.uid} />
+            <Message key={key} nickname={item.account} content={item.text} link={item.link} sender={item.id === roomState.me.uid} agora_link={item.agora_link} />
           ))}
         </div>   
       </div>

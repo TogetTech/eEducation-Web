@@ -2,6 +2,7 @@ export interface ChatMessage {
   account: string
   text: string
   link?: string
+  agora_link?: string
   ts: number
   id: string
 }
