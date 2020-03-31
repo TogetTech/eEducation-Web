@@ -18,6 +18,7 @@ import {get, isEmpty} from 'lodash';
 import moment from 'moment';
 import './entry-home.scss';
 import { eduApi } from '../services/edu-api';
+import Log from '../utils/LogUploader';
 
 const useStyles = makeStyles ((theme: Theme) => ({
   formControl: {
@@ -52,6 +53,20 @@ function HomePage({type: roomType, roomId, title, startTime, endTime, role}: Hom
 
   const handleSetting = (evt: any) => {
     history.push({pathname: `/device_test`});
+  }
+
+  const [lock, setLock] = useState<boolean>(false);
+
+  const handleUpload = (evt: any) => {
+    setLock(true)
+    Log.doUpload().then((resultCode: any) => {
+      globalStore.showDialog({
+        type: 'uploadLog',
+        message: t('toast.show_log_id', {reason: `${resultCode}`})
+      });
+    }).finally(() => {
+      setLock(false)
+    })
   }
 
   const {
@@ -146,7 +161,10 @@ function HomePage({type: roomType, roomId, title, startTime, endTime, role}: Hom
             <span className="build-version">{t("build_version")}</span>
           </div>
           <div className="setting-container">
-            <Icon className="icon-setting" onClick={handleSetting}/>
+            <div className="flex-row">
+              <Icon className={lock ? "icon-loading" : "icon-upload"} onClick={handleUpload}></Icon>
+              <Icon className="icon-setting" onClick={handleSetting}/>
+            </div>
             <LangSelect
             value={GlobalStorage.getLanguage().language.match(/^zh/) ? 0 : 1 }
             onChange={(evt: any) => {

@@ -15,6 +15,7 @@ const zhCN: any = {
     'loading': '加载中...',
   },
   'toast': {
+    'show_log_id': `请提供你的日志ID: {no}`,
     'api_login_failured': '房间加入失败, 原因: {reason}',
     'confirm': '确定',
     'cancel': '取消',

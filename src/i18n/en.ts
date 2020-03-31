@@ -15,6 +15,7 @@ const en = {
     'loading': 'Loading...',
   },
   'toast': {
+    'show_log_id': `Report your log ID: {reason}`,
     'api_login_failured': 'Join Failured, Reason: {reason}',
     'confirm': 'Confirm',
     'cancel': 'Cancel',

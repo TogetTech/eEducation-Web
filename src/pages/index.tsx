@@ -15,10 +15,7 @@ import SmallClass from './classroom/small-class';
 import OneToOne from './classroom/one-to-one';
 import BigClass from './classroom/big-class';
 import { PageNotFound } from './404';
-import {eduApi} from '../services/edu-api';
-
-//@ts-ignore
-window.eduApi = eduApi
+import RoomDialog from '../components/dialog'
 
 export default function () {
   return (
@@ -28,6 +25,7 @@ export default function () {
         <RootProvider>
           <Loading />
           <Toast />
+          <RoomDialog />
           <Route path="/entry/:roomId/:role">
             <EntryHome />
           </Route>

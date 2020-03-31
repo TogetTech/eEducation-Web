@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { GlobalState, globalStore} from '../stores/global';
-import { RoomState, roomStore} from '../stores/room';
+import { RoomState, roomStore, AGORA_ROOM_KEY} from '../stores/room';
 import {ErrorState, errorStore} from '../pages/error-page/state';
 import { WhiteboardState, whiteboard } from '../stores/whiteboard';
 import { useHistory, useLocation } from 'react-router-dom';
@@ -188,7 +188,7 @@ export const RootProvider: React.FC<any> = ({children}) => {
     }
 
     const room = value.roomState;
-    GlobalStorage.save('agora_room', {
+    GlobalStorage.save(AGORA_ROOM_KEY, {
       me: room.me,
       course: room.course,
       mediaDevice: room.mediaDevice,

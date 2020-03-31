@@ -106,6 +106,13 @@ body {
   flex-direction: column;
 }
 
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  width: 65px;
+  justify-content: space-between;
+}
+
 .cover {
   max-width: 350px;
   min-width: 350px;

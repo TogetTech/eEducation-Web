@@ -2,13 +2,26 @@ const {
   override,
   addBabelPlugins,
   addWebpackExternals,
-  useBabelRc
+  useBabelRc,
+  addWebpackModuleRule,
 } = require('customize-cra');
 
 const isElectron = process.env.BROWSER === 'none';
 // TODO: You can customize your env
 // TODO: 这里你可以定制自己的env
 const isProd = process.env.ENV === 'production';
+
+const webWorkerConfig = () => config => {
+  config.optimization = {
+    ...config.optimization,
+    noEmitOnErrors: false,
+  }
+  config.output = {
+    ...config.output,
+    globalObject: 'this'
+  }
+  return config;
+}
 
 const sourceMap = () => config => {
   // TODO: Please use 'source-map' in production environment
@@ -19,6 +32,11 @@ const sourceMap = () => config => {
 
 module.exports = override(
   sourceMap(),
+  webWorkerConfig(),
+  addWebpackModuleRule({
+    test: /\.worker\.js$/,
+    use: { loader: 'worker-loader' },
+  }),
   isElectron && addWebpackExternals({
     "agora-electron-sdk": "commonjs2 agora-electron-sdk"
   }),

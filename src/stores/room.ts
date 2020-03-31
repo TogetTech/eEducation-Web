@@ -13,6 +13,8 @@ import { t } from '../i18n';
 import { eduApi, UserAttrsParams } from '../services/edu-api';
 import {genUUID} from '../utils/api';
 
+export const AGORA_ROOM_KEY = 'agora_welfare_room';
+
 export interface NotifyFlag {
   broad: boolean
 }
@@ -217,7 +219,7 @@ export class RoomStore {
     },
     messages: List<ChatMessage>(),
     language: navigator.language,
-    ...GlobalStorage.read('agora_room')
+    ...GlobalStorage.read(AGORA_ROOM_KEY)
   });
 
   public windowId: number = 0;
@@ -633,7 +635,7 @@ export class RoomStore {
           coVideo: me.coVideo,
           roomName: me.roomName,
           userName: me.userName,
-          password: me.password,
+          password: password,
         },
         users,
         appID,
@@ -991,7 +993,7 @@ export class RoomStore {
         console.warn(err);
       }
     } finally {
-      GlobalStorage.clear('agora_room');
+      GlobalStorage.clear(AGORA_ROOM_KEY);
       this.state = {
         ...this.defaultState
       }

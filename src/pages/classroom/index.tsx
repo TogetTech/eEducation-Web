@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import Nav from '../../components/nav';
-import RoomDialog from '../../components/dialog/room';
 import { AgoraStream } from '../../utils/types';
 import './room.scss';
 import NativeSharedWindow from '../../components/native-shared-window';
@@ -14,6 +13,7 @@ import { AgoraElectronClient } from '../../utils/agora-electron-client';
 import { t } from '../../i18n';
 import { eduApi } from '../../services/edu-api';
 import { genUUID } from '../../utils/api';
+import { useInterval } from 'react-use';
 
 export const roomTypes = [
   {value: 0, path: 'one-to-one'},
@@ -21,11 +21,17 @@ export const roomTypes = [
   {value: 2, path: 'big-class'},
 ];
 
+const delay = 5000;
+
 export function RoomPage({ children }: any) {
 
   const history = useHistory();
 
   const lock = useRef<boolean>(false);
+
+  useInterval(() => {
+    roomStore.fetchRoomState()
+  }, delay)
 
   useEffect(() => {
     const me = roomStore.state.me;
@@ -88,29 +94,9 @@ export function RoomPage({ children }: any) {
       });
     }
   }, [location]);
-
-  // useEffect(() => {
-  //   if (location.pathname.match(/big-class/)) {
-  //     if (roomStore.state.applyUser.account) {
-  //       globalStore.showNotice({
-  //         reason: 'peer_hands_up',
-  //         text: t('notice.student_interactive_apply', { reason: `${roomStore.state.applyUser.account}` }),
-  //       });
-  //       return () => {
-  //         globalStore.removeNotice()
-  //       }
-  //     }
-  //   }
-  // }, [roomStore.state.applyUser.account, location])
   
   const rtc = useRef<boolean>(false);
 
-  // const canPublish = useMemo(() => {
-  //   return !isBigClass ||
-  //     (isBigClass && 
-  //       (me.role === 1 ||
-  //         me.coVideo));
-  // }, [me.uid, me.coVideo, me.role, isBigClass]);
   const canPublish = useMemo(() => {
     return me.coVideo;
   }, [me.coVideo]);
@@ -134,7 +120,6 @@ export function RoomPage({ children }: any) {
 
   useEffect(() => {
     if (!location.pathname.match(/big-class/) || me.role === 1) return
-    // if (course.linkId) return;
     const rtcClient = roomStore.rtcClient;
     if (platform === 'web') {
       const webClient = rtcClient as AgoraWebClient;
@@ -419,7 +404,6 @@ export function RoomPage({ children }: any) {
       <NativeSharedWindow />
       <Nav />
       {children}
-      <RoomDialog />
     </div>
   );
 }
