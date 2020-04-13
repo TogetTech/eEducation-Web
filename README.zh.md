@@ -23,6 +23,9 @@
   * ali-oss（可替换成你自己的oss client）
   * 声网云录制 （不推荐直接在客户端集成）
 
+### 使用到的服务  
+  * agora教育后端（可选）
+
 ### 所用技术
   * typescript ^3.6.4
   * react & react hooks & rxjs

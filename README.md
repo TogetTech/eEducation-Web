@@ -22,6 +22,9 @@
   * ali-oss (can be replaced with your own cloud oss sdk)
   * agora cloud recording (we recommend to integrate in server side)
 
+### Backend Service  
+  * agora education backend
+
 ### Frontend Tech Utilities
   * typescript ^3.6.4
   * react & react hooks & rxjs
