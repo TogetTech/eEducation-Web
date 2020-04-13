@@ -360,7 +360,8 @@ export class AgoraEduApi {
       boardId: rawCourse.boardId,
       boardToken: rawCourse.boardToken,
       lockBoard: rawCourse.lockBoard,
-      teacherId: ''
+      teacherId: '',
+      memberCount: rawCourse.onlineUsers
     }
 
     const teacher = usersMap.find((it: AgoraUser) => it.role === 1)
@@ -398,6 +399,7 @@ export class AgoraEduApi {
       boardId: room.boardId,
       boardToken: room.boardToken,
       lockBoard: room.lockBoard,
+      memberCount: room.onlineUsers,
     }
 
     const teacher = users.find((it: any) => it.role === 1)
@@ -436,7 +438,8 @@ export class AgoraEduApi {
       boardId: room.boardId,
       boardToken: room.boardToken,
       lockBoard: room.lockBoard,
-      teacherId: 0
+      teacherId: 0,
+      memberCount: room.onlineUsers,
     }
 
     if (teacherState) {

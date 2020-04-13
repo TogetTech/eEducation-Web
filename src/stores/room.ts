@@ -79,6 +79,7 @@ export interface ClassState {
   screenId: string
   screenToken: string
   coVideoUids: string[]
+  memberCount: number
 }
 
 type RtcState = {
@@ -112,7 +113,6 @@ export type SessionInfo = {
 
 export type RtmState = {
   joined: boolean
-  memberCount: number
 }
 
 export type UserParams = {
@@ -180,7 +180,6 @@ export class RoomStore {
     },
     rtm: {
       joined: false,
-      memberCount: 0,
     },
     rtc: {
       published: false,
@@ -206,7 +205,8 @@ export class RoomStore {
       lockBoard: 0,
       roomId: '',
       screenId: '',
-      screenToken: ''
+      screenToken: '',
+      memberCount: 0,
     },
     mediaDevice: {
       microphoneId: '',
@@ -376,17 +376,6 @@ export class RoomStore {
       rtc: {
         ...this.state.rtc,
         remoteStreams: this.state.rtc.remoteStreams.delete(`${uid}`)
-      }
-    }
-    this.commit(this.state);
-  }
-
-  updateMemberCount(count: number) {
-    this.state = {
-      ...this.state,
-      rtm: {
-        ...this.state.rtm,
-        memberCount: count,
       }
     }
     this.commit(this.state);
@@ -596,7 +585,6 @@ export class RoomStore {
         rtm: {
           ...this.state.rtm,
           joined: true,
-          memberCount: +onlineUsers,
         },
         course: {
           ...this.state.course,
@@ -616,6 +604,7 @@ export class RoomStore {
           screenId: `${me.screenId}`,
           screenToken: `${me.screenToken}`,
           coVideoUids: course.coVideoUids,
+          memberCount: +onlineUsers,
         },
         me: {
           ...this.state.me,
