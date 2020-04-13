@@ -6,6 +6,8 @@ const {
   addWebpackModuleRule,
 } = require('customize-cra');
 
+const {devDependencies} = require('./package.json');
+
 const isElectron = process.env.BROWSER === 'none';
 // TODO: You can customize your env
 // TODO: 这里你可以定制自己的env
@@ -38,6 +40,7 @@ module.exports = override(
     use: { loader: 'worker-loader' },
   }),
   isElectron && addWebpackExternals({
+    ...devDependencies,
     "agora-electron-sdk": "commonjs2 agora-electron-sdk"
   }),
   addBabelPlugins(

@@ -1,8 +1,10 @@
+import { globalStore } from "../stores/global";
+
 const FETCH_TIMEOUT = 10000
 
 const delay = 100;
 
-export async function AgoraFetch (input: RequestInfo, init?: RequestInit, retryCount: number = 0): Promise<any> {
+export async function Fetch (input: RequestInfo, init?: RequestInit, retryCount: number = 0): Promise<any> {
   return new Promise((resolve, reject) => {
     const onResponse = (response: Response) => {
       if (!response.ok) {
@@ -39,4 +41,19 @@ export async function AgoraFetch (input: RequestInfo, init?: RequestInit, retryC
       setTimeout(reject, FETCH_TIMEOUT, err)
     }
   })
+}
+
+export async function AgoraFetch(input: RequestInfo, init?: RequestInit, retryCount: number = 0) {
+  try {
+    return await Fetch(input, init, retryCount);
+  } catch(err) {
+    if (err && err.message === 'request timeout') {
+      globalStore.showToast({
+        type: 'eduApiError',
+        message: 'request timeout'
+      })
+      return {code: 408, msg: null, response: null}
+    }
+    throw err
+  }
 }
