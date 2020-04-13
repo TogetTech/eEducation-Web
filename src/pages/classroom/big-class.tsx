@@ -27,7 +27,7 @@ export default function BigClass() {
 
   const me = roomState.me;
 
-  const memberCount = roomState.rtm.memberCount;
+  const memberCount = roomState.course.memberCount;
 
   const {teacher, currentHost, onPlayerClick} = useStream();
 

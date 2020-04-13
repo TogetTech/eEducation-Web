@@ -250,7 +250,6 @@ export class AgoraEduApi {
     }
   }
 
-  // @next
   // updateRoomUser
   // 更新用户状态，老师可更新房间内所有人，学生只能更新自己
   async updateRoomUser(user: Partial<UserAttrsParams>) {
@@ -351,7 +350,8 @@ export class AgoraEduApi {
       boardId: rawCourse.boardId,
       boardToken: rawCourse.boardToken,
       lockBoard: rawCourse.lockBoard,
-      teacherId: ''
+      teacherId: '',
+      memberCount: rawCourse.onlineUsers,
     }
 
     const teacher = usersMap.find((it: AgoraUser) => it.role === 1)
@@ -389,6 +389,7 @@ export class AgoraEduApi {
       boardId: room.boardId,
       boardToken: room.boardToken,
       lockBoard: room.lockBoard,
+      memberCount: room.onlineUsers,
     }
 
     const teacher = users.find((it: any) => it.role === 1)
