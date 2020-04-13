@@ -1,8 +1,11 @@
+import { globalStore } from "../stores/global";
+import { getIntlError } from '../services/intl-error-helper';
+
 const FETCH_TIMEOUT = 10000
 
 const delay = 100;
 
-export async function AgoraFetch (input: RequestInfo, init?: RequestInit, retryCount: number = 0): Promise<any> {
+export async function Fetch (input: RequestInfo, init?: RequestInit, retryCount: number = 0): Promise<any> {
   return new Promise((resolve, reject) => {
     const onResponse = (response: Response) => {
       if (!response.ok) {
@@ -39,4 +42,22 @@ export async function AgoraFetch (input: RequestInfo, init?: RequestInit, retryC
       setTimeout(reject, FETCH_TIMEOUT, err)
     }
   })
+}
+
+export async function AgoraFetch(input: RequestInfo, init?: RequestInit, retryCount: number = 0) {
+  try {
+    return await Fetch(input, init, retryCount);
+  } catch(err) {
+    if (err && err.message === 'request timeout') {
+      const code = 408
+      const error = getIntlError(`${code}`)
+      const isErrorCode = `${error}` === `${code}`
+      globalStore.showToast({
+        type: 'eduApiError',
+        message: isErrorCode ? `request timeout` : error
+      })
+      return {code, msg: null, response: null}
+    }
+    throw err
+  }
 }

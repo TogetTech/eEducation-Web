@@ -6,8 +6,6 @@ import { getIntlError, setIntlError } from "./intl-error-helper";
 import { globalStore } from "../stores/global";
 import { historyStore } from './../stores/history';
 import OSS from "ali-oss";
-import axios from 'axios';
-import Log from '../utils/LogUploader';
 
 export interface UserAttrsParams {
   userId: string
@@ -40,7 +38,7 @@ const AgoraFetchJson = async ({url, method, data, token}:{url: string, method: s
 
   const {code, msg, data: responseData} = resp
 
-  if (code !== 0) {
+  if (code !== 0 && code !== 408) {
     const error = getIntlError(`${code}`)
     const isErrorCode = `${error}` === `${code}`
     globalStore.showToast({
