@@ -1,8 +1,8 @@
 {
   "name": "Agora-Edu-Web",
-  "version": "5.2.1",
+  "version": "5.3.0",
   "private": true,
-  "homepage": "/live_education",
+  "homepage": ".",
   "main": "./src/index.tsx",
   "agora_electron": {
     "electron_version": "5.0.8",
@@ -75,8 +75,8 @@
     }
   },
   "dependencies": {
-    "@material-ui/core": "^4.5.1",
-    "@material-ui/icons": "^4.5.1",
+    "@material-ui/core": "4.9.1",
+    "@material-ui/icons": "4.9.1",
     "@netless/react-seek-slider": "^1.0.4",
     "@netless/white-audio-plugin": "^1.1.10",
     "@netless/white-video-plugin": "^1.1.17",
