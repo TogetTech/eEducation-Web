@@ -8,6 +8,18 @@ import { historyStore } from './../stores/history';
 import OSS from "ali-oss";
 import Log from '../utils/LogUploader';
 
+const writeAgoraAuth = (token: string, uid: string) => {
+  sessionStorage.setItem("x-agora-token", token)
+  sessionStorage.setItem("x-agora-uid", uid)
+}
+
+const readAgoraAuth = () => {
+  return {
+    "x-agora-token": sessionStorage.getItem("x-agora-token"),
+    "x-agora-uid": sessionStorage.getItem("x-agora-uid"),
+  }
+}
+
 export interface UserAttrsParams {
   userId: string
   enableChat: number
@@ -21,6 +33,7 @@ const APP_ID: string = process.env.REACT_APP_AGORA_APP_ID as string;
 const PREFIX: string = process.env.REACT_APP_AGORA_EDU_ENDPOINT_PREFIX as string;
 
 const AgoraFetchJson = async ({url, method, data, token}:{url: string, method: string, data?: any, token?: string}) => {  
+  const agoraAuth = readAgoraAuth()
   const opts: any = {
     method,
     headers: {
@@ -31,6 +44,17 @@ const AgoraFetchJson = async ({url, method, data, token}:{url: string, method: s
   if (token) {
     opts.headers['token'] = token;
   }
+
+  if (agoraAuth) {
+    if (agoraAuth["x-agora-token"]) {
+      opts.headers["x-agora-token"] = agoraAuth["x-agora-token"]
+    }
+
+    if (agoraAuth["x-agora-uid"]) {
+      opts.headers["x-agora-uid"] = agoraAuth["x-agora-uid"]
+    }
+  }
+
   if (data) {
     opts.body = JSON.stringify(data);
   }
@@ -63,7 +87,8 @@ export interface EntryParams {
   roomName: string
   type: number
   role: number
-  uuid: string
+  userUuid: string
+  roomUuid: string
 }
 
 export type RoomParams = Partial<{
@@ -72,16 +97,6 @@ export type RoomParams = Partial<{
   courseState: number
   [key: string]: any
 }>
-
-type FileParams = {
-  file: any,
-  key: string,
-  host: string,
-  policy: any,
-  signature: any,
-  callback: any,
-  accessid: string
-}
 
 export class AgoraEduApi {
 
@@ -114,7 +129,7 @@ export class AgoraEduApi {
     }
   }
 
-    // 公益demo房间信息
+  // 公益demo房间信息
   // demo room info
   async roomInfo(roomId: string) {
     await this.config();
@@ -122,6 +137,8 @@ export class AgoraEduApi {
       url: `/v2/room/${roomId}`,
       method: 'GET',
     });
+    // console.log("roomInfo", data)
+    writeAgoraAuth(data.xagoraToken, data.xagoraUid)
     return {
       data
     }
@@ -465,8 +482,8 @@ export class AgoraEduApi {
       course.teacherId = me.uid
     }
 
-    if (params.uuid) {
-      me.uuid = params.uuid
+    if (params.userUuid) {
+      me.uuid = params.userUuid
     }
 
     const coVideoUids = userList.map((it: any) => `${it.uid}`)

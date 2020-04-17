@@ -41,10 +41,6 @@ const defaultState: SessionInfo = {
 
 function HomePage() {
   document.title = t(`home.short_title.title`)
-<<<<<<< HEAD
-=======
-
->>>>>>> 5.3.0-welfare-develop
   const classes = useStyles();
 
   const history = useHistory();
@@ -130,11 +126,7 @@ function HomePage() {
           <div className="setting-container">
             <Icon className="icon-setting" onClick={handleSetting}/>
             <LangSelect
-<<<<<<< HEAD
-            value={GlobalStorage.getLanguage().language.match(/^zh/) ? 0 : 1 }
-=======
             value={GlobalStorage.getLanguage().language.match(/^zh/) ? 0 : 1}
->>>>>>> 5.3.0-welfare-develop
             onChange={(evt: any) => {
               const value = evt.target.value;
               if (value === 0) {
