@@ -31,6 +31,7 @@
   * react & react hooks & rxjs
   * electron 5.0.8 & electron-builder
   * material-ui
+  * Agora eEducation 教育后端服务
 
 
 ### 开发环境
@@ -80,25 +81,39 @@ WARN: IF YOU ENABLED APP CERTIFICATE, PLEASE SIGN YOUR TOKEN IN YOUR SERVER SIDE
   按照.env.example
   修改为.env.local
 ```bash
-# 声网的APPID 通过声网开发者管理界面获取
-REACT_APP_AGORA_APP_ID=Agora APPID
-# true表示开启声网前端日志
+# 声网的 APPID
+REACT_APP_AGORA_APP_ID=agora appId
 REACT_APP_AGORA_LOG=true
-# 白板的sdktoken 可以通过后台获取
-REACT_APP_NETLESS_APP_TOKEN=SDKTOKEN
-# 白板的api 详情请参考白板官方文档的集成指南
-REACT_APP_NETLESS_APP_API_ENTRY=https://cloudcapiv4.herewhite.com/room?token=
-REACT_APP_NETLESS_APP_JOIN_API=https://cloudcapiv4.herewhite.com/room/join?token=
-# 声网的云录制服务地址 （不推荐在前端或客户端直接集成）
-REACT_APP_AGORA_RECORDING_SERVICE_URL=https://api.agora.io/v1/apps/%s/cloud_recording/
-# 存放云录制OSS的CDN地址
-REACT_APP_AGORA_RECORDING_OSS_URL=云录制OSS地址
-# 下列OSS相关的信息不建议放在前端存储
-REACT_APP_AGORA_OSS_BUCKET_NAME=你的oss名字
-REACT_APP_AGORA_OSS_BUCKET_FOLDER=你的oss存储目录
-REACT_APP_AGORA_OSS_BUCKET_REGION=你的oss存储节点地区
-REACT_APP_AGORA_OSS_BUCKET_KEY=你的oss存储key或者存储id
-REACT_APP_AGORA_OSS_BUCKET_SECRET=你的oss的存储秘钥
+ELECTRON_START_URL=http://localhost:3000
+
+# (可选参数配置项)
+# 声网开发者customerId
+REACT_APP_AGORA_CUSTOMER_ID=customer_id
+# 声网开发者customerCertificate
+REACT_APP_AGORA_CUSTOMER_CERTIFICATE=customer_certificate
+# 声网开发者rtm restful api接口仅供demo展示（请在自己的服务端接入）
+REACT_APP_AGORA_RTM_ENDPOINT=your_server_rtm_endpoint_api
+# 声网教育场景化后端api前缀
+REACT_APP_AGORA_EDU_ENDPOINT_PREFIX=agora_edu_api_prefix
+
+# 你自己的全路径白板后端api服务
+REACT_APP_YOUR_BACKEND_WHITEBOARD_API=your_server_whiteboard_api
+
+# 声网restful api token
+REACT_APP_AGORA_RESTFULL_TOKEN=agora_restful_api_token
+
+# 你自己的OSS bucket name
+REACT_APP_YOUR_OWN_OSS_BUCKET_NAME=your_oss_bucket_name
+# 你自己的OSS bucket 目录
+REACT_APP_YOUR_OWN_OSS_BUCKET_FOLDER=your_oss_bucket_folder
+# 你自己的OSS bucket region
+REACT_APP_YOUR_OWN_OSS_BUCKET_REGION=your_bucket_region
+# 你自己的OSS bucket access key
+REACT_APP_YOUR_OWN_OSS_BUCKET_KEY=your_bucket_ak
+# 你自己的OSS bucket access secret key
+REACT_APP_YOUR_OWN_OSS_BUCKET_SECRET=your_bucket_sk
+# 你自己的OSS bucket access endpoint
+REACT_APP_YOUR_OWN_OSS_CDN_ACCELERATE=your_cdn_accelerate_endpoint
 ```
 
 # Web发布和开发操作  

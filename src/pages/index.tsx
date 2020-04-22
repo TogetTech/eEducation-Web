@@ -16,6 +16,7 @@ import SmallClass from './classroom/small-class';
 import OneToOne from './classroom/one-to-one';
 import BigClass from './classroom/big-class';
 import { PageNotFound } from './404';
+import RoomDialog from '../components/dialog';
 
 export default function () {
   return (
@@ -25,6 +26,7 @@ export default function () {
         <RootProvider>
           <Loading />
           <Toast />
+          <RoomDialog />
           <Route exact path="/">
             <Home />
           </Route>

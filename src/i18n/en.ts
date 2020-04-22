@@ -2,12 +2,49 @@ const BUILD_VERSION = process.env.REACT_APP_BUILD_VERSION as string;
 const build_version = BUILD_VERSION ? BUILD_VERSION : '0.0.1';
 
 const en = {
+  "electron": {
+    "start_screen_share_failed": "native screen sharing failed"
+  },
+  "icon": {
+    "setting": "Setting",
+    "upload-log": "Upload Log",
+    "exit-room": "Exit Room",
+    "lang-select": "Switch Language",
+  },
+  'doc_center': 'Course Document Center',
   'upload_picture': 'Upload Picture',
   'convert_webpage': 'Dynamic PPT',
   'convert_to_picture': 'Static PPT',
   'upload_audio_video': 'Upload Audio/Video',
   'return': {
     'home': 'Back To Home',
+  },
+  'control_items': {
+    "first_page": "First Page",
+    "prev_page": "Prev Page",
+    "next_page": "Next Page",
+    "last_page": "Last Page",
+    "stop_recording": "Stop Cloud Recording",
+    "recording": "Start Cloud Recording",
+    "quit_screen_sharing": "Stop Screen Sharing",
+    "screen_sharing": "Start Screen Sharing",
+  },
+  'zoom_control': {
+    'folder': 'Document Center',
+    'lock_board': 'Set Whiteboard Follow',
+    'unlock_board': 'Reset Whiteboard Follow'
+  },
+  'tool': {
+    'selector': 'mouse selector',
+    'pencil': 'penceil',
+    'rectangle': 'rectangle',
+    'ellipse': 'ellipse',
+    'eraser': 'eraser',
+    'text': 'text',
+    'color_picker': 'color picker',
+    'add': 'add new page',
+    'upload': 'upload ',
+    'hand_tool': 'hand selector'
   },
   'error': {
     'not_found': 'Page Not Found',
@@ -17,8 +54,12 @@ const en = {
   },
   'whiteboard': {
     'loading': 'Loading...',
+    'global_state_limit': 'globalState size limit size probably overflow',
+    'locked_board': 'The teacher is moving the whiteboard. Please do not draw on it.',
+    'unlocked_board': 'The whiteboard already unlocked',
   },
   'toast': {
+    'show_log_id': `Report your log ID: {reason}`,
     'api_login_failured': 'Join Failured, Reason: {reason}',
     'confirm': 'Confirm',
     'cancel': 'Cancel',
@@ -69,7 +110,7 @@ const en = {
     'class_start': 'Class start'
   },
   'home': {
-    'entry-home': 'Enter in Home',
+    'entry-home': 'Join Classroom',
     'teacher': 'teacher',
     'student': 'student',
     'cover_class': 'cover-en',
@@ -89,8 +130,8 @@ const en = {
     'missing_your_name': 'missing your name',
     'missing_password': 'missing password',
     'missing_role': 'missing role',
-    'account': 'nickname',
-    'password': 'password',
+    'account': 'Name',
+    'password': 'Password',
   },
   'room': {
     'chat_room': 'Chat Room',

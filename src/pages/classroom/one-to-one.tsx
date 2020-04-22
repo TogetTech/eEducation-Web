@@ -15,8 +15,6 @@ export default function OneToOne() {
 
   const {teacher, students, onPlayerClick} = useStream();
 
-  teacher && console.log("teacher", teacher.video, teacher.audio)
-
   return (
     <div className="room-container">
       <MediaBoard />

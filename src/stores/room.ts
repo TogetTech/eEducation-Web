@@ -539,7 +539,14 @@ export class RoomStore {
   async LoginToRoom(payload: any, pass: boolean = false) {
     const {userName, roomName, role, type, uuid} = payload
     try {
-      const res = await eduApi.Login({userName, roomName, role, type, uuid})
+      const res = await eduApi.Login({
+        userName,
+        roomName,
+        role,
+        type,
+        roomUuid: roomName,
+        userUuid: uuid
+      })
 
       const {
         course,

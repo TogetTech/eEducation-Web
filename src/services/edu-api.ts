@@ -2,12 +2,15 @@ import { BUILD_VERSION } from './../i18n';
 import { AgoraFetch } from "../utils/fetch";
 import { ClassState, AgoraUser, Me } from "../stores/room";
 import {Map} from 'immutable'
+import {get} from 'lodash'
 import { getIntlError, setIntlError } from "./intl-error-helper";
 import { globalStore } from "../stores/global";
 import { historyStore } from './../stores/history';
 import OSS from "ali-oss";
 import axios from 'axios';
 import Log from '../utils/LogUploader';
+
+const whiteboardGenerateTokenApiEndpoint = process.env.REACT_APP_YOUR_BACKEND_WHITEBOARD_API as string;
 
 export interface UserAttrsParams {
   userId: string
@@ -20,12 +23,14 @@ export interface UserAttrsParams {
 
 const APP_ID: string = process.env.REACT_APP_AGORA_APP_ID as string;
 const PREFIX: string = process.env.REACT_APP_AGORA_EDU_ENDPOINT_PREFIX as string;
+const AUTHORIZATION: string = process.env.REACT_APP_AGORA_RESTFULL_TOKEN as string;
 
-const AgoraFetchJson = async ({url, method, data, token}:{url: string, method: string, data?: any, token?: string}) => {  
+const AgoraFetchJson = async ({url, method, data, token, full_url}:{url?: string, method: string, data?: any, token?: string, full_url?: string}) => {  
   const opts: any = {
     method,
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Basic ${AUTHORIZATION}`
     }
   }
 
@@ -36,8 +41,12 @@ const AgoraFetchJson = async ({url, method, data, token}:{url: string, method: s
     opts.body = JSON.stringify(data);
   }
 
-  let resp = await AgoraFetch(`${PREFIX}${url}`, opts);
-
+  let resp = undefined;
+  if (full_url) {
+    resp = await AgoraFetch(`${full_url}`, opts);
+  } else {
+    resp = await AgoraFetch(`${PREFIX}${url}`, opts);
+  }
   const {code, msg, data: responseData} = resp
 
   if (code !== 0 && code !== 408) {
@@ -45,7 +54,7 @@ const AgoraFetchJson = async ({url, method, data, token}:{url: string, method: s
     const isErrorCode = `${error}` === `${code}`
     globalStore.showToast({
       type: 'eduApiError',
-      message: isErrorCode ? `ErrorCode: ${code}` : error
+      message: isErrorCode ? `${msg}` : error
     })
     if (code === 401) {
       historyStore.state.history.goBack()
@@ -60,9 +69,10 @@ const AgoraFetchJson = async ({url, method, data, token}:{url: string, method: s
 export interface EntryParams {
   userName: string
   roomName: string
+  roomUuid: string
+  userUuid: string
   type: number
   role: number
-  uuid: string
 }
 
 export type RoomParams = Partial<{
@@ -135,6 +145,7 @@ export class AgoraEduApi {
     }
   }
 
+  // upload log
   async uploadLogFile(
     roomId: string,
     appVersion: string,
@@ -167,16 +178,17 @@ export class AgoraEduApi {
     })
 
     const url = `${PREFIX}/v1/log/sts/callback`
-    await ossClient.put(ossKey, file, {
+    let res = await ossClient.put(ossKey, file, {
       callback: {
         url: `${PREFIX}/v1/log/sts/callback`,
         body: callbackBody,
         contentType: callbackContentType,
       }
     });
-    return
+    return res;
   }
 
+  // fetch i18n
   static async fetchI18n() {
     let data = await AgoraFetchJson({
       url: `/v1/multi/language`,
@@ -188,21 +200,21 @@ export class AgoraEduApi {
 
   // app config
   // 配置入口
-  async config() {
-    let data = await AgoraFetchJson({
-      url: `/v1/config?platform=0&device=0&version=5.2.0`,
-      method: 'GET',
-    });
+  // async config() {
+  //   let data = await AgoraFetchJson({
+  //     url: `/v1/config?platform=0&device=0&version=5.2.0`,
+  //     method: 'GET',
+  //   });
 
-    if (data['multiLanguage']) {
-      setIntlError(data['multiLanguage'])
-    }
+  //   if (data['multiLanguage']) {
+  //     setIntlError(data['multiLanguage'])
+  //   }
 
-    return {
-      appId: data.appId,
-      room: data.room,
-    }
-  }
+  //   return {
+  //     appId: data.appId,
+  //     room: data.room,
+  //   }
+  // }
 
   // room entry
   // 房间入口
@@ -306,6 +318,19 @@ export class AgoraEduApi {
     }
   }
 
+  // get whiteboard token
+  async getWhiteboardBy(roomId: string): Promise<any> {
+    let boardData = await AgoraFetchJson({
+      full_url: whiteboardGenerateTokenApiEndpoint.replace("%app_id%", this.appID).replace("%room_id%", roomId),
+      method: 'GET',
+      token: this.userToken,
+    })
+    return {
+      boardId: boardData.boardId,
+      boardToken: boardData.boardToken,
+    };
+  }
+
   // get room info
   // 获取房间信息
   async getRoomInfoBy(roomId: string): Promise<{data: any}> {
@@ -314,9 +339,14 @@ export class AgoraEduApi {
       method: 'GET',
       token: this.userToken,
     });
+    let boardData = await this.getWhiteboardBy(roomId);
     return {
       data: {
-        room: data.room,
+        room: {
+          ...data.room,
+          boardId: boardData.boardId,
+          boardToken: boardData.boardToken,
+        },
         users: data.room.coVideoUsers,
         user: data.user
       }
@@ -438,8 +468,8 @@ export class AgoraEduApi {
       course.teacherId = me.uid
     }
 
-    if (params.uuid) {
-      me.uuid = params.uuid
+    if (params.userUuid) {
+      me.uuid = params.userUuid
     }
 
     const coVideoUids = userList.map((it: any) => `${it.uid}`)
@@ -466,7 +496,9 @@ export class AgoraEduApi {
       method: 'GET',
       token: this.userToken,
     });
-    const teacherRecord = data.recordDetails.find((it:any) => it.role === 1)
+
+    const boardData = await this.getWhiteboardBy(roomId);
+    const teacherRecord = get(data, 'recordDetails', []).find((it:any) => it.role === 1)
 
     const recordStatus = [
       'recording',
@@ -477,8 +509,8 @@ export class AgoraEduApi {
     ]
 
     const result = {
-      boardId: data.boardId,
-      boardToken: data.boardToken,
+      boardId: boardData.boardId,
+      boardToken: boardData.boardToken,
       startTime: data.startTime,
       endTime: data.endTime,
       url: teacherRecord?.url,

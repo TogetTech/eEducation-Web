@@ -7,7 +7,6 @@ import { Progress } from '../../components/progress/progress';
 import { globalStore } from '../../stores/global';
 import { WhiteboardAPI, RTMRestful } from '../../utils/api';
 import { whiteboard } from '../../stores/whiteboard';
-import { getOSSUrl } from '../../utils/helper';
 import { RtmPlayerState } from '../../components/whiteboard/agora/rtm-player';
 import { eduApi } from '../../services/edu-api';
 
@@ -278,8 +277,12 @@ class ReplayStore {
     this.commit(this.state)
   }
 
-  async joinRoom(_uuid: string) {
-    return await WhiteboardAPI.joinRoom(_uuid);
+  async joinRoom(roomId: string) {
+    const res = await eduApi.getWhiteboardBy(roomId);
+    return {
+      roomToken: res.boardToken,
+      uuid: res.boardId,
+    }
   }
 }
 

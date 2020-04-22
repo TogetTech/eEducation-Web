@@ -7,7 +7,52 @@ const platform = require('os').platform();
 
 const process = require('process');
 // Module to control application life.
-const app = electron.app;
+const {app, Menu, netLog} = electron;
+// Menu template
+const isMac = platform === 'darwin'
+
+// TODO: electron menu template
+// More details please see: https://www.electronjs.org/docs/api/menu#menubuildfromtemplatetemplate
+const template = [
+  // { role: 'appMenu' }
+  ...(isMac ? [{
+    label: app.name,
+    submenu: [
+      { role: 'about' },
+      { type: 'separator' },
+      { role: 'services' },
+      { type: 'separator' },
+      { role: 'hide' },
+      { role: 'hideothers' },
+      { role: 'unhide' },
+      { type: 'separator' },
+      { role: 'quit' }
+    ]
+  }] : []),
+  // { role: 'fileMenu' }
+  {
+    label: 'Log',
+    submenu: [
+      {
+        label: 'export log'
+      }
+    ]
+  },
+  {
+    label: 'Window',
+    submenu: [
+      { role: 'minimize' },
+    ]
+  },
+  {
+    role: 'about',
+    label: 'About Agora',
+    click: async () => {
+      const { shell } = require('electron')
+      await shell.openExternal('https://www.agora.io')
+    }
+  }
+]
 
 const globalShortcut = electron.globalShortcut;
 // Module to create native browser window.
@@ -19,8 +64,8 @@ const path = require('path');
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 
-function createWindow() {
-  
+async function createWindow() {
+
     mainWindow = new BrowserWindow({
       frame: false,
       width: 700,
@@ -28,6 +73,7 @@ function createWindow() {
       center: true,
       resizable: false,
       webPreferences: {
+        autoplayPolicy: 'no-user-gesture-required',
         nodeIntegration: true,
         preload: path.join(__dirname, './preload')
       }
@@ -52,7 +98,19 @@ function createWindow() {
         mainWindow = null
     })
 
-    mainWindow.setMenu(null);
+
+    const menu = Menu.buildFromTemplate(template)
+
+    if (platform === 'darwin') {
+      mainWindow.excludedFromShownWindowsMenu = true
+      Menu.setApplicationMenu(menu)
+    }
+
+    if (platform === 'win32') {
+      // const menu = Menu.buildFromTemplate(template)
+      // Menu.setApplicationMenu(menu)
+      mainWindow.setMenu(menu);
+    }
 
     ipcMain.on('resize-window', (event, reply) => {
       
@@ -103,6 +161,12 @@ function createWindow() {
     ipcMain.on('close', () => {
       app.quit();
     });
+
+    let res = app.setAppLogsPath();
+
+    console.log("Your electron log path", app.getPath('logs'), " res ", res)
+
+    await netLog.startLogging(`${app.getAppPath()}/netLog.log`);
 }
 
 // This method will be called when Electron has finished

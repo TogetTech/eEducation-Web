@@ -4,7 +4,15 @@ html, body, #root {
   overflow: hidden;
 }
 
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  width: 65px;
+  justify-content: space-between;
+}
+
 .draggable {
+  z-index: 10000;
   -webkit-app-region: drag;
   -webkit-user-select: none;
   .card-menu, .position-content {

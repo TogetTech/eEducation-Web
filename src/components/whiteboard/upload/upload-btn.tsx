@@ -13,12 +13,14 @@ export type UploadBtnProps = {
   onProgress?: PPTProgressListener,
   onFailure?: (err: any) => void,
   onSuccess?: () => void,
+  didUpload: () => void
 };
 
 export const UploadBtn: React.FC<UploadBtnProps> = ({
   room, uuid, roomToken,
   onProgress, onFailure,
-  onSuccess
+  onSuccess,
+  didUpload
 }) => {
 
   const ImageInput = useRef<any>(null);
@@ -28,6 +30,7 @@ export const UploadBtn: React.FC<UploadBtnProps> = ({
 
   const uploadDynamic = async (event: any) => {
     try {
+      didUpload();
       const file = event.currentTarget.files[0];
       if (file) {
         const uploadManager = new UploadManager(ossClient, room);
@@ -46,12 +49,15 @@ export const UploadBtn: React.FC<UploadBtnProps> = ({
       onFailure && onFailure(err);
       console.warn(err)
     } finally {
-      DynamicInput.current.value = ''
+      if (DynamicInput.current) {
+        DynamicInput.current.value = ''
+      }
     }
   }
 
   const uploadStatic = async (event: any) => {
     try {
+      didUpload();
       const file = event.currentTarget.files[0];
       if (file) {
         const uploadManager = new UploadManager(ossClient, room);
@@ -69,12 +75,15 @@ export const UploadBtn: React.FC<UploadBtnProps> = ({
       onFailure && onFailure(err)
       console.warn(err)
     } finally {
-      StaticInput.current.value = ''
+      if (StaticInput.current) {
+        StaticInput.current.value = ''
+      }
     }
   }
 
   const uploadImage = async (event: any) => {
     try {
+      didUpload();
       const file = event.currentTarget.files[0];
       if (file) {
         const uploadFileArray: File[] = [];
@@ -95,11 +104,14 @@ export const UploadBtn: React.FC<UploadBtnProps> = ({
       onFailure && onFailure(err)
       console.warn(err)
     } finally {
-      ImageInput.current.value = ''
+      if (ImageInput.current) {
+        ImageInput.current.value = ''
+      }
     }
   }
 
   const uploadAudioVideo = async (event: any) => {
+    didUpload()
     const uploadManager = new UploadManager(ossClient, room);
     const file = event.currentTarget.files[0];
     if (file) {
@@ -148,7 +160,9 @@ export const UploadBtn: React.FC<UploadBtnProps> = ({
       } catch(err) {
         onFailure && onFailure(err);
       } finally {
-        AudioVideoInput.current.value = ''
+        if (AudioVideoInput.current) {
+          AudioVideoInput.current.value = ''
+        }
       }
     }
   }

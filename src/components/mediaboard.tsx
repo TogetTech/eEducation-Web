@@ -23,6 +23,7 @@ import { platform } from '../utils/platform';
 import "white-web-sdk/style/index.css";
 import { ViewMode } from 'white-web-sdk';
 import { t } from '../i18n';
+import { Collapse, Paper} from '@material-ui/core';
 
 const pathName = (path: string): string => {
   const reg = /\/([^/]*)\//g;
@@ -110,8 +111,12 @@ const MediaBoard: React.FC<MediaBoardProps> = ({
   //   roomStore.state.course.linkId]);
   
   const current = useMemo(() => {
-    return whiteboardState.scenes.get(whiteboardState.currentScenePath);
-  }, [whiteboardState.scenes, whiteboardState.currentScenePath]);
+    return {
+      totalPage: whiteboardState.totalPage,
+      currentPage: whiteboardState.currentPage,
+      type: whiteboardState.type
+    }
+  }, [whiteboardState.currentPage, whiteboardState.totalPage, whiteboardState.type]);
 
   const totalPage = useMemo(() => {
     if (!current) return 0;
@@ -326,7 +331,7 @@ const items = [
   const [convertPhase, updateConvertPhase] = useState<string>('');
 
   useEffect(() => {
-    console.log("[mediaboard] uploadPhase: ", uploadPhase, " convertPhase: ", convertPhase);
+    console.log("uploading [mediaboard] uploadPhase: ", uploadPhase, " convertPhase: ", convertPhase);
   }, [uploadPhase, convertPhase]);
 
   const UploadPanel = useCallback(() => {
@@ -335,11 +340,14 @@ const items = [
       room={room}
       uuid={room.uuid}
       roomToken={room.roomToken}
+      didUpload={() => {
+        setTool('')
+      }}
       onProgress={(phase: PPTProgressPhase, percent: number) => {
-        console.log("[onProgress] phase: ", phase, " percent: ", percent);
+        console.log("uploading [onProgress] phase: ", phase, " percent: ", percent, "uploadPhase: ", uploadPhase, "convertPhase: ", convertPhase);
         if (phase === PPTProgressPhase.Uploading) {
           if (percent < 1) {
-            !uploadPhase && updateUploadPhase('uploading');
+            uploadPhase !== 'uploading' && updateUploadPhase('uploading');
           } else {
             updateUploadPhase('upload_success');
           }
@@ -348,7 +356,7 @@ const items = [
 
         if (phase === PPTProgressPhase.Converting) {
           if (percent < 1) {
-            !convertPhase && updateConvertPhase('converting');
+            convertPhase !== 'converting' && updateConvertPhase('converting');
           } else {
             updateConvertPhase('convert_success');
           }
@@ -356,7 +364,9 @@ const items = [
         }
       }}
       onSuccess={() => {
-        console.log("on success");
+        uploadPhase && updateUploadPhase('');
+        updateConvertPhase && updateConvertPhase('');
+        console.log("uploading [onSuccess]", uploadPhase, convertPhase);
       }}
       onFailure={(err: any) => {
         // WARN: capture exception
@@ -416,9 +426,17 @@ const items = [
         room.handToolActive = false;
         room.disableCameraTransform = true;
         room.disableDeviceInputs = true;
+        globalStore.showToast({
+          type: "whiteboard",
+          message: t("whiteboard.locked_board")
+        })
       } else {
         room.disableCameraTransform = false;
         room.disableDeviceInputs = false;
+        // mounted.current && globalStore.showToast({
+        //   type: "whiteboard",
+        //   message: t("whiteboard.unlocked_board")
+        // })
       }
     }
   }, [room, roomStore.state.course.lockBoard, roomStore.state.me.role]);
@@ -530,21 +548,25 @@ const items = [
         totalPage={totalPage}
         isHost={studentIsHost}
         onClick={handlePageTool}/> : null }
-        {tool === 'folder' && whiteboardState.room ? 
-          <ResourcesMenu
-            active={whiteboardState.activeDir}
-            items={whiteboardState.dirs}
-            onClick={(rootPath: string) => {
-              if (room) {
-                room.setScenePath(rootPath);
-                room.setSceneIndex(0);
-                whiteboard.updateRoomState();
-              }
-            }}
-            onClose={(evt: any) => {
-              setTool('')
-            }}
-          />
+        {whiteboardState.room ? 
+          <Collapse in={tool === 'folder'}>
+            <Paper elevation={4}>
+              <ResourcesMenu
+                active={whiteboardState.activeDir}
+                items={whiteboardState.dirs}
+                onClick={(rootPath: string) => {
+                  if (room) {
+                    room.setScenePath(rootPath);
+                    room.setSceneIndex(0);
+                    whiteboard.updateRoomState();
+                  }
+                }}
+                onClose={(evt: any) => {
+                  setTool('')
+                }}
+              />
+            </Paper>
+          </Collapse>
         : null}
       <UploadNoticeView />
       <UploadProgressView />

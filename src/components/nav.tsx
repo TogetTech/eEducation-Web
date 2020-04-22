@@ -14,6 +14,9 @@ import { useRoomState } from '../containers/root-container';
 import { roomStore } from '../stores/room';
 import { globalStore } from '../stores/global';
 import { t } from '../i18n';
+import { eduApi } from '../services/edu-api';
+import Log from '../utils/LogUploader';
+import { Tooltip } from '@material-ui/core';
 
 interface NavProps {
   delay: string
@@ -75,7 +78,7 @@ export function Nav ({
           <span className={`net-field-value ${networkQualityIcon[network]}`} style={{marginLeft: '.2rem'}}>
           </span>
         </span>
-        {platform === 'electron' ? <span className="net-field">{t('nav.network')}<span className="net-field-value">{cpu}</span></span> : null}
+        {platform === 'electron' ? <span className="net-field">{t('nav.cpu')}<span className="net-field-value">{cpu}</span></span> : null}
       </div>
       <div className="menu">
         <div className="timer">
@@ -84,19 +87,31 @@ export function Nav ({
         </div>
         <span className="menu-split" />
         <div className={platform === 'web' ? "btn-group" : 'electron-btn-group' }>
-          {platform  === 'web' ?
+          {platform === 'web' ?
             <>
-            <Icon className="icon-setting" onClick={(evt: any) => {
-              handleClick("setting");
-            }}/>
-            <Icon className="i18n-lang" onClick={(evt: any) => {
-              handleClick("i18n");
-            }}></Icon>
+            <Tooltip title={t("icon.setting")} placement="bottom">
+              <span>
+                <Icon className="icon-setting" onClick={(evt: any) => {
+                  handleClick("setting");
+                }}/>
+              </span>
+            </Tooltip>
+            <Tooltip title={t("icon.upload-log")} placement="bottom">
+              <span>
+                <Icon className={globalStore.state.lock ? "icon-loading" : "icon-upload"} onClick={(evt: any) => {
+                  handleClick('uploadLog')
+                }}></Icon>
+              </span>
+            </Tooltip>
             </> : null
           }
-          <Icon className="icon-exit" onClick={(evt: any) => {
-            handleClick("exit");
-          }} />
+          <Tooltip title={t("icon.exit-room")} placement="bottom">
+            <span>
+              <Icon className="icon-exit" onClick={(evt: any) => {
+                handleClick("exit");
+              }} />
+            </span>
+          </Tooltip>
         </div>
         <NavBtn />
       </div>
@@ -235,8 +250,16 @@ export default function NavContainer() {
       });
     } else if (type === 'classState') {
       updateClassState();
-    } else if (type === 'i18n-lang') {
-      // globalStore.setLanguage()
+    } else if (type === 'uploadLog') {
+      globalStore.lock()
+      Log.doUpload().then((resultCode: any) => {
+        globalStore.showDialog({
+          type: 'uploadLog',
+          message: t('toast.show_log_id', {reason: `${resultCode}`})
+        });
+      }).finally(() => {
+        globalStore.unlock()
+      })
     }
   }
 

@@ -45,6 +45,7 @@ const ReplayContainer: React.FC<{}> = () => {
       {result?.status !== 2 ?
         <Progress title={t(`replay.${result?.statusText ? result?.statusText : 'loading'}`)} /> : 
         <NetlessAgoraReplay
+          roomId={roomId}
           senderId={senderId}
           channelName={channelName}
           whiteboardUUID={result?.boardId as string}
@@ -65,6 +66,7 @@ export type NetlessAgoraReplayProps = {
   mediaUrl: string
   senderId: string
   channelName: string
+  roomId: string
 }
 
 export const NetlessAgoraReplay: React.FC<NetlessAgoraReplayProps> = ({
@@ -73,7 +75,8 @@ export const NetlessAgoraReplay: React.FC<NetlessAgoraReplayProps> = ({
   endTime,
   mediaUrl,
   senderId,
-  channelName
+  channelName,
+  roomId
 }) => {
   const state = useReplayContext();
 
@@ -155,8 +158,8 @@ export const NetlessAgoraReplay: React.FC<NetlessAgoraReplayProps> = ({
   useEffect(() => {
     window.addEventListener('resize', onWindowResize);
     window.addEventListener('keydown', handleSpaceKey);
-    if (uuid && startTime && endTime) {
-        replayStore.joinRoom(uuid).then(({roomToken}) => {
+    if (roomId && startTime && endTime) {
+        replayStore.joinRoom(roomId).then(({roomToken, uuid}) => {
           WhiteboardAPI.replayRoom(whiteboard.client,
           {
             beginTimestamp: +startTime,

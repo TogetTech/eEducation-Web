@@ -32,6 +32,14 @@ const sourceMap = () => config => {
   return config;
 }
 
+const setElectronDeps = isProd ? {
+  ...devDependencies,
+  "agora-electron-sdk": "commonjs2 agora-electron-sdk"
+} : {
+  "agora-electron-sdk": "commonjs2 agora-electron-sdk"
+}
+
+
 module.exports = override(
   sourceMap(),
   webWorkerConfig(),
@@ -39,10 +47,7 @@ module.exports = override(
     test: /\.worker\.js$/,
     use: { loader: 'worker-loader' },
   }),
-  isElectron && addWebpackExternals({
-    ...devDependencies,
-    "agora-electron-sdk": "commonjs2 agora-electron-sdk"
-  }),
+  isElectron && addWebpackExternals(setElectronDeps),
   addBabelPlugins(
     '@babel/plugin-proposal-optional-chaining'
   ),

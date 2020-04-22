@@ -68,9 +68,7 @@ export const useErrorState = () => {
 }
 
 const initLogWorker = () => {
-  //@ts-ignore
-  window.Log = Log
-  // Log.init();
+  Log.init();
 };
 
 export const RootProvider: React.FC<any> = ({children}) => {

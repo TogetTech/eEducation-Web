@@ -6,9 +6,8 @@ import { t } from '../i18n';
 import { globalStore } from '../stores/global';
 import { AgoraStream } from './types';
 
-if (process.env.REACT_APP_AGORA_LOG !== 'true') {
-  AgoraRTC.Logger.setLogLevel(AgoraRTC.Logger.NONE);
-}
+AgoraRTC.Logger.enableLogUpload();
+AgoraRTC.Logger.setLogLevel(AgoraRTC.Logger.DEBUG);
 export interface AgoraStreamSpec {
   streamID: number
   video: boolean

@@ -1,49 +1,6 @@
-import {get} from 'lodash';
 import { WhiteWebSdk, ReplayRoomParams, PlayerCallbacks } from 'white-web-sdk';
-import { AgoraFetch } from '../fetch';
-
-const createRoomApi = process.env.REACT_APP_NETLESS_APP_API_ENTRY as string;
-const joinRoomApi = process.env.REACT_APP_NETLESS_APP_JOIN_API;
-const sdkToken = process.env.REACT_APP_NETLESS_APP_TOKEN;
 
 export const WhiteboardAPI = {
-  async createRoom ({rid, limit, mode}: any) {
-    let response = await AgoraFetch(`${createRoomApi}${sdkToken}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name: rid,
-        limit,
-        mode
-      })
-    });
-    let json = response;
-    // let json = await response.json();
-    return {
-      uuid: get(json, 'msg.room.uuid'),
-      roomToken: get(json, 'msg.roomToken')
-    }
-  },
-
-  async joinRoom (uuid: string): Promise<any> {
-    let response = await AgoraFetch(
-      `${joinRoomApi}${sdkToken}&uuid=${uuid}`, {
-        method: 'POST',
-        headers: {
-          "content-type": "application/json",
-        }
-      }
-    );
-    // let json = await response.json();
-    let json = response;
-    return {
-      uuid: uuid,
-      roomToken: get(json, 'msg.roomToken')
-    }
-  },
-
   async replayRoom(client: WhiteWebSdk, args: ReplayRoomParams, callback: PlayerCallbacks) {
     let retrying;
     do {

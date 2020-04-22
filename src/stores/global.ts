@@ -9,6 +9,7 @@ export const roomTypes = [
 
 export type GlobalState = {
   loading: boolean
+  lock: boolean
   toast: {
     type: string
     message: string
@@ -63,6 +64,7 @@ export class Root {
       visible: false,
       items: []
     },
+    lock: false,
     active: 'chatroom',
     language: navigator.language,
     newMessageCount: 0,
@@ -250,11 +252,25 @@ export class Root {
     }
     this.commit(this.state);
   }
+
+  lock() {
+    this.state = {
+      ...this.state,
+      lock: true
+    }
+    this.commit(this.state)
+  }
+
+  unlock() {
+    this.state = {
+      ...this.state,
+      lock: false
+    }
+    this.commit(this.state)
+  }
 }
 
 export const globalStore = new Root();
 
-// TODO: Please remove it before release in production
-// 备注：请在正式发布时删除操作的window属性
 // @ts-ignore
 window.globalStore = globalStore;

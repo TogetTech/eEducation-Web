@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import Nav from '../../components/nav';
-import RoomDialog from '../../components/dialog/room';
+import RoomDialog from '../../components/dialog';
 import { AgoraStream } from '../../utils/types';
 import './room.scss';
 import NativeSharedWindow from '../../components/native-shared-window';
@@ -94,28 +94,8 @@ export function RoomPage({ children }: any) {
     }
   }, [location]);
 
-  // useEffect(() => {
-  //   if (location.pathname.match(/big-class/)) {
-  //     if (roomStore.state.applyUser.account) {
-  //       globalStore.showNotice({
-  //         reason: 'peer_hands_up',
-  //         text: t('notice.student_interactive_apply', { reason: `${roomStore.state.applyUser.account}` }),
-  //       });
-  //       return () => {
-  //         globalStore.removeNotice()
-  //       }
-  //     }
-  //   }
-  // }, [roomStore.state.applyUser.account, location])
-  
   const rtc = useRef<boolean>(false);
-
-  // const canPublish = useMemo(() => {
-  //   return !isBigClass ||
-  //     (isBigClass && 
-  //       (me.role === 1 ||
-  //         me.coVideo));
-  // }, [me.uid, me.coVideo, me.role, isBigClass]);
+  
   const canPublish = useMemo(() => {
     return me.coVideo;
   }, [me.coVideo]);
@@ -205,14 +185,14 @@ export function RoomPage({ children }: any) {
       const nativeClient = roomStore.rtcClient as AgoraElectronClient;
       if (canPublish && !publishLock.current) {
         publishLock.current = true;
-        roomStore.updateLocalMe({broad: true})
-          .then(() => {
-            console.log("board updateLocal")
-            nativeClient.publish();
-          }).catch(console.warn)
-          .finally(() => {
-            publishLock.current = false;
-          })
+        // roomStore.updateLocalMe({broad: true})
+        //   .then(() => {
+          console.log("board updateLocal")
+          nativeClient.publish();
+          // }).catch(console.warn)
+          // .finally(() => {
+          publishLock.current = false;
+          // })
       }
     }
   }, [
@@ -229,21 +209,24 @@ export function RoomPage({ children }: any) {
       if (platform === 'web') {
         const webClient = roomStore.rtcClient as AgoraWebClient;
         if (webClient.joined || rtc.current) {
-          console.log("joined, ", webClient.joined)
           return;
         }
         console.log("[agora-rtc] add event listener");
         webClient.rtc.on('onTokenPrivilegeWillExpire', (evt: any) => {
           // you need obtain the `newToken` token from server side 
-          const newToken = '';
-          webClient.rtc.renewToken(newToken);
-          console.log('[agora-web] onTokenPrivilegeWillExpire', evt);
+          eduApi.refreshToken().then((res: any) => {
+            const newToken = res.rtcToken
+            webClient.rtc.renewToken(newToken);
+            console.log('[agora-web] onTokenPrivilegeWillExpire', evt);
+          })
         });
         webClient.rtc.on('onTokenPrivilegeDidExpire', (evt: any) => {
           // you need obtain the `newToken` token from server side 
-          const newToken = '';
-          webClient.rtc.renewToken(newToken);
-          console.log('[agora-web] onTokenPrivilegeDidExpire', evt);
+          eduApi.refreshToken().then((res: any) => {
+            const newToken = res.rtcToken
+            webClient.rtc.renewToken(newToken);
+            console.log('[agora-web] onTokenPrivilegeDidExpire', evt);
+          })
         });
         webClient.rtc.on('error', (evt: any) => {
           console.log('[agora-web] error evt', evt);
@@ -314,7 +297,7 @@ export function RoomPage({ children }: any) {
           .joinChannel({
             uid: +roomState.me.uid, 
             channel: roomState.course.rid,
-            token: '',
+            token: roomState.me.rtcToken,
             dual: isSmallClass,
             appId: roomState.appID,
           }).then(() => {
@@ -396,7 +379,7 @@ export function RoomPage({ children }: any) {
         nativeClient.joinChannel({
           uid: +roomState.me.uid, 
           channel: roomState.course.rid,
-          token: '',
+          token: roomState.me.rtcToken,
           dual: isSmallClass
         });
         roomStore.setRTCJoined(true);
