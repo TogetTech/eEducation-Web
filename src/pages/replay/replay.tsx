@@ -12,6 +12,7 @@ import { whiteboard } from '../../stores/whiteboard';
 import "video.js/dist/video-js.css";
 import { RTMReplayer, RtmPlayerState } from '../../components/whiteboard/agora/rtm-player';
 import { useInterval } from 'react-use';
+import { isElectron } from '../../utils/platform';
 import { t } from '../../i18n';
 
 const delay = 5000
@@ -243,7 +244,7 @@ export const NetlessAgoraReplay: React.FC<NetlessAgoraReplayProps> = ({
   }, [player, state]);
 
   return (
-    <div className="replay">
+    <div className={`replay`}>
       <div className={`player-container`} >
         <PlayerCover />
         <div className="player">

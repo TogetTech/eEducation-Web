@@ -17,6 +17,7 @@ import OneToOne from './classroom/one-to-one';
 import BigClass from './classroom/big-class';
 import { PageNotFound } from './404';
 import RoomDialog from '../components/dialog';
+import { ReplayPageWrapper } from './replay';
 
 export default function () {
   return (
@@ -49,10 +50,14 @@ export default function () {
             </RoomPage>
           </Route>
           <Route path="/replay/record/:recordId">
-            <ReplayContainer />
+            <ReplayPageWrapper>
+              <ReplayContainer />
+            </ReplayPageWrapper>
           </Route>
           <Route path="/replay/agora_record/:recordId">
-            <AgoraReplayContainer />
+            <ReplayPageWrapper>
+              <AgoraReplayContainer />
+            </ReplayPageWrapper>
           </Route>
           {/* <Route path="/error">
             <ErrorPage />

@@ -124,16 +124,15 @@ export class AgoraEduApi {
 
   // fetch stsToken
   // 获取 stsToken
-  async fetchStsToken(roomId: string) {
+  async fetchStsToken(roomId: string, fileExt: string) {
     // NOTE: demo feedback only
     const appCode = 'edu-demo'
     const _roomId = roomId ? roomId : 0;
     let data = await AgoraFetchJson({
-      url: `/v1/apps/${this.appID}/log/params?appCode=${appCode}&osType=${3}&terminalType=${3}&appVersion=${BUILD_VERSION}&roomId=${_roomId}`,
+      url: `/v1/apps/${this.appID}/log/params?appCode=${appCode}&osType=${3}&terminalType=${3}&appVersion=${BUILD_VERSION}&roomId=${_roomId}&fileExt=${fileExt}`,
       method: 'GET',
     })
-
-    console.log("data", data)
+    
     return {
       bucketName: data.bucketName as string,
       callbackBody: data.callbackBody as string,
@@ -145,13 +144,7 @@ export class AgoraEduApi {
     }
   }
 
-  // upload log
-  async uploadLogFile(
-    roomId: string,
-    appVersion: string,
-    ua: string,
-    file: any
-    ) {
+  async uploadToOss(roomId: string, file: any, ext: string) {
     let {
       bucketName,
       callbackBody,
@@ -160,7 +153,7 @@ export class AgoraEduApi {
       accessKeySecret,
       securityToken,
       ossKey
-    } = await this.fetchStsToken(roomId);
+    } = await this.fetchStsToken(roomId, ext);
     const ossParams = {
       bucketName,
       callbackBody,
@@ -178,13 +171,29 @@ export class AgoraEduApi {
     })
 
     const url = `${PREFIX}/v1/log/sts/callback`
-    let res = await ossClient.put(ossKey, file, {
+    return await ossClient.put(ossKey, file, {
       callback: {
         url: `${PREFIX}/v1/log/sts/callback`,
         body: callbackBody,
         contentType: callbackContentType,
       }
     });
+  }
+
+  async uploadZipLogFile(
+    roomId: string,
+    file: any
+  ) {
+    const res = await this.uploadToOss(roomId, file, 'zip')
+    return res;
+  }
+
+  // upload log
+  async uploadLogFile(
+    roomId: string,
+    file: any
+  ) {
+    const res = await this.uploadToOss(roomId, file, 'log')
     return res;
   }
 

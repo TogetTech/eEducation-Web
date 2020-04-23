@@ -1,3 +1,4 @@
+import { doGzip } from './log-gzip';
 import { APP_ID } from './agora-rtc-client';
 import EventEmitter from 'events';
 import { btoa } from './helper';
@@ -7,27 +8,31 @@ import { globalStore } from '../stores/global';
 export const AgoraRtcEngine = window.rtcEngine;
 
 if (AgoraRtcEngine) {
+  AgoraRtcEngine.initialize(APP_ID);
+  AgoraRtcEngine.setChannelProfile(1);
+  AgoraRtcEngine.enableVideo();
+  AgoraRtcEngine.enableAudio();
+  AgoraRtcEngine.enableWebSdkInteroperability(true);
+  AgoraRtcEngine.setVideoProfile(43, false);
   //@ts-ignore
-  window.ipc.once("initialize", (logPath: string) => {
-    AgoraRtcEngine.initialize(APP_ID);
-    AgoraRtcEngine.setChannelProfile(1);
-    AgoraRtcEngine.enableVideo();
-    AgoraRtcEngine.enableAudio();
-    AgoraRtcEngine.setLogFile(logPath)
-    AgoraRtcEngine.enableWebSdkInteroperability(true);
-    AgoraRtcEngine.setVideoProfile(43, false);
+  window.ipc.once("initialize", (events: any, args: any) => {
+
+    const logPath = args[0]
+    const zipPath = args[1]
+    let res = AgoraRtcEngine.setLogFile(logPath)
+    window.localStorage.setItem('logPath', logPath)
+    window.localStorage.setItem('zipPath', zipPath)
+    console.log("setLogFile result ", res, logPath, zipPath)
   })
 }
 
 //@ts-ignore
-window.ipc.on("export-log", (logPath: string, dstPath: string) => {
-  //@ts-ignore
-  const writeStream = window.fs.createReadStream(logPath)
-  //@ts-ignore
-  const zip = window.zlib.createGzip()
-  //@ts-ignore
-  window.fs.createReadStream(dstPath).pipe(zip).pipe(writeStream)
-  console.log("export-log>>>> ", writeStream, zip, dstPath)
+window.ipc.on("export-log", (events: any, args: any) => {
+
+  const logPath = args[0];
+  const dstPath = args[1];
+
+  doGzip(logPath, dstPath)
 })
 
 export interface Stream {

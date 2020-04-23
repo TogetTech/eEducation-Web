@@ -9,6 +9,7 @@ import { globalStore } from '../../stores/global';
 import { useHistory } from 'react-router-dom';
 import { RoomMessage } from '../../utils/agora-rtm-client';
 import { t } from '../../i18n';
+import { isElectron } from '../../utils/platform';
 
 interface RoomProps {
   onConfirm: (type: string) => void
@@ -101,7 +102,11 @@ const DialogContainer = () => {
       roomStore.exitRoom().finally(() => {
         globalStore.removeDialog();
         globalStore.stopLoading()
-        history.goBack();
+        if (isElectron) {
+          history.push('/')
+        } else {
+          history.goBack()
+        }
       })
     }
     else if (type === 'apply') {
