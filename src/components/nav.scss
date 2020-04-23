@@ -62,7 +62,7 @@
     }
     .electron-btn-group {
       display: flex;
-      max-width: 72px;
+      min-width: 70px;
       justify-content: space-between;
     }
     .menu-group {

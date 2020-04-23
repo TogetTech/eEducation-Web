@@ -7,16 +7,28 @@ import { globalStore } from '../stores/global';
 export const AgoraRtcEngine = window.rtcEngine;
 
 if (AgoraRtcEngine) {
-  AgoraRtcEngine.initialize(APP_ID);
-  AgoraRtcEngine.setChannelProfile(1);
-  AgoraRtcEngine.enableVideo();
-  AgoraRtcEngine.enableAudio();
-  AgoraRtcEngine.enableWebSdkInteroperability(true);
-  AgoraRtcEngine.setVideoProfile(43, false);
+  //@ts-ignore
+  window.ipc.once("initialize", (logPath: string) => {
+    AgoraRtcEngine.initialize(APP_ID);
+    AgoraRtcEngine.setChannelProfile(1);
+    AgoraRtcEngine.enableVideo();
+    AgoraRtcEngine.enableAudio();
+    AgoraRtcEngine.setLogFile(logPath)
+    AgoraRtcEngine.enableWebSdkInteroperability(true);
+    AgoraRtcEngine.setVideoProfile(43, false);
+  })
 }
 
-// TODO: default screen sharing uid, please do not directly use it.
-const SHARE_ID = 7;
+//@ts-ignore
+window.ipc.on("export-log", (logPath: string, dstPath: string) => {
+  //@ts-ignore
+  const writeStream = window.fs.createReadStream(logPath)
+  //@ts-ignore
+  const zip = window.zlib.createGzip()
+  //@ts-ignore
+  window.fs.createReadStream(dstPath).pipe(zip).pipe(writeStream)
+  console.log("export-log>>>> ", writeStream, zip, dstPath)
+})
 
 export interface Stream {
   uid: number
@@ -100,7 +112,7 @@ export class AgoraElectronClient {
       res !== 0 && console.warn(`[creaetStream] set setAudioPlaybackVolume: ${speakerVolume}`);
     }
 
-    return new AgoraElectronStream(streamID, streamID !== SHARE_ID ? StreamType.local : StreamType.localVideoSource);
+    return new AgoraElectronStream(streamID, +streamID !== +this.roomStore.state.course.screenId ? StreamType.local : StreamType.localVideoSource);
   }
 
   private readonly events: string[] = [
@@ -152,11 +164,11 @@ export class AgoraElectronClient {
       })
     }
     rtcEngine.on('joinedchannel', (channel: string, uid: number) => {
-      const stream = new AgoraElectronStream(uid, uid !== SHARE_ID ? StreamType.local : StreamType.localVideoSource);
+      const stream = new AgoraElectronStream(uid, +uid !== +this.roomStore.state.course.screenId ? StreamType.local : StreamType.localVideoSource);
       this.bus.emit('joinedchannel', {stream});
     })
     rtcEngine.on('userjoined', (uid: number) => {
-      const stream = new AgoraElectronStream(uid, uid !== SHARE_ID ? StreamType.remote : StreamType.remoteVideoSource);
+      const stream = new AgoraElectronStream(uid, +uid !== +this.roomStore.state.course.screenId ? StreamType.remote : StreamType.remoteVideoSource);
       this.bus.emit('userjoined', {stream});
     })
     rtcEngine.on('removestream', (uid: number) => {

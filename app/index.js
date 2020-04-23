@@ -1,6 +1,6 @@
 const electron = require('electron');
 
-const ipcMain = electron.ipcMain;
+const {ipcMain} = electron;
 
 // workaround for resizable issue in mac os
 const platform = require('os').platform();
@@ -8,6 +8,12 @@ const platform = require('os').platform();
 const process = require('process');
 // Module to control application life.
 const {app, Menu, netLog} = electron;
+
+const ctime = Date.now()
+const appPath = app.getAppPath()
+
+// const netLogPath = `${appPath}/net_log-${ctime}.log`
+const logPath = `${appPath}/agora_sdk.log'`
 // Menu template
 const isMac = platform === 'darwin'
 
@@ -34,7 +40,10 @@ const template = [
     label: 'Log',
     submenu: [
       {
-        label: 'export log'
+        label: 'export log',
+        click: async () => {
+          ipcMain.send("export-log")
+        }
       }
     ]
   },
@@ -72,6 +81,7 @@ async function createWindow() {
       height: 500,
       center: true,
       resizable: false,
+      show: false,
       webPreferences: {
         autoplayPolicy: 'no-user-gesture-required',
         nodeIntegration: true,
@@ -90,6 +100,10 @@ async function createWindow() {
     // and load the index.html of the app.
     mainWindow.loadURL(startUrl);
 
+    mainWindow.webContents.once("did-finish-load", () => {
+      mainWindow.webContents.send('initialize', logPath)
+    })
+
     // Emitted when the window is closed.
     mainWindow.on('closed', function () {
         // Dereference the window object, usually you would store windows
@@ -98,6 +112,9 @@ async function createWindow() {
         mainWindow = null
     })
 
+    mainWindow.once('ready-to-show', () => {
+      mainWindow.show();
+    })
 
     const menu = Menu.buildFromTemplate(template)
 
@@ -162,11 +179,9 @@ async function createWindow() {
       app.quit();
     });
 
-    let res = app.setAppLogsPath();
+    // let res = app.setAppLogsPath();
 
-    console.log("Your electron log path", app.getPath('logs'), " res ", res)
-
-    await netLog.startLogging(`${app.getAppPath()}/netLog.log`);
+    // console.log("Your electron log path", app.getPath('logs'), " res ", res)
 }
 
 // This method will be called when Electron has finished

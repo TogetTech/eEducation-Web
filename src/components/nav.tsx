@@ -96,15 +96,16 @@ export function Nav ({
                 }}/>
               </span>
             </Tooltip>
-            <Tooltip title={t("icon.upload-log")} placement="bottom">
-              <span>
-                <Icon className={globalStore.state.lock ? "icon-loading" : "icon-upload"} onClick={(evt: any) => {
-                  handleClick('uploadLog')
-                }}></Icon>
-              </span>
-            </Tooltip>
+
             </> : null
           }
+          <Tooltip title={t("icon.upload-log")} placement="bottom">
+            <span>
+              <Icon className={globalStore.state.lock ? "icon-loading" : "icon-upload"} onClick={(evt: any) => {
+                handleClick('uploadLog')
+              }}></Icon>
+            </span>
+          </Tooltip>
           <Tooltip title={t("icon.exit-room")} placement="bottom">
             <span>
               <Icon className="icon-exit" onClick={(evt: any) => {

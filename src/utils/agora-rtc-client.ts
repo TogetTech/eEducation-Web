@@ -50,8 +50,6 @@ const clientEvents: string[] = [
 export const APP_ID = process.env.REACT_APP_AGORA_APP_ID as string;
 export const APP_TOKEN = process.env.REACT_APP_AGORA_APP_TOKEN as string;
 export const ENABLE_LOG = process.env.REACT_APP_AGORA_LOG as string === "true";
-// TODO: default screen sharing uid, please do not directly use it.
-export const SHARE_ID = 7;
 
 export class AgoraRTCClient {
 
