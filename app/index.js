@@ -12,8 +12,8 @@ const {app, Menu, netLog} = electron;
 
 const appPath = app.getAppPath()
 
-// const netLogPath = `${appPath}/net_log-${ctime}.log`
-const logPath = path.join(appPath, `agora_sdk.log`)
+const logPath = path.join(appPath, `log`, `agora_sdk.log`)
+const dstPath = path.join(appPath, `log`, `agora_sdk.log.zip`)
 // Menu template
 const isMac = platform === 'darwin'
 
@@ -53,7 +53,8 @@ async function createWindow() {
     mainWindow.loadURL(startUrl);
 
     mainWindow.webContents.once("did-finish-load", () => {
-      mainWindow.webContents.send('initialize', [logPath, `${appPath}/logs.zip`])
+      mainWindow.webContents.send('initialize', [logPath, dstPath])
+      mainWindow.webContents.send('appPath', [appPath])
     })
 
     mainWindow.webContents.on('new-window', (event, url, frameName, disposition, options, additionalFeatures) => {
@@ -177,7 +178,7 @@ async function createWindow() {
           {
             label: 'export log',
             click: async () => {
-              mainWindow.webContents.send("export-log", [logPath, `${appPath}/logs.zip`])
+              mainWindow.webContents.send("export-log", [logPath, dstPath])
             }
           }
         ]

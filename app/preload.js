@@ -1,21 +1,32 @@
 const {ipcRenderer: ipc} = require('electron');
-const fs = require('fs');
-const zlib = require('zlib');
-const { pipeline } = require('stream');
-const { promisify } = require('util')
 
 const AgoraRtcEngine = require('agora-electron-sdk').default;
 
-window.ipc = ipc;
+const {promisify} = require('util')
 
-window.fs = fs;
-
-window.zlib = zlib;
-
-window.pipePromise = promisify(pipeline)
-
-window.readFilePromise = promisify(fs.readFile)
+const path = require('path');
+const fs = require('fs');
 
 const rtcEngine = new AgoraRtcEngine();
 
 window.rtcEngine = rtcEngine;
+window.ipc = ipc;
+
+const AdmZip = require('adm-zip');
+
+window.ipc.once('appPath', (event, args) => {
+  const appPath = args[0];
+  const logPath = path.join(appPath, `log`, `agora_sdk.log`)
+  const dstPath = path.join(appPath, `log`, `agora_sdk.log.zip`)
+  window.dstPath = dstPath;
+  window.logPath = logPath;
+})
+
+const doGzip = async () => {
+  const zip = new AdmZip();
+  zip.addLocalFile(window.logPath)
+  zip.writeZip(window.dstPath)
+  return promisify(fs.readFile)(window.dstPath)
+}
+
+window.doGzip = doGzip;

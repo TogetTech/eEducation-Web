@@ -132,7 +132,7 @@ export class AgoraEduApi {
       url: `/v1/apps/${this.appID}/log/params?appCode=${appCode}&osType=${3}&terminalType=${3}&appVersion=${BUILD_VERSION}&roomId=${_roomId}&fileExt=${fileExt}`,
       method: 'GET',
     })
-    
+
     return {
       bucketName: data.bucketName as string,
       callbackBody: data.callbackBody as string,
@@ -167,6 +167,9 @@ export class AgoraEduApi {
       accessKeySecret: ossParams.accessKeySecret,
       stsToken: ossParams.securityToken,
       bucket: ossParams.bucketName,
+      secure: true,
+      // TODO: 请传递你自己的oss endpoint
+      // TODO: Please use your own oss endpoint
       endpoint: 'oss-accelerate.aliyuncs.com',
     })
 

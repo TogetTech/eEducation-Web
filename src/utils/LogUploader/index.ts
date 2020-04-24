@@ -7,7 +7,6 @@ import LogWorker from 'worker-loader!./log.worker';
 import db from './db';
 import UAParser from 'ua-parser-js';
 import {get} from 'lodash';
-import { doGzip, getLogPath, getZipPath } from '../log-gzip';
 
 const parser = new UAParser();
 
@@ -84,9 +83,8 @@ export default class Log {
   }
 
   static async uploadElectronLog(roomId: any) {
-    const logPath = getLogPath();
-    const zipPath = getZipPath();
-    let file = await doGzip(logPath, zipPath);
+    //@ts-ignore
+    let file = await window.doGzip();
     await eduApi.uploadZipLogFile(
       roomId,
       file
@@ -106,7 +104,7 @@ export default class Log {
     }
     // Web upload log
     ids.push(await this.uploadLog(roomStore.state.course.roomId))
-    return ids.join("\n")
+    return ids.join("#")
   }
 
   static async uploadLog(roomId: string) {

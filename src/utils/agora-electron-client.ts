@@ -1,4 +1,3 @@
-import { doGzip } from './log-gzip';
 import { APP_ID } from './agora-rtc-client';
 import EventEmitter from 'events';
 import { btoa } from './helper';
@@ -15,24 +14,18 @@ if (AgoraRtcEngine) {
   AgoraRtcEngine.enableWebSdkInteroperability(true);
   AgoraRtcEngine.setVideoProfile(43, false);
   //@ts-ignore
-  window.ipc.once("initialize", (events: any, args: any) => {
-
+  window.ipc && window.ipc.once("initialize", (events: any, args: any) => {
     const logPath = args[0]
-    const zipPath = args[1]
-    let res = AgoraRtcEngine.setLogFile(logPath)
-    window.localStorage.setItem('logPath', logPath)
-    window.localStorage.setItem('zipPath', zipPath)
-    console.log("setLogFile result ", res, logPath, zipPath)
+    AgoraRtcEngine.setLogFile(logPath)
   })
 }
 
 //@ts-ignore
-window.ipc.on("export-log", (events: any, args: any) => {
-
-  const logPath = args[0];
-  const dstPath = args[1];
-
-  doGzip(logPath, dstPath)
+window.ipc && window.ipc.on("export-log", (events: any, args: any) => {
+  //@ts-ignore
+  window.doGzip();
+  //@ts-ignore
+  console.log('doGzip', window.doGzip);
 })
 
 export interface Stream {
