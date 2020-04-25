@@ -8,6 +8,7 @@ import { globalStore } from "../stores/global";
 import { historyStore } from './../stores/history';
 import OSS from "ali-oss";
 import axios from 'axios';
+ /* eslint-disable */ 
 import Log from '../utils/LogUploader';
 
 const whiteboardGenerateTokenApiEndpoint = process.env.REACT_APP_YOUR_BACKEND_WHITEBOARD_API as string;

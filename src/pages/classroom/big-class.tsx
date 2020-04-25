@@ -6,7 +6,6 @@ import ChatBoard from '../../components/chat/board';
 import MediaBoard from '../../components/mediaboard';
 import useStream from '../../hooks/use-streams';
 import useChatText from '../../hooks/use-chat-text';
-import { RoomMessage, ChatCmdType } from '../../utils/agora-rtm-client';
 import { AgoraElectronClient } from '../../utils/agora-electron-client';
 import AgoraWebClient from '../../utils/agora-rtc-client';
 import { useRoomState } from '../../containers/root-container';

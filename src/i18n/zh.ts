@@ -28,6 +28,8 @@ const zhCN: any = {
     "recording": "开始云端录制",
     "quit_screen_sharing": "停止屏幕录制",
     "screen_sharing": "开始屏幕录制",
+    "delete_current": "删除当前",
+    "delete_all": "删除全部",
   },
   'zoom_control': {
     'folder': '文档中心',

@@ -2,7 +2,6 @@ import { MultipartUploadResult } from 'ali-oss';
 import uuidv4 from 'uuid/v4';
 import {Room, PptConverter, PptKind, Ppt} from 'white-web-sdk';
 import MD5 from 'js-md5';
-import { whiteboard } from '../stores/whiteboard';
 import { resolveFileInfo } from './helper';
 
 export type imageSize = {
@@ -85,7 +84,6 @@ export class UploadManager {
         const scenePath = MD5(`/${uuid}/${documentFile.id}`);
         this.room.putScenes(`/${scenePath}`, res.scenes);
         this.room.setScenePath(`/${scenePath}/${res.scenes[0].name}`);
-        // whiteboard.updateRoomState();
     } else {
       console.log("convert no static ppt");
         res = await pptConverter.convert({
@@ -106,7 +104,6 @@ export class UploadManager {
         const scenePath = MD5(`/${uuid}/${documentFile.id}`);
         this.room.putScenes(`/${scenePath}`, res.scenes);
         this.room.setScenePath(`/${scenePath}/${res.scenes[0].name}`);
-        // whiteboard.updateRoomState();
     }
     if (onProgress) {
         onProgress(PPTProgressPhase.Converting, 1);

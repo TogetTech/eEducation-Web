@@ -2,9 +2,6 @@ import EventEmitter from 'events';
 import AgoraRTC from 'agora-rtc-sdk';
 import { roomStore, RoomStore } from '../stores/room';
 import { isEmpty } from 'lodash';
-import { t } from '../i18n';
-import { globalStore } from '../stores/global';
-import { AgoraStream } from './types';
 
 AgoraRTC.Logger.enableLogUpload();
 AgoraRTC.Logger.setLogLevel(AgoraRTC.Logger.DEBUG);

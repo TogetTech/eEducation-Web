@@ -14,7 +14,6 @@ import { useRoomState } from '../containers/root-container';
 import { roomStore } from '../stores/room';
 import { globalStore } from '../stores/global';
 import { t } from '../i18n';
-import { eduApi } from '../services/edu-api';
 import Log from '../utils/LogUploader';
 import { Tooltip } from '@material-ui/core';
 

@@ -12,7 +12,7 @@ import {AgoraPlayer, TimelineScheduler} from '../../utils/agora-web-player/agora
 import { t } from '../../i18n';
 import { globalStore } from '../../stores/global';
 import { PlayerPhase } from 'white-web-sdk';
-import {isElectron} from '../../utils/platform';
+// import {isElectron} from '../../utils/platform';
 
 const ReplayContext = React.createContext({} as IPlayerState);
 

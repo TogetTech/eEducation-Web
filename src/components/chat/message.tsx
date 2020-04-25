@@ -1,4 +1,4 @@
-import React, { Children } from 'react';
+import React from 'react';
 import './index.scss';
 import { Link } from 'react-router-dom';
 import { useRoomState } from '../../containers/root-container';

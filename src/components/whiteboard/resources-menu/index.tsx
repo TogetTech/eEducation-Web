@@ -1,14 +1,14 @@
 import React, {useRef, useState, useEffect} from 'react';
 import { SceneResource, whiteboard } from '../../../stores/whiteboard';
 import { t } from '../../../i18n';
-import { Input } from '@material-ui/core';
+import { Input, Tooltip } from '@material-ui/core';
 import { useDebounce } from 'react-use';
 import { globalStore } from '../../../stores/global';
 import Icon from '../../icon'; 
 import {omit} from 'lodash';
 
 type ResourceMenuProps = {
-  active: number
+  activeScenePath: string
   items: SceneResource[]
   onClose: (evt: any) => void
   onClick: (rootPath: string) => void
@@ -18,7 +18,7 @@ const debounceDelay = 800
 
 export const ResourceItem: React.FC<any> = (props: any) => {
 
-  const [name, setName] = useState<string>(props.item.name);
+  const [name, setName] = useState<string>(props.name);
 
   const mounted = useRef<boolean>(false);
 
@@ -75,22 +75,33 @@ export const ResourceItem: React.FC<any> = (props: any) => {
     setName(evt.target.value)
   }
 
+  const isMainScene = ["/", "/init"].indexOf(props.item.path) !== -1
+
   return (
     <>
     <div className={`item ${props.activeClass} relative`}>
-      <Icon className="icon-delete" onClick={() => {
-        const room = whiteboard.state.room
-        if (room) {
-          room.removeScenes(props.item.path)
-          const roomGlobalState = room.state.globalState as any;
-          const sceneMap = roomGlobalState['sceneMap'];
-          const newSceneMap = omit(sceneMap, [`${props.item.path}`])
-          console.log("currentGlobalState", newSceneMap)
-          room.setGlobalState({
-            sceneMap: newSceneMap
-          })
-        }
-      }}></Icon>
+      <Tooltip title={isMainScene ? t("control_items.delete_all") : t("control_items.delete_current")} placement="bottom">
+        <span>
+          <Icon className="icon-delete" onClick={() => {
+            const room = whiteboard.state.room
+            if (room) {
+              room.removeScenes(props.item.path)
+              const roomGlobalState = room.state.globalState as any;
+              const sceneMap = roomGlobalState['sceneMap'];
+              const newSceneMap = omit(sceneMap, [`${props.item.path}`])
+              if (isMainScene) {
+                room.setGlobalState({
+                  sceneMap: ''
+                })
+              } else {
+                room.setGlobalState({
+                  sceneMap: newSceneMap
+                })
+              }
+            }
+          }} />
+        </span>
+      </Tooltip>
       <div className={`cover-item ${props.coverType}`}
         onClick={() => {
           props.handleClick(props.item.rootPath);
@@ -99,7 +110,7 @@ export const ResourceItem: React.FC<any> = (props: any) => {
       <span>
         <Input className="title"
           onChange={onChange}
-          defaultValue={props.item.file.name}
+          defaultValue={props.name}
         />
       </span>
     </div>
@@ -111,7 +122,7 @@ export const ResourcesMenu: React.FC<ResourceMenuProps> = (
   {
     onClose,
     items,
-    active,
+    activeScenePath,
     onClick
   }
 ) => {
@@ -125,10 +136,11 @@ export const ResourcesMenu: React.FC<ResourceMenuProps> = (
         <div className="menu-items">
           {items.map((item: any, key: number) => (
             <ResourceItem
-              activeClass={active === key ? 'active' : ''}
+              activeClass={activeScenePath === item.path ? 'active' : ''}
               coverType={item.file.type.match(/ppt/) ? 'ppt-cover' : 'doc-cover'}
               item={item}
-              key={key}
+              name={item.file.name}
+              key={key+item.path}
               handleClick={onClick}
             ></ResourceItem>
           ))}

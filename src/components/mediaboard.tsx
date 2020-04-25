@@ -166,9 +166,9 @@ const MediaBoard: React.FC<MediaBoardProps> = ({
   }
 
   const showControl: boolean = useMemo(() => {
-    if (me.role == 1) return true;
+    if (+me.role === 1) return true;
     if (location.pathname.match(/big-class/)) {
-      if (me.role == 2) {
+      if (+me.role === 2) {
         return true;
       }
     }
@@ -547,25 +547,21 @@ const items = [
         totalPage={totalPage}
         isHost={studentIsHost}
         onClick={handlePageTool}/> : null }
-        {whiteboardState.room ? 
-          <Collapse in={tool === 'folder'}>
-            <Paper elevation={4}>
-              <ResourcesMenu
-                active={whiteboardState.activeDir}
-                items={whiteboardState.dirs}
-                onClick={(rootPath: string) => {
-                  if (room) {
-                    room.setScenePath(rootPath);
-                    room.setSceneIndex(0);
-                    whiteboard.updateRoomState();
-                  }
-                }}
-                onClose={(evt: any) => {
-                  setTool('')
-                }}
-              />
-            </Paper>
-          </Collapse>
+        {tool === 'folder' && whiteboardState.room ? 
+        <ResourcesMenu
+          activeScenePath={whiteboardState.currentScenePath}
+          items={whiteboardState.dirs}
+          onClick={(rootPath: string) => {
+            if (room) {
+              room.setScenePath(rootPath);
+              room.setSceneIndex(0);
+              whiteboard.updateRoomState();
+            }
+          }}
+          onClose={(evt: any) => {
+            setTool('')
+          }}
+        />
         : null}
       <UploadNoticeView />
       <UploadProgressView />

@@ -1,5 +1,4 @@
 import { RoomMessage } from './agora-rtm-client';
-import * as _ from 'lodash';
 import OSS from 'ali-oss';
 
 export interface OSSConfig {

@@ -1,10 +1,8 @@
-import { APP_ID } from './../utils/agora-rtm-client';
 import { EventEmitter } from 'events';
 import { videoPlugin } from '@netless/white-video-plugin';
 import { audioPlugin } from '@netless/white-audio-plugin';
-import { RoomErrorLevel, Room, WhiteWebSdk, DeviceType, SceneState, createPlugins, RoomPhase } from 'white-web-sdk';
+import { Room, WhiteWebSdk, DeviceType, SceneState, createPlugins, RoomPhase } from 'white-web-sdk';
 import { Subject } from 'rxjs';
-import {Map} from 'immutable';
 import GlobalStorage from '../utils/custom-storage';
 import { isEmpty, get } from 'lodash';
 import { roomStore } from './room';
@@ -35,9 +33,9 @@ const pathName = (path: string): string => {
   const reg = /\/([^\/]*)\//g;
   reg.exec(path);
   if (RegExp.$1 === "aria") {
-      return "";
+    return "";
   } else {
-      return RegExp.$1;
+    return RegExp.$1;
   }
 }
 
@@ -54,7 +52,6 @@ export type WhiteboardState = {
   currentHeight: number
   currentWidth: number
   dirs: SceneResource[]
-  activeDir: number
   zoomRadio: number
   scale: number
   room: Room | null
@@ -65,7 +62,6 @@ export type WhiteboardState = {
   totalPage: number
   currentPage: number
   type: string
-  // isWritable: 
 }
 
 type JoinParams = {
@@ -89,7 +85,6 @@ class Whiteboard extends EventEmitter {
     currentHeight: 0,
     currentWidth: 0,
     dirs: [],
-    activeDir: 0,
     zoomRadio: 0,
     scale: 0,
     recording: false,
@@ -209,7 +204,7 @@ class Whiteboard extends EventEmitter {
     }
 
     const _dirPath = pathName(path);
-    const currentScenePath = _dirPath === "" ? "/init" : `/${_dirPath}`;
+    const currentScenePath = _dirPath === "" ? "/" : `/${_dirPath}`;
 
     const _dirs: SceneResource[] = [];
     scenes.forEach((it: CustomScene) => {
@@ -220,14 +215,11 @@ class Whiteboard extends EventEmitter {
       });
     });
 
-    const currentDirIndex = _dirs.findIndex((it: SceneResource) => it.rootPath === currentScenePath);
-
     this.state = {
       ...this.state,
       scenes: scenes,
       currentScenePath: currentScenePath,
       dirs: _dirs,
-      activeDir: currentDirIndex !== -1 ? currentDirIndex : 0,
       totalPage,
       currentPage,
       type,
@@ -240,7 +232,6 @@ class Whiteboard extends EventEmitter {
     this.state = {
       ...this.state,
       currentScenePath: dirPath,
-      activeDir: currentDirIndex !== -1 ? currentDirIndex : 0
     }
     this.commit(this.state);
   }
@@ -251,20 +242,9 @@ class Whiteboard extends EventEmitter {
     const type = isEmpty(ppt) ? 'static' : 'dynamic';
     const currentPage = sceneState.index;
     const totalPage = sceneState.scenes.length;
-    // const _dirPath = pathName(path);
-    // const dirPath = _dirPath === "" ? "/init" : `/${_dirPath}`;
-
-    // const scenes = this.state.scenes.update(dirPath, (value) => {
-    //   return {
-    //     ...value,
-    //     currentPage,
-    //     totalPage,
-    //   }
-    // });
 
     this.state = {
       ...this.state,
-      // scenes,
       currentPage,
       totalPage,
       type,

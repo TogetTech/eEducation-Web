@@ -11,7 +11,6 @@ import { isElectron } from '../utils/platform';
 import { usePlatform } from '../containers/platform-container';
 import {useHistory} from 'react-router-dom';
 import { roomStore } from '../stores/room';
-import { genUid } from '../utils/helper';
 import {GithubIcon} from '../components/github-icon';
 import { globalStore, roomTypes } from '../stores/global';
 import { t } from '../i18n';

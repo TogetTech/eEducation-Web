@@ -3,7 +3,7 @@ import { getIntlError } from '../services/intl-error-helper';
 
 const FETCH_TIMEOUT = 10000
 
-const delay = 100;
+// const delay = 100;
 
 export async function Fetch (input: RequestInfo, init?: RequestInit, retryCount: number = 0): Promise<any> {
   return new Promise((resolve, reject) => {

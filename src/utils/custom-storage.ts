@@ -1,4 +1,3 @@
-import { globalStore } from './../stores/global';
 import { isEmpty } from "lodash";
 
 export class CustomStorage {

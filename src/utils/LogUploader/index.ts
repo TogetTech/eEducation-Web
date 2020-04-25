@@ -31,15 +31,15 @@ export const isMobile = () => {
   return userAgentInfo.device.type === 'mobile';
 };
 
-const getUserAgent = () => {
-  return isSafari()
-    ? 'safari'
-    : isChrome()
-    ? 'chrome'
-    : isFirefox()
-    ? 'firefox'
-    : navigator.userAgent;
-};
+// const getUserAgent = () => {
+//   return isSafari()
+//     ? 'safari'
+//     : isChrome()
+//     ? 'chrome'
+//     : isFirefox()
+//     ? 'firefox'
+//     : navigator.userAgent;
+// };
 
 const flat = (arr: any[]) => {
   return arr.reduce((arr, elem) => arr.concat(elem), []);
@@ -108,7 +108,7 @@ export default class Log {
   }
 
   static async uploadLog(roomId: string) {
-    let ua = getUserAgent();
+    // let ua = getUserAgent();
     //@ts-ignore
     let logs = await db.logs.toArray();
     const logsStr = logs

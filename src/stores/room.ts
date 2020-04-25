@@ -3,7 +3,7 @@ import { AgoraElectronClient } from './../utils/agora-electron-client';
 import { ChatMessage, AgoraStream } from '../utils/types';
 import { Subject } from 'rxjs';
 import { Map, Set, List } from 'immutable';
-import AgoraRTMClient, { RoomMessage, ChatCmdType, CoVideoType } from '../utils/agora-rtm-client';
+import AgoraRTMClient, { RoomMessage, CoVideoType } from '../utils/agora-rtm-client';
 import { globalStore } from './global';
 import AgoraWebClient from '../utils/agora-rtc-client';
 import { get, set } from 'lodash';
@@ -11,7 +11,6 @@ import { isElectron } from '../utils/platform';
 import GlobalStorage from '../utils/custom-storage';
 import { t } from '../i18n';
 import { eduApi, UserAttrsParams } from '../services/edu-api';
-import {genUUID} from '../utils/api';
 
 export interface NotifyFlag {
   broad: boolean
@@ -701,7 +700,7 @@ export class RoomStore {
   }
 
   async updateRoomState(params: {usersMap: Map<string, AgoraUser>, room: Partial<ClassState>, me: Partial<Me>} & NotifyFlag) {
-    const {broad, usersMap, room, me} = params
+    const {usersMap, room, me} = params
 
     const teacherId = room.teacherId as string
 
@@ -920,7 +919,7 @@ export class RoomStore {
   async updateCourse(params: Partial<ClassState & NotifyFlag>) {
     const {broad = true, ...courseParams} = params
 
-    const {key, stateValue, value}: any = this.resolveCourseAttrsToOperate(courseParams)
+    const {key, stateValue}: any = this.resolveCourseAttrsToOperate(courseParams)
 
     if (broad) {
       await eduApi.updateCourse({
@@ -1128,7 +1127,7 @@ export class RoomStore {
 
   async stopRecording () {
     this.lockRecording()
-    const {data} = await eduApi.stopRecording(this.state.course.recordId)
+    await eduApi.stopRecording(this.state.course.recordId)
     const roomId = this.state.course.roomId
     const {data: roomInfo} = await eduApi.getRoomInfoBy(roomId)
     const recordId = roomInfo.room.recordId

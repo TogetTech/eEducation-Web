@@ -28,6 +28,8 @@ const en = {
     "recording": "Start Cloud Recording",
     "quit_screen_sharing": "Stop Screen Sharing",
     "screen_sharing": "Start Screen Sharing",
+    "delete_current": "Remove Current",
+    "delete_all": "Remove All",
   },
   'zoom_control': {
     'folder': 'Document Center',

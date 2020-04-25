@@ -14,7 +14,7 @@ import { AgoraElectronClient } from '../../utils/agora-electron-client';
 import { t } from '../../i18n';
 import { eduApi } from '../../services/edu-api';
 import { genUUID } from '../../utils/api';
-import { useInterval } from 'react-use';
+// import { useInterval } from 'react-use';
 
 export const roomTypes = [
   {value: 0, path: 'one-to-one'},
@@ -77,9 +77,9 @@ export function RoomPage({ children }: any) {
 
   const roomState = useRoomState();
   const me = roomStore.state.me;
-  const course = roomStore.state.course;
+  // const course = roomStore.state.course;
   const classroom = Boolean(location.pathname.match(/classroom/));
-  const isBigClass = Boolean(location.pathname.match(/big-class/));
+  // const isBigClass = Boolean(location.pathname.match(/big-class/));
   const isSmallClass = Boolean(location.pathname.match(/small-class/));
   
   useEffect(() => {
@@ -127,7 +127,6 @@ export function RoomPage({ children }: any) {
       Promise.all([
         webClient
         .unpublishLocalStream()
-        // roomStore.deleteKey(+me.uid)
       ])
         .then(() => {
           console.log("[agora-web] unpublish local stream");
@@ -138,8 +137,6 @@ export function RoomPage({ children }: any) {
       const nativeClient = rtcClient as AgoraElectronClient;
       if (!nativeClient.published) return;
       nativeClient.unpublish();
-      // roomStore.deleteKey(+me.uid).then(() => {
-      // }).catch(console.warn)
     }
 
   }, [me.role, location.pathname, canPublish]);
@@ -254,7 +251,7 @@ export function RoomPage({ children }: any) {
         });
         webClient.rtc.on('stream-removed', ({ stream }: any) => {
           console.log("[agora-web] removed remote stream, id: ", stream.getId());
-          const id = stream.getId();
+          // const id = stream.getId();
           roomStore.removeRemoteStream(stream.getId());
         });
         webClient.rtc.on('peer-online', ({uid}: any) => {
