@@ -140,7 +140,7 @@ export const ResourcesMenu: React.FC<ResourceMenuProps> = (
               coverType={item.file.type.match(/ppt/) ? 'ppt-cover' : 'doc-cover'}
               item={item}
               name={item.file.name}
-              key={key+item.path}
+              key={key+item.path+item.file.name}
               handleClick={onClick}
             ></ResourceItem>
           ))}
