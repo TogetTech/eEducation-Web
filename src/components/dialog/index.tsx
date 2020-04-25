@@ -10,6 +10,7 @@ import { useHistory } from 'react-router-dom';
 import { RoomMessage } from '../../utils/agora-rtm-client';
 import { t } from '../../i18n';
 import { isElectron } from '../../utils/platform';
+import { eduApi } from '../../services/edu-api';
 
 interface RoomProps {
   onConfirm: (type: string) => void
@@ -74,23 +75,39 @@ const DialogContainer = () => {
       globalStore.removeDialog();
     }
     else if (type === 'apply') {
-      roomStore.rtmClient.sendPeerMessage(
-        `${roomStore.state.applyUser.uid}`,
-        {
-          cmd: 1,
-          data: {
-            operate: RoomMessage.rejectCoVideo,
-            userId: `${roomStore.state.applyUser.userId}`,
-            uid: `${roomStore.state.applyUser.uid}`,
-            account: `${roomStore.state.applyUser.account}`,
-          }
-        }
-      ).then(() => {
+      eduApi
+      .teacherRejectApply(
+        roomStore.state.course.roomId,
+        roomStore.state.applyUser.userId,
+      )
+      .then(() => {
+        globalStore.showToast({
+          type: 'peer_hands_up', 
+          message: t('toast.reject_co_video')
+        });
         globalStore.removeNotice();
         globalStore.removeDialog();
-      }).catch((err) => {
+      })
+      .catch((err: any) => {
         console.warn(err)
       })
+      // roomStore.rtmClient.sendPeerMessage(
+      //   `${roomStore.state.applyUser.uid}`,
+      //   {
+      //     cmd: 1,
+      //     data: {
+      //       operate: RoomMessage.rejectCoVideo,
+      //       userId: `${roomStore.state.applyUser.userId}`,
+      //       uid: `${roomStore.state.applyUser.uid}`,
+      //       account: `${roomStore.state.applyUser.account}`,
+      //     }
+      //   }
+      // ).then(() => {
+      //   globalStore.removeNotice();
+      //   globalStore.removeDialog();
+      // }).catch((err) => {
+      //   console.warn(err)
+      // })
     } else if (type === 'uploadLog') {
       globalStore.removeDialog()
     }
@@ -112,14 +129,26 @@ const DialogContainer = () => {
     else if (type === 'apply') {
       // p2p message accept coVideo
       // 老师同意学生连麦申请
-      Promise.all([
-        roomStore.updateCoVideoUserBy(roomStore.state.applyUser, {
-          coVideo: 1
+      eduApi.teacherAcceptApply(roomStore.state.course.roomId, roomStore.state.applyUser.userId)
+        .then(() => {
+          globalStore.showToast({
+            type: 'peer_hands_up', 
+            message: t('toast.accept_co_video')
+          });
+          globalStore.removeNotice();
+          globalStore.removeDialog();
         })
-      ]).then(() => {
-        globalStore.removeNotice();
-        globalStore.removeDialog();
-      }).catch(console.warn);
+        .catch((err: any) => {
+          console.warn(err)
+        })
+      // Promise.all([
+      //   roomStore.updateCoVideoUserBy(roomStore.state.applyUser, {
+      //     coVideo: 1
+      //   })
+      // ]).then(() => {
+      //   globalStore.removeNotice();
+      //   globalStore.removeDialog();
+      // }).catch(console.warn);
     }
     else if (type === 'uploadLog') {
       globalStore.removeDialog()

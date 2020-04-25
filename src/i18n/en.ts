@@ -87,6 +87,12 @@ const en = {
     'teacher_cancel_co_video': 'Teacher already canceled co-video',
     'student_cancel_co_video': 'Student canceled co-video',
     'student_peer_leave': '"{reason}" Left',
+    'student_send_co_video_apply': '"{reason}" send the co-video request',
+    'stop_co_video': 'Stop "{reason}" co-video',
+    'reject_co_video': 'Reject co-video',
+    'close_co_video': 'Close co-video',
+    'close_youself_co_video': 'Stop co-video',
+    'accept_co_video': 'Accept co-video',
   },
   'notice': {
     'student_interactive_apply': `"{reason}" wants to interact with you`

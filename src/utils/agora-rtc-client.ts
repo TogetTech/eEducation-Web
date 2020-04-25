@@ -380,6 +380,7 @@ export default class AgoraWebClient {
     dual && await this.rtc.enableDualStream();
     this.joined = true;
     roomStore.setRTCJoined(true);
+    console.log("join web agora sdk rtc success")
   }
 
   async leaveChannel() {

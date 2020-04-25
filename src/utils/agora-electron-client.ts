@@ -166,7 +166,7 @@ export class AgoraElectronClient {
       this.bus.emit('joinedchannel', {stream});
     })
     rtcEngine.on('userjoined', (uid: number) => {
-      const stream = new AgoraElectronStream(uid, +uid !== +this.roomStore.state.course.screenId ? StreamType.remote : StreamType.remoteVideoSource);
+      const stream = new AgoraElectronStream(uid, StreamType.remote);
       this.bus.emit('userjoined', {stream});
     })
     rtcEngine.on('removestream', (uid: number) => {

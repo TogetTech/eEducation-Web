@@ -18,7 +18,7 @@ export interface UserAttrsParams {
   enableVideo: number
   enableAudio: number
   grantBoard: number
-  coVideo?: number
+  // coVideo?: number
 }
 
 const APP_ID: string = process.env.REACT_APP_AGORA_APP_ID as string;
@@ -543,6 +543,107 @@ export class AgoraEduApi {
       }
     })
     return
+  }
+
+  // NOTE: student send apply
+  // NOTE: 学生发起连麦申请
+  async studentSendApply(roomId: string) {
+    let data = await AgoraFetchJson({
+      url: `/v1/apps/${this.appID}/room/${roomId}/covideo`,
+      method: 'POST',
+      token: this.userToken,
+      data: {
+        type: 1
+      }
+    })
+    return data;
+  }
+
+  // NOTE: student stop apply
+  // NOTE: 学生主动取消连麦申请
+  async studentStopCoVideo(roomId: string) {
+    let data = await AgoraFetchJson({
+      url: `/v1/apps/${this.appID}/room/${roomId}/covideo`,
+      method: 'POST',
+      token: this.userToken,
+      data: {
+        type: 6,
+      }
+    })
+    return data;
+  }
+
+  // NOTE: teacher accept apply
+  // NOTE: 教师同意学生申请
+  async teacherAcceptApply(roomId: string, userId: string) {
+    let data = await AgoraFetchJson({
+      url: `/v1/apps/${this.appID}/room/${roomId}/covideo`,
+      method: 'POST',
+      token: this.userToken,
+      data: {
+        type: 4,
+        userIds: [userId]
+      }
+    })
+    return data;
+  }
+
+  // NOTE: teacher reject apply
+  // NOTE: 教师拒绝学生连麦
+  async teacherRejectApply(roomId: string, userId: string) {
+    let data = await AgoraFetchJson({
+      url: `/v1/apps/${this.appID}/room/${roomId}/covideo`,
+      method: 'POST',
+      token: this.userToken,
+      data: {
+        type: 2,
+        userIds: [userId]
+      }
+    })
+    return data;
+  }
+
+  // NOTE: teacher cancel apply
+  // NOTE: 教师取消学生连麦
+  async teacherCancelStudent(roomId: string, userId: string) {
+    let data = await AgoraFetchJson({
+      url: `/v1/apps/${this.appID}/room/${roomId}/covideo`,
+      method: 'POST',
+      token: this.userToken,
+      data: {
+        type: 5,
+        userIds: [userId]
+      }
+    })
+    return data;
+  }
+
+  // NOTE: send channel message
+  // NOTE: 发送聊天消息
+  async sendChannelMessage(payload: any) {
+    let data = await AgoraFetchJson({
+      url: `/v1/apps/${this.appID}/room/${payload.roomId}/chat`,
+      method: 'POST',
+      token: this.userToken,
+      data: {
+        message: payload.message,
+        type: payload.type
+      }
+    })
+
+    return data;
+  }
+
+  async startScreenShare(roomId: string) {
+    let data = await AgoraFetchJson({
+      url: `/v1/apps/${this.appID}/room/${roomId}/screen`,
+      method: 'POST',
+      token: this.userToken,
+      data: {
+        state: 1
+      }
+    })
+    return data;
   }
 }
 

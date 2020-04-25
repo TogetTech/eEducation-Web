@@ -226,7 +226,7 @@ export default function useStream () {
     sharedStream: sharedStream,
     currentHost: currentHost,
     onPlayerClick: async (type: string, streamID: number, uid: string) => {
-
+      console.log("streamID ", streamID, uid);
       const me = roomStore.state.me;
       if (!roomStore.state.rtm.joined || !me.uid) return console.warn("please confirm joined rtm");
       const targetUser = roomStore.state.users.get(`${uid}`);

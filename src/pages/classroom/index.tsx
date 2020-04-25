@@ -22,7 +22,7 @@ export const roomTypes = [
   {value: 2, path: 'big-class'},
 ];
 
-const delay = 5000
+// const delay = 5000
 
 export function RoomPage({ children }: any) {
 
@@ -30,9 +30,9 @@ export function RoomPage({ children }: any) {
 
   const lock = useRef<boolean>(false);
 
-  useInterval(() => {
-    roomStore.fetchRoomState()
-  }, delay)
+  // useInterval(() => {
+  //   roomStore.fetchRoomState()
+  // }, delay)
 
   useEffect(() => {
     const me = roomStore.state.me;
@@ -167,7 +167,6 @@ export function RoomPage({ children }: any) {
       if (canPublish && !publishLock.current) {
         publishLock.current = true;
         Promise.all([
-          // roomStore.updateLocal({broad: true}),
           webClient
           .publishLocalStream(streamSpec)
         ])
@@ -185,14 +184,9 @@ export function RoomPage({ children }: any) {
       const nativeClient = roomStore.rtcClient as AgoraElectronClient;
       if (canPublish && !publishLock.current) {
         publishLock.current = true;
-        // roomStore.updateLocalMe({broad: true})
-        //   .then(() => {
-          console.log("board updateLocal")
-          nativeClient.publish();
-          // }).catch(console.warn)
-          // .finally(() => {
-          publishLock.current = false;
-          // })
+        console.log("board updateLocal")
+        nativeClient.publish();
+        publishLock.current = false;
       }
     }
   }, [

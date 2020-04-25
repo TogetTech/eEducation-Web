@@ -125,6 +125,8 @@ export const RootProvider: React.FC<any> = ({children}) => {
     });
     rtmClient.on("MessageFromPeer", ({ message: { text }, peerId, props }: { message: { text: string }, peerId: string, props: any }) => {
       const body = resolvePeerMessage(text);
+      console.log("message", text, body)
+
       // resolveMessage(peerId, body);
       roomStore
       .handlePeerMessage(body, peerId)
@@ -132,11 +134,13 @@ export const RootProvider: React.FC<any> = ({children}) => {
       }).catch(console.warn);
     });
     rtmClient.on("ChannelMessage", ({ memberId, message }: { message: { text: string }, memberId: string }) => {
+      console.log("ChannelMessage cmd:  ", message)
       const {cmd, data} = jsonParse(message.text);
       console.log("ChannelMessage cmd:  ", cmd, data)
-      // chat message
-      // 聊天消息
+      // TODO: chat message
+      // TODO: 更新即时聊天
       if (cmd === ChatCmdType.chat) {
+        if (data.userId === roomStore.state.me.userId) return
         const isChatroom = globalStore.state.active === 'chatroom';
         if (!isChatroom) {
           globalStore.setMessageCount(globalStore.state.newMessageCount+1);
@@ -144,8 +148,8 @@ export const RootProvider: React.FC<any> = ({children}) => {
           globalStore.setMessageCount(0);
         }
         const chatMessage = {
-          account: data.account,
-          text: data.content,
+          account: data.userName,
+          text: data.message,
           ts: +Date.now(),
           id: memberId,
         }
@@ -153,8 +157,32 @@ export const RootProvider: React.FC<any> = ({children}) => {
         console.log("[rtmClient] chatMessage ", chatMessage, " raw Data: ", data);
       }
 
-      // replay message
-      // 回放消息
+      // TODO: update room member changed
+      // TODO: 更新人员进出
+      if (cmd === ChatCmdType.roomMemberChanged) {
+        const memberCount = data.total
+        roomStore.updateRoomMember(memberCount)
+      }
+
+      // TODO: update course state
+      // TODO: 更新房间信息
+      if (cmd === ChatCmdType.roomInfoChanged) {
+        roomStore.updateRoomInfo({
+          muteAllChat: data.muteAllChat,
+          lockBoard: data.lockBoard,
+          courseState: data.courseState
+        })
+      }
+
+      // TODO: update room co-video-users
+      // TODO: 更新连麦用户
+      if (cmd === ChatCmdType.coVideoUsersChanged) {
+        const users = data;
+        roomStore.updateCoVideoUsers(users);
+      }
+
+      // TODO: replay message
+      // TODO: 更新录制回放
       if (cmd === ChatCmdType.replay) {
         const isChatroom = globalStore.state.active === 'chatroom';
         if (!isChatroom) {
@@ -163,32 +191,22 @@ export const RootProvider: React.FC<any> = ({children}) => {
           globalStore.setMessageCount(0);
         }
         const replayMessage = {
-          account: data.account,
-          text: data.content,
+          account: data.userName,
+          text: 'recording',
           link: data.recordId,
           ts: +Date.now(),
-          id: memberId,
+          id: data.uid,
         }
         roomStore.updateChannelMessage(replayMessage);
         console.log("[rtmClient] replayMessage", replayMessage, " raw Data: ", data);
       }
 
-      // user message
-      // 用户消息
-      if (cmd === ChatCmdType.update) {
-        roomStore.fetchRoomState()
-          .then(() => {
-            console.log('fetchRoomState')
-          }).catch(console.warn)
-      }
-
-      // 课程消息
-      // course message
-      if (cmd === ChatCmdType.course) {
-        roomStore.fetchCourse()
-        .then(() => {
-          console.log('fetchCourse')
-        }).catch(console.warn)
+      if (cmd === ChatCmdType.screenShare) {
+        roomStore.updateScreenShare({
+          state: data.state,
+          screenId: data.screenId,
+          userId: data.userId
+        })
       }
     });
     return () => {
