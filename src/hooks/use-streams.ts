@@ -214,7 +214,7 @@ export default function useStream () {
   }, [
     course.coVideoUids,
     me.uid,
-    // me.role,
+    me.role,
     roomState.users,
     roomState.rtc.remoteStreams,
     roomState.rtc.localStream,

@@ -214,7 +214,14 @@ async function createWindow() {
       const currentWindow = BrowserWindow.getFocusedWindow() || mainWindow
       
       if (platform === 'darwin') {
-
+        if (reply.width === 700) {
+          currentWindow.setResizable(true);
+          currentWindow.setFullScreen(false);
+          currentWindow.setContentSize(reply.width, reply.height, false);
+          currentWindow.center();
+          currentWindow.setResizable(false);
+          return;
+        }
       }
 
       if (platform === 'win32') {

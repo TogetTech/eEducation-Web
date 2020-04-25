@@ -1157,7 +1157,12 @@ export class RoomStore {
   }
 
   updateCoVideoUsers(rawUsers: any) {
+    const coVideoUids: any[] = []
     let users = rawUsers.reduce((acc: Map<string, AgoraUser>, it: any) => {
+      if (+it.role === 2) {
+        coVideoUids.push(+it.uid)
+      }
+      
       return acc.set(`${it.uid}`, {
         role: it.role,
         account: it.userName,
@@ -1205,7 +1210,8 @@ export class RoomStore {
       },
       course: {
         ...this.state.course,
-        ...courseState
+        ...courseState,
+        coVideoUids,
       }
     }
     this.commit(this.state)
