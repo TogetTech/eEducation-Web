@@ -23,9 +23,8 @@ export default function useChatText () {
     if (rtmClient &&  me.uid) {
       if (me.role !== 1 && (!me.chat || Boolean(roomState.course.muteChat))) return console.warn("chat already muted");
       if (me.role === 1 && !me.chat) return console.warn("chat already muted");
-      await rtmClient.sendChannelMessage({
-        account: me.account,
-        content
+      await roomStore.sendChannelMessage({
+        message: content,
       });
       const message = {
         account: me.account,

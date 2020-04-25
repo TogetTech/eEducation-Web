@@ -4,13 +4,14 @@ import { roomStore } from '../../stores/room';
 import { whiteboard } from '../../stores/whiteboard';
 import moment from 'moment';
 import { globalStore } from '../../stores/global';
-import { getOSSUrl } from '../../utils/helper';
 import { t } from '../../i18n';
+import { Tooltip } from '@material-ui/core';
 interface ControlItemProps {
   name: string
   onClick: (evt: any, name: string) => void
   active: boolean
   text?: string
+  loading?: boolean
 }
 
 const ControlItem = (props: ControlItemProps) => {
@@ -19,13 +20,14 @@ const ControlItem = (props: ControlItemProps) => {
   }
   return (
     props.text ?
-      <div className={`control-btn control-${props.name}`} onClick={onClick}>
+      <div className={`control-btn control-${props.name} ${props.loading ? 'icon-loading' : ''}`} onClick={onClick}>
         <div className={`btn-icon ${props.name} ${props.active ? 'active' : ''}`}
           data-name={props.name} />
         <div className="control-text">{props.text}</div>
       </div>
       :
       <Icon
+        loading={props.loading}
         data={props.name}
         onClick={onClick}
         className={`items ${props.name} ${props.active ? 'active' : ''}`}
@@ -120,49 +122,74 @@ export default function Control({
       <div className="controls">
         {!sharing && role === 1 ?
           <>
-            <ControlItem name={`first_page`}
-              active={'first_page' === current}
-              onClick={onClick} />
-            <ControlItem name={`prev_page`}
-              active={'prev_page' === current}
-              onClick={onClick} />
+            <Tooltip title={t(`control_items.first_page`)} placement="top">
+              <span>
+                <ControlItem name={`first_page`}
+                  active={'first_page' === current}
+                  onClick={onClick} />
+              </span>
+            </Tooltip>
+            <Tooltip title={t(`control_items.prev_page`)} placement="top">
+              <span>
+                <ControlItem name={`prev_page`}
+                  active={'prev_page' === current}
+                  onClick={onClick} />
+              </span>
+            </Tooltip>
             <div className="current_page">
               <span>{currentPage}/{totalPage}</span>
             </div>
-            <ControlItem name={`next_page`}
-              active={'next_page' === current}
-              onClick={onClick} />
-            <ControlItem name={`last_page`}
-              active={'last_page' === current}
-              onClick={onClick} />
+            <Tooltip title={t(`control_items.next_page`)} placement="top">
+              <span>
+                <ControlItem name={`next_page`}
+                  active={'next_page' === current}
+                  onClick={onClick} />
+              </span>
+            </Tooltip>
+            <Tooltip title={t(`control_items.last_page`)} placement="top">
+              <span>
+                <ControlItem name={`last_page`}
+                  active={'last_page' === current}
+                  onClick={onClick} />
+              </span>
+            </Tooltip>
             <div className="menu-split" style={{ marginLeft: '7px', marginRight: '7px' }}></div>
           </> : null
         }
         {+role === 1 ?
           <>
-            {/* <ControlItem
-              name={roomStore.state.course.isRecording ? 'stop_recording' : 'recording'}
-              onClick={onRecordButtonClick}
-              active={false}
-            /> */}
-            <ControlItem
-              name={sharing ? 'quit_screen_sharing' : 'screen_sharing'}
-              onClick={(evt: any) => {
-                if (sharing) {
-                  roomStore.stopScreenShare()
-                  .then(() => {
-                    console.log("stop screen share")
-                  }).catch(console.warn)
-                } else {
-                  roomStore.startScreenShare()
-                  .then(() => {
-                    console.log("start screen share")
-                  }).catch(console.warn)
-                }
-              }}
-              active={false}
-              text={sharing ? 'stop sharing' : ''}
-            />
+            {/* <Tooltip title={t(roomStore.state.course.isRecording ? 'control_items.stop_recording' : 'control_items.recording')} placement="top">
+              <span>
+                <ControlItem
+                  loading={Boolean(roomStore.state.recordLock)}
+                  name={Boolean(roomStore.state.recordLock) ? 'icon-loading ' : (roomStore.state.course.isRecording ? 'stop_recording' : 'recording')}
+                  onClick={onRecordButtonClick}
+                  active={false}
+                />
+              </span>
+            </Tooltip> */}
+            <Tooltip title={t(sharing ? 'control_items.quit_screen_sharing' : 'control_items.screen_sharing')} placement="top">
+              <span>
+                <ControlItem
+                  name={sharing ? 'quit_screen_sharing' : 'screen_sharing'}
+                  onClick={(evt: any) => {
+                    if (sharing) {
+                      roomStore.stopScreenShare()
+                      .then(() => {
+                        console.log("stop screen share")
+                      }).catch(console.warn)
+                    } else {
+                      roomStore.startScreenShare()
+                      .then(() => {
+                        console.log("start screen share")
+                      }).catch(console.warn)
+                    }
+                  }}
+                  active={false}
+                  text={sharing ? 'stop sharing' : ''}
+                />
+              </span>
+            </Tooltip>
           </> : null }
         {+role === 2 ?
           <>

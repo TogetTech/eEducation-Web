@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import Nav from '../../components/nav';
+import RoomDialog from '../../components/dialog';
 import { AgoraStream } from '../../utils/types';
 import './room.scss';
 import NativeSharedWindow from '../../components/native-shared-window';
@@ -8,12 +9,12 @@ import { roomStore } from '../../stores/room';
 import { useRoomState } from '../../containers/root-container';
 import { globalStore } from '../../stores/global';
 import { platform } from '../../utils/platform';
-import AgoraWebClient, { AgoraStreamSpec, SHARE_ID } from '../../utils/agora-rtc-client';
+import AgoraWebClient, { AgoraStreamSpec } from '../../utils/agora-rtc-client';
 import { AgoraElectronClient } from '../../utils/agora-electron-client';
 import { t } from '../../i18n';
 import { eduApi } from '../../services/edu-api';
 import { genUUID } from '../../utils/api';
-import { useInterval } from 'react-use';
+// import { useInterval } from 'react-use';
 
 export const roomTypes = [
   {value: 0, path: 'one-to-one'},
@@ -21,7 +22,7 @@ export const roomTypes = [
   {value: 2, path: 'big-class'},
 ];
 
-const delay = 5000;
+// const delay = 5000
 
 export function RoomPage({ children }: any) {
 
@@ -29,9 +30,9 @@ export function RoomPage({ children }: any) {
 
   const lock = useRef<boolean>(false);
 
-  useInterval(() => {
-    roomStore.fetchRoomState()
-  }, delay)
+  // useInterval(() => {
+  //   roomStore.fetchRoomState()
+  // }, delay)
 
   useEffect(() => {
     const me = roomStore.state.me;
@@ -43,12 +44,10 @@ export function RoomPage({ children }: any) {
 
     const sessionInfo = {
       userName: me.account,
-      roomName: me.roomName,
-      password: me.password,
+      roomName: course.roomName,
       role: me.role,
       type: course.roomType,
-      uuid: genUUID(),
-      roomId: course.roomId,
+      uuid: genUUID()
     }
     lock.current = true;
     if (roomStore.state.rtm.joined) return;
@@ -78,9 +77,9 @@ export function RoomPage({ children }: any) {
 
   const roomState = useRoomState();
   const me = roomStore.state.me;
-  const course = roomStore.state.course;
+  // const course = roomStore.state.course;
   const classroom = Boolean(location.pathname.match(/classroom/));
-  const isBigClass = Boolean(location.pathname.match(/big-class/));
+  // const isBigClass = Boolean(location.pathname.match(/big-class/));
   const isSmallClass = Boolean(location.pathname.match(/small-class/));
   
   useEffect(() => {
@@ -94,9 +93,9 @@ export function RoomPage({ children }: any) {
       });
     }
   }, [location]);
-  
-  const rtc = useRef<boolean>(false);
 
+  const rtc = useRef<boolean>(false);
+  
   const canPublish = useMemo(() => {
     return me.coVideo;
   }, [me.coVideo]);
@@ -120,14 +119,14 @@ export function RoomPage({ children }: any) {
 
   useEffect(() => {
     if (!location.pathname.match(/big-class/) || me.role === 1) return
+    // if (course.linkId) return;
     const rtcClient = roomStore.rtcClient;
     if (platform === 'web') {
       const webClient = rtcClient as AgoraWebClient;
       if (!webClient.published) return;
       Promise.all([
         webClient
-        .unpublishLocalStream(),
-        roomStore.deleteKey(+me.uid)
+        .unpublishLocalStream()
       ])
         .then(() => {
           console.log("[agora-web] unpublish local stream");
@@ -138,8 +137,6 @@ export function RoomPage({ children }: any) {
       const nativeClient = rtcClient as AgoraElectronClient;
       if (!nativeClient.published) return;
       nativeClient.unpublish();
-      roomStore.deleteKey(+me.uid).then(() => {
-      }).catch(console.warn)
     }
 
   }, [me.role, location.pathname, canPublish]);
@@ -167,7 +164,6 @@ export function RoomPage({ children }: any) {
       if (canPublish && !publishLock.current) {
         publishLock.current = true;
         Promise.all([
-          // roomStore.updateLocal({broad: true}),
           webClient
           .publishLocalStream(streamSpec)
         ])
@@ -185,14 +181,9 @@ export function RoomPage({ children }: any) {
       const nativeClient = roomStore.rtcClient as AgoraElectronClient;
       if (canPublish && !publishLock.current) {
         publishLock.current = true;
-        roomStore.updateLocalMe({broad: true})
-          .then(() => {
-            console.log("broad updateLocal")
-            nativeClient.publish();
-          }).catch(console.warn)
-          .finally(() => {
-            publishLock.current = false;
-          })
+        console.log("board updateLocal")
+        nativeClient.publish();
+        publishLock.current = false;
       }
     }
   }, [
@@ -240,7 +231,7 @@ export function RoomPage({ children }: any) {
         webClient.rtc.on('stream-subscribed', ({ stream }: any) => {
           const streamID = stream.getId();
           // when streamID is not share_id use switch high or low stream in dual stream mode
-          if (location.pathname.match(/small-class/) && streamID !== SHARE_ID) {
+          if (location.pathname.match(/small-class/)) {
             if (roomStore.state.course.teacherId
               && roomStore.state.course.teacherId === `${streamID}`) {
               webClient.setRemoteVideoStreamType(stream, 0);
@@ -261,7 +252,7 @@ export function RoomPage({ children }: any) {
         });
         webClient.rtc.on('stream-removed', ({ stream }: any) => {
           console.log("[agora-web] removed remote stream, id: ", stream.getId());
-          const id = stream.getId();
+          // const id = stream.getId();
           roomStore.removeRemoteStream(stream.getId());
         });
         webClient.rtc.on('peer-online', ({uid}: any) => {
@@ -357,7 +348,7 @@ export function RoomPage({ children }: any) {
         nativeClient.on('userjoined', (evt: any) => {
           const stream = evt.stream;
           const _stream = new AgoraStream(stream, stream.uid, false);
-          if (location.pathname.match(/small-class/) && stream.uid !== SHARE_ID) {
+          if (location.pathname.match(/small-class/) && +stream.uid !== +roomStore.state.course.screenId) {
             if (roomStore.state.course.teacherId
               && roomStore.state.course.teacherId === `${stream.uid}`) {
               const res = nativeClient.rtcEngine.setRemoteVideoStreamType(stream, 0);

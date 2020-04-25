@@ -1,9 +1,10 @@
-import React, { Children } from 'react';
+import React from 'react';
 import './index.scss';
 import { Link } from 'react-router-dom';
 import { useRoomState } from '../../containers/root-container';
 import { t } from '../../i18n';
 import { eduApi } from '../../services/edu-api';
+import { roomStore } from '../../stores/room';
 interface MessageProps {
   nickname: string
   content: string
@@ -29,7 +30,7 @@ export const Message: React.FC<MessageProps> = ({
   const text = React.useMemo(() => {
     if (link && roomState.course.rid) {
       return (
-        <Link to={`/replay/record/${link}?roomId=${roomState.course.roomId}&token=${eduApi.userToken}`} target="_blank">{t('course_recording')}</Link>
+        <Link to={`/replay/record/${link}?roomId=${roomState.course.roomId}&token=${eduApi.userToken}&senderId=${roomStore.state.me.uid}&channelName=${roomStore.state.course.rid}`} target="_blank">{t('course_recording')}</Link>
       )
     }
     return link ? link : content;

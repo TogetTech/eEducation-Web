@@ -14,8 +14,8 @@ import { useRoomState } from '../containers/root-container';
 import { roomStore } from '../stores/room';
 import { globalStore } from '../stores/global';
 import { t } from '../i18n';
-import { eduApi } from '../services/edu-api';
 import Log from '../utils/LogUploader';
+import { Tooltip } from '@material-ui/core';
 
 interface NavProps {
   delay: string
@@ -86,19 +86,32 @@ export function Nav ({
         </div>
         <span className="menu-split" />
         <div className={platform === 'web' ? "btn-group" : 'electron-btn-group' }>
-          {platform  === 'web' ?
+          {platform === 'web' ?
             <>
-            <Icon className="icon-setting" onClick={(evt: any) => {
-              handleClick("setting");
-            }}/>
-            <Icon className={globalStore.state.lock ? "icon-loading" : "icon-upload"} onClick={(evt: any) => {
-              handleClick('uploadLog')
-            }}></Icon>
+            <Tooltip title={t("icon.setting")} placement="bottom">
+              <span>
+                <Icon className="icon-setting" onClick={(evt: any) => {
+                  handleClick("setting");
+                }}/>
+              </span>
+            </Tooltip>
+
             </> : null
           }
-          <Icon className="icon-exit" onClick={(evt: any) => {
-            handleClick("exit");
-          }} />
+          <Tooltip title={t("icon.upload-log")} placement="bottom">
+            <span>
+              <Icon className={globalStore.state.lock ? "icon-loading" : "icon-upload"} onClick={(evt: any) => {
+                handleClick('uploadLog')
+              }}></Icon>
+            </span>
+          </Tooltip>
+          <Tooltip title={t("icon.exit-room")} placement="bottom">
+            <span>
+              <Icon className="icon-exit" onClick={(evt: any) => {
+                handleClick("exit");
+              }} />
+            </span>
+          </Tooltip>
         </div>
         <NavBtn />
       </div>

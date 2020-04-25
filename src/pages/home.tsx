@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Theme, FormControl } from '@material-ui/core';
+import { Theme, FormControl, Tooltip } from '@material-ui/core';
 import {makeStyles} from '@material-ui/core/styles';
 import Button from '../components/custom-button';
 import RoleRadio from '../components/role-radio';
@@ -11,12 +11,12 @@ import { isElectron } from '../utils/platform';
 import { usePlatform } from '../containers/platform-container';
 import {useHistory} from 'react-router-dom';
 import { roomStore } from '../stores/room';
-import { genUid } from '../utils/helper';
-import MD5 from 'js-md5';
+import {GithubIcon} from '../components/github-icon';
 import { globalStore, roomTypes } from '../stores/global';
 import { t } from '../i18n';
 import GlobalStorage from '../utils/custom-storage';
 import { genUUID } from '../utils/api';
+import Log from '../utils/LogUploader';
 
 const useStyles = makeStyles ((theme: Theme) => ({
   formControl: {
@@ -47,6 +47,20 @@ function HomePage() {
 
   const handleSetting = (evt: any) => {
     history.push({pathname: `/device_test`});
+  }
+
+  const [lock, setLock] = useState<boolean>(false);
+
+  const handleUpload = (evt: any) => {
+    setLock(true)
+    Log.doUpload().then((resultCode: any) => {
+      globalStore.showDialog({
+        type: 'uploadLog',
+        message: t('toast.show_log_id', {reason: `${resultCode}`})
+      });
+    }).finally(() => {
+      setLock(false)
+    })
   }
 
   const {
@@ -83,7 +97,7 @@ function HomePage() {
     
     if (!roomTypes[session.roomType]) return;
     const path = roomTypes[session.roomType].path
-    globalStore.showLoading();
+    globalStore.showLoading()
     roomStore.LoginToRoom({
       userName: session.yourName,
       roomName: session.roomName,
@@ -124,26 +138,42 @@ function HomePage() {
             <span className="build-version">{t("build_version")}</span>
           </div>
           <div className="setting-container">
-            <Icon className="icon-setting" onClick={handleSetting}/>
-            <LangSelect
-            value={GlobalStorage.getLanguage().language.match(/^zh/) ? 0 : 1}
-            onChange={(evt: any) => {
-              const value = evt.target.value;
-              if (value === 0) {
-                globalStore.setLanguage('zh-CN');
-              } else {
-                globalStore.setLanguage('en');
-              }
-            }}
-            items={[
-              {text: '中文', name: 'zh-CN'},
-              {text: 'En', name: 'en'}
-            ]}></LangSelect>
+            <div className="flex-row">
+              <Tooltip title={t("icon.upload-log")} placement="top">
+                <span>
+                  <Icon className={lock ? "icon-loading" : "icon-upload"} onClick={handleUpload}></Icon>
+                </span>
+              </Tooltip>
+              <Tooltip title={t("icon.setting")} placement="top">
+                <span>
+                  <Icon className="icon-setting" onClick={handleSetting}/>
+                </span>
+              </Tooltip>
+            </div>
+            <Tooltip title={t("icon.lang-select")} placement="top">
+              <span>
+                <LangSelect
+                value={GlobalStorage.getLanguage().language.match(/^zh/) ? 0 : 1}
+                onChange={(evt: any) => {
+                  const value = evt.target.value;
+                  if (value === 0) {
+                    globalStore.setLanguage('zh-CN');
+                  } else {
+                    globalStore.setLanguage('en');
+                  }
+                }}
+                items={[
+                  {text: '中文', name: 'zh-CN'},
+                  {text: 'En', name: 'en'}
+                ]}></LangSelect>
+              </span>
+            </Tooltip>
           </div>
         </div>
       </div>
       }
       <div className="custom-card">
+        {!isElectron ? <GithubIcon /> : null}
         <div className="flex-item cover">
           {isElectron ? 
           <>

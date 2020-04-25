@@ -2,8 +2,51 @@ const BUILD_VERSION = process.env.REACT_APP_BUILD_VERSION as string;
 const build_version = BUILD_VERSION ? BUILD_VERSION : '0.0.1';
 
 const zhCN: any = {
+  "electron": {
+    "start_screen_share_failed": "native screen sharing failed"
+  },
+  "icon": {
+    "setting": "设置",
+    "upload-log": "上传日志",
+    "exit-room": "退出教室",
+    "lang-select": "语言切换",
+  },
+  'doc_center': '文档中心',
+  'upload_picture': '上传图片',
+  'convert_webpage': '转换动态PPT',
+  'convert_to_picture': 'PPT转图片',
+  'upload_audio_video': '上传音视频',
   'return': {
     'home': '返回主页',
+  },
+  'control_items': {
+    "first_page": "第一页",
+    "prev_page": "上一页",
+    "next_page": "下一页",
+    "last_page": "最后一页",
+    "stop_recording": "停止云端录制",
+    "recording": "开始云端录制",
+    "quit_screen_sharing": "停止屏幕录制",
+    "screen_sharing": "开始屏幕录制",
+    "delete_current": "删除当前",
+    "delete_all": "删除全部",
+  },
+  'zoom_control': {
+    'folder': '文档中心',
+    'lock_board': '设置白板跟随',
+    'unlock_board': '取消白板跟随'
+  },
+  'tool': {
+    'selector': '鼠标选择器',
+    'pencil': '画笔',
+    'rectangle': '矩形',
+    'ellipse': '椭圆',
+    'eraser': '橡皮擦',
+    'text': '文字',
+    'color_picker': '调色板',
+    'add': '新增一页',
+    'upload': '上传',
+    'hand_tool': '手抓工具'
   },
   'error': {
     'not_found': '页面找不到',
@@ -13,6 +56,9 @@ const zhCN: any = {
   },
   'whiteboard': {
     'loading': '加载中...',
+    'global_state_limit': '请不要给白板设置过大的globalState size',
+    'locked_board': '白板已锁定，请不要操作白板',
+    'unlocked_board': '白板已解除锁定。',
   },
   'toast': {
     'show_log_id': `请提供你的日志ID: {no}`,
@@ -42,7 +88,13 @@ const zhCN: any = {
     'teacher_reject_co_video': '老师已拒绝连麦',
     'teacher_cancel_co_video': '老师已取消连麦',
     'student_cancel_co_video': '学生已取消连麦',
+    'student_send_co_video_apply': '"{reason}" 学生发起了连麦申请',
     'student_peer_leave': '"{reason}" 离开了',
+    'stop_co_video': '您停止了"{reason}"的连麦',
+    'reject_co_video': '您取消了学生的连麦申请',
+    'close_co_video': '您关闭了学生的连麦',
+    'close_youself_co_video': '你关闭了自己的连麦',
+    'accept_co_video': '您同意了连麦',
   },
   'notice': {
     'student_interactive_apply': `"{reason}"想和你连麦`

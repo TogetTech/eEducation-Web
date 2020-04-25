@@ -319,6 +319,16 @@
   background-image: url('./assets/icon-max@2x.png');
 }
 
+.icon-delete::after {
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  background-image: url('./assets/icon-delete@2x.png');
+}
+
 .icon-close::after {
   width: 100%;
   height: 100%;

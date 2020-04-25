@@ -1,12 +1,15 @@
-import { BUILD_VERSION } from '../i18n';
+import { BUILD_VERSION } from './../i18n';
 import { AgoraFetch } from "../utils/fetch";
 import { ClassState, AgoraUser, Me } from "../stores/room";
 import {Map} from 'immutable'
+import {get} from 'lodash'
 import { getIntlError, setIntlError } from "./intl-error-helper";
 import { globalStore } from "../stores/global";
 import { historyStore } from './../stores/history';
 import OSS from "ali-oss";
+/* eslint-disable */ 
 import Log from '../utils/LogUploader';
+import axios from 'axios';
 
 const writeAgoraAuth = (token: string, uid: string) => {
   sessionStorage.setItem("x-agora-token", token)
@@ -20,20 +23,22 @@ const readAgoraAuth = () => {
   }
 }
 
+const whiteboardGenerateTokenApiEndpoint = process.env.REACT_APP_YOUR_BACKEND_WHITEBOARD_API as string;
+
 export interface UserAttrsParams {
   userId: string
   enableChat: number
   enableVideo: number
   enableAudio: number
   grantBoard: number
-  coVideo?: number
+  // coVideo?: number
 }
 
 const APP_ID: string = process.env.REACT_APP_AGORA_APP_ID as string;
 const PREFIX: string = process.env.REACT_APP_AGORA_EDU_ENDPOINT_PREFIX as string;
+// const AUTHORIZATION: string = process.env.REACT_APP_AGORA_RESTFULL_TOKEN as string;
 
-const AgoraFetchJson = async ({url, method, data, token}:{url: string, method: string, data?: any, token?: string}) => {  
-  const agoraAuth = readAgoraAuth()
+const AgoraFetchJson = async ({url, method, data, token, full_url}:{url?: string, method: string, data?: any, token?: string, full_url?: string}) => {  
   const opts: any = {
     method,
     headers: {
@@ -44,6 +49,8 @@ const AgoraFetchJson = async ({url, method, data, token}:{url: string, method: s
   if (token) {
     opts.headers['token'] = token;
   }
+
+  const agoraAuth = readAgoraAuth();
 
   if (agoraAuth) {
     if (agoraAuth["x-agora-token"]) {
@@ -59,16 +66,20 @@ const AgoraFetchJson = async ({url, method, data, token}:{url: string, method: s
     opts.body = JSON.stringify(data);
   }
 
-  let resp = await AgoraFetch(`${PREFIX}${url}`, opts);
-
+  let resp = undefined;
+  if (full_url) {
+    resp = await AgoraFetch(`${full_url}`, opts);
+  } else {
+    resp = await AgoraFetch(`${PREFIX}${url}`, opts);
+  }
   const {code, msg, data: responseData} = resp
 
-  if (code !== 0) {
+  if (code !== 0 && code !== 408) {
     const error = getIntlError(`${code}`)
     const isErrorCode = `${error}` === `${code}`
     globalStore.showToast({
       type: 'eduApiError',
-      message: isErrorCode ? `ErrorCode: ${code}` : error
+      message: isErrorCode ? `${msg}` : error
     })
     if (code === 401) {
       historyStore.state.history.goBack()
@@ -81,14 +92,12 @@ const AgoraFetchJson = async ({url, method, data, token}:{url: string, method: s
 }
 
 export interface EntryParams {
-  roomId: string
   userName: string
-  password: string
   roomName: string
+  roomUuid: string
+  userUuid: string
   type: number
   role: number
-  userUuid: string
-  roomUuid: string
 }
 
 export type RoomParams = Partial<{
@@ -98,22 +107,65 @@ export type RoomParams = Partial<{
   [key: string]: any
 }>
 
+type FileParams = {
+  file: any,
+  key: string,
+  host: string,
+  policy: any,
+  signature: any,
+  callback: any,
+  accessid: string
+}
+
+const uploadLogToOSS = async ({
+  file,
+  key,
+  host,
+  policy,
+  signature,
+  callback,
+  accessid
+}: FileParams) => {
+  const formData = new FormData()
+  formData.append('name', 'test.log')
+  formData.append('key', key)
+  formData.append('file', file)
+  formData.append('policy',policy)
+  formData.append('OSSAccessKeyId',accessid)
+  formData.append('success_action_status','200')
+  formData.append('callback',callback)
+  formData.append('signature',encodeURIComponent(signature).replace(/%20/g,'+'))
+  return await axios.post(host, formData, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded'}
+  })
+}
+
 export class AgoraEduApi {
 
-  appID: string = '';
+  appID: string = APP_ID;
   roomId: string = '';
   public userToken: string = '';
   recordId: string = '';
 
+  async roomInfo(roomId: string) {
+    await this.config();
+    let data = await AgoraFetchJson({
+      url: `/v2/room/${roomId}`,
+      method: 'GET',
+    });
+    return {
+      data
+    }
+  }
+
   // fetch stsToken
   // 获取 stsToken
-  async fetchStsToken(roomId: string) {
+  async fetchStsToken(roomId: string, fileExt: string) {
     // NOTE: demo feedback only
     const appCode = 'edu-demo'
     const _roomId = roomId ? roomId : 0;
-    const appID = this.appID ? this.appID : 'default';
     let data = await AgoraFetchJson({
-      url: `/v1/apps/${appID}/log/params?appCode=${appCode}&osType=${3}&terminalType=${3}&appVersion=${BUILD_VERSION}&roomId=${_roomId}`,
+      url: `/v1/apps/${this.appID}/log/params?appCode=${appCode}&osType=${3}&terminalType=${3}&appVersion=${BUILD_VERSION}&roomId=${_roomId}&fileExt=${fileExt}`,
       method: 'GET',
     })
 
@@ -125,30 +177,10 @@ export class AgoraEduApi {
       accessKeySecret: data.accessKeySecret as string,
       securityToken: data.securityToken as string,
       ossKey: data.ossKey as string,
-      ossEndpoint: data.ossEndpoint as string,
     }
   }
 
-  // 公益demo房间信息
-  // demo room info
-  async roomInfo(roomId: string) {
-    await this.config();
-    let data = await AgoraFetchJson({
-      url: `/v2/room/${roomId}`,
-      method: 'GET',
-    });
-    writeAgoraAuth(data.xAgoraToken, data.xAgoraUid)
-    return {
-      data
-    }
-  }
-
-  async uploadLogFile(
-    roomId: string,
-    appVersion: string,
-    ua: string,
-    file: any
-    ) {
+  async uploadToOss(roomId: string, file: any, ext: string) {
     let {
       bucketName,
       callbackBody,
@@ -156,9 +188,8 @@ export class AgoraEduApi {
       accessKeyId,
       accessKeySecret,
       securityToken,
-      ossKey,
-      ossEndpoint
-    } = await this.fetchStsToken(roomId);
+      ossKey
+    } = await this.fetchStsToken(roomId, ext);
     const ossParams = {
       bucketName,
       callbackBody,
@@ -166,35 +197,53 @@ export class AgoraEduApi {
       accessKeyId,
       accessKeySecret,
       securityToken,
-      ossEndpoint,
     }
     const ossClient = new OSS({
       accessKeyId: ossParams.accessKeyId,
       accessKeySecret: ossParams.accessKeySecret,
       stsToken: ossParams.securityToken,
       bucket: ossParams.bucketName,
-      endpoint: ossParams.ossEndpoint,
+      secure: true,
+      // TODO: 请传递你自己的oss endpoint
+      // TODO: Please use your own oss endpoint
+      endpoint: 'oss-accelerate.aliyuncs.com',
     })
 
-    let res = await ossClient.put(ossKey, file, {
+    return await ossClient.put(ossKey, file, {
       callback: {
         url: `${PREFIX}/v1/log/sts/callback`,
         body: callbackBody,
         contentType: callbackContentType,
       }
     });
-    return res
   }
 
-  // static async fetchI18n() {
-  //   let data = await AgoraFetchJson({
-  //     url: `/v1/multi/language`,
-  //     method: 'GET',
-  //   });
+  async uploadZipLogFile(
+    roomId: string,
+    file: any
+  ) {
+    const res = await this.uploadToOss(roomId, file, 'zip')
+    return res;
+  }
 
-  //   setIntlError(data || {})
-  // }
+  // upload log
+  async uploadLogFile(
+    roomId: string,
+    file: any
+  ) {
+    const res = await this.uploadToOss(roomId, file, 'log')
+    return res;
+  }
 
+  // fetch i18n
+  static async fetchI18n() {
+    let data = await AgoraFetchJson({
+      url: `/v1/multi/language`,
+      method: 'GET',
+    });
+
+    setIntlError(data || {})
+  }
   // app config
   // 配置入口
   async config() {
@@ -208,24 +257,8 @@ export class AgoraEduApi {
     }
   }
 
-  // room entry
-  // 房间入口
-  // async entry(params: EntryParams) {
-  //   let data = await AgoraFetchJson({
-  //     url: `/v1/apps/${this.appID}/room/entry`,
-  //     method: 'POST',
-  //     data: params,
-  //   });
-    
-  //   this.roomId = data.roomId;
-  //   this.userToken = data.userToken;
-  //   return {
-  //     data
-  //   }
-  // }
-
-   // 公益room entry
-  // 公益房间入口
+  // welfare room entry
+  // 公益课堂登录入口
   async entry(params: EntryParams) {
     await this.config();
 
@@ -276,7 +309,6 @@ export class AgoraEduApi {
     }
   }
 
-  // @next
   // updateRoomUser
   // 更新用户状态，老师可更新房间内所有人，学生只能更新自己
   async updateRoomUser(user: Partial<UserAttrsParams>) {
@@ -333,9 +365,10 @@ export class AgoraEduApi {
     }
   }
 
+  // get whiteboard token
   async getWhiteboardBy(roomId: string): Promise<any> {
     let boardData = await AgoraFetchJson({
-      url: `/v1/apps/${this.appID}/room/${roomId}/board`,
+      full_url: whiteboardGenerateTokenApiEndpoint.replace("%app_id%", this.appID).replace("%room_id%", roomId),
       method: 'GET',
       token: this.userToken,
     })
@@ -394,7 +427,8 @@ export class AgoraEduApi {
       boardId: rawCourse.boardId,
       boardToken: rawCourse.boardToken,
       lockBoard: rawCourse.lockBoard,
-      teacherId: ''
+      teacherId: '',
+      memberCount: rawCourse.onlineUsers,
     }
 
     const teacher = usersMap.find((it: AgoraUser) => it.role === 1)
@@ -432,6 +466,7 @@ export class AgoraEduApi {
       boardId: room.boardId,
       boardToken: room.boardToken,
       lockBoard: room.lockBoard,
+      memberCount: room.onlineUsers,
     }
 
     const teacher = users.find((it: any) => it.role === 1)
@@ -446,9 +481,8 @@ export class AgoraEduApi {
 
   // login 登录教室
   async Login(params: EntryParams) {
-    let {data: {roomId, userToken}} = await this.entry(params)
-
     if (!this.appID) throw `appId is empty: ${this.appID}`
+    let {data: {roomId, userToken}} = await this.entry(params)
 
     const {data: {room, user, users: userList = []}} = await this.getRoomInfoBy(roomId)
 
@@ -511,7 +545,7 @@ export class AgoraEduApi {
     });
 
     const boardData = await this.getWhiteboardBy(roomId);
-    const teacherRecord = data.recordDetails.find((it:any) => it.role === 1)
+    const teacherRecord = get(data, 'recordDetails', []).find((it:any) => it.role === 1)
 
     const recordStatus = [
       'recording',
@@ -545,6 +579,111 @@ export class AgoraEduApi {
     })
     return
   }
+
+  // NOTE: student send apply
+  // NOTE: 学生发起连麦申请
+  async studentSendApply(roomId: string) {
+    let data = await AgoraFetchJson({
+      url: `/v1/apps/${this.appID}/room/${roomId}/covideo`,
+      method: 'POST',
+      token: this.userToken,
+      data: {
+        type: 1
+      }
+    })
+    return data;
+  }
+
+  // NOTE: student stop apply
+  // NOTE: 学生主动取消连麦申请
+  async studentStopCoVideo(roomId: string) {
+    let data = await AgoraFetchJson({
+      url: `/v1/apps/${this.appID}/room/${roomId}/covideo`,
+      method: 'POST',
+      token: this.userToken,
+      data: {
+        type: 6,
+      }
+    })
+    return data;
+  }
+
+  // NOTE: teacher accept apply
+  // NOTE: 教师同意学生申请
+  async teacherAcceptApply(roomId: string, userId: string) {
+    let data = await AgoraFetchJson({
+      url: `/v1/apps/${this.appID}/room/${roomId}/covideo`,
+      method: 'POST',
+      token: this.userToken,
+      data: {
+        type: 4,
+        userIds: [userId]
+      }
+    })
+    return data;
+  }
+
+  // NOTE: teacher reject apply
+  // NOTE: 教师拒绝学生连麦
+  async teacherRejectApply(roomId: string, userId: string) {
+    let data = await AgoraFetchJson({
+      url: `/v1/apps/${this.appID}/room/${roomId}/covideo`,
+      method: 'POST',
+      token: this.userToken,
+      data: {
+        type: 2,
+        userIds: [userId]
+      }
+    })
+    return data;
+  }
+
+  // NOTE: teacher cancel apply
+  // NOTE: 教师取消学生连麦
+  async teacherCancelStudent(roomId: string, userId: string) {
+    let data = await AgoraFetchJson({
+      url: `/v1/apps/${this.appID}/room/${roomId}/covideo`,
+      method: 'POST',
+      token: this.userToken,
+      data: {
+        type: 5,
+        userIds: [userId]
+      }
+    })
+    return data;
+  }
+
+  // NOTE: send channel message
+  // NOTE: 发送聊天消息
+  async sendChannelMessage(payload: any) {
+    let data = await AgoraFetchJson({
+      url: `/v1/apps/${this.appID}/room/${payload.roomId}/chat`,
+      method: 'POST',
+      token: this.userToken,
+      data: {
+        message: payload.message,
+        type: payload.type
+      }
+    })
+
+    return data;
+  }
+
+  async startScreenShare(roomId: string) {
+    let data = await AgoraFetchJson({
+      url: `/v1/apps/${this.appID}/room/${roomId}/screen`,
+      method: 'POST',
+      token: this.userToken,
+      data: {
+        state: 1
+      }
+    })
+    return data;
+  }
 }
 
 export const eduApi = new AgoraEduApi();
+
+export const fetchI18n = async () => {
+  await AgoraEduApi.fetchI18n();
+}

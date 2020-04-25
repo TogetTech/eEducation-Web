@@ -1,3 +1,4 @@
+import { isElectron } from './../platform';
 import { roomStore } from './../../stores/room';
 import { eduApi } from '../../services/edu-api';
 import Dexie from 'dexie';
@@ -30,15 +31,15 @@ export const isMobile = () => {
   return userAgentInfo.device.type === 'mobile';
 };
 
-const getUserAgent = () => {
-  return isSafari()
-    ? 'safari'
-    : isChrome()
-    ? 'chrome'
-    : isFirefox()
-    ? 'firefox'
-    : navigator.userAgent;
-};
+// const getUserAgent = () => {
+//   return isSafari()
+//     ? 'safari'
+//     : isChrome()
+//     ? 'chrome'
+//     : isFirefox()
+//     ? 'firefox'
+//     : navigator.userAgent;
+// };
 
 const flat = (arr: any[]) => {
   return arr.reduce((arr, elem) => arr.concat(elem), []);
@@ -81,12 +82,33 @@ export default class Log {
     window.console = console;
   }
 
-  static async doUpload() {
-    return await this.uploadLog(roomStore.state.me.uid, roomStore.state.course.roomId)
+  static async uploadElectronLog(roomId: any) {
+    //@ts-ignore
+    let file = await window.doGzip();
+    await eduApi.uploadZipLogFile(
+      roomId,
+      file
+    )
+    let res = await eduApi.uploadLogFile(
+      roomId,
+      file,
+    )
+    return get(res, 'data.data', -1);
   }
 
-  static async uploadLog(userId: string, roomId: string) {
-    let ua = getUserAgent();
+  static async doUpload() {
+    const ids = [];
+    // Upload Electron log
+    if (isElectron) {
+      ids.push(await this.uploadElectronLog(roomStore.state.course.roomId))
+    }
+    // Web upload log
+    ids.push(await this.uploadLog(roomStore.state.course.roomId))
+    return ids.join("#")
+  }
+
+  static async uploadLog(roomId: string) {
+    // let ua = getUserAgent();
     //@ts-ignore
     let logs = await db.logs.toArray();
     const logsStr = logs
@@ -103,10 +125,8 @@ export default class Log {
     //@ts-ignore
     window.file = file
 
-   let res = await eduApi.uploadLogFile(
+    let res = await eduApi.uploadLogFile(
       roomId,
-      '5.2.0',
-      ua,
       file,
     )
     await db.delete();
@@ -116,6 +136,7 @@ export default class Log {
       });
     }
     await db.open();
+    console.log("res ", res)
     return get(res, 'data.data', -1);
   }
 }

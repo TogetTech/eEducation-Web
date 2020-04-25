@@ -1,7 +1,7 @@
 import { RoomMessage } from './agora-rtm-client';
-import * as _ from 'lodash';
 import OSS from 'ali-oss';
 import uuidv4 from 'uuid/v4';
+import {get} from 'lodash';
 
 export interface OSSConfig {
   accessKeyId: string,
@@ -13,23 +13,16 @@ export interface OSSConfig {
 }
 
 export const ossConfig: OSSConfig = {
-  "accessKeyId": process.env.REACT_APP_AGORA_OSS_BUCKET_KEY as string,
-  "accessKeySecret": process.env.REACT_APP_AGORA_OSS_BUCKET_SECRET as string,
-  "bucket": process.env.REACT_APP_AGORA_OSS_BUCKET_NAME as string,
-  // "region": process.env.REACT_APP_AGORA_OSS_BUCKET_REGION as string,
-  "endpoint": process.env.REACT_APP_AGORA_OSS_CDN_ACCELERATE as string,
-  "folder": process.env.REACT_APP_AGORA_OSS_BUCKET_FOLDER as string
+  "accessKeyId": process.env.REACT_APP_YOUR_OWN_OSS_BUCKET_KEY as string,
+  "accessKeySecret": process.env.REACT_APP_YOUR_OWN_OSS_BUCKET_SECRET as string,
+  "bucket": process.env.REACT_APP_YOUR_OWN_OSS_BUCKET_NAME as string,
+  // "region": process.env.REACT_APP_YOUR_OWN_OSS_BUCKET_REGION as string,
+  "endpoint": process.env.REACT_APP_YOUR_OWN_OSS_CDN_ACCELERATE as string,
+  "folder": process.env.REACT_APP_YOUR_OWN_OSS_BUCKET_FOLDER as string
 }
 
 export const ossClient = new OSS(ossConfig);
 
-const OSS_PREFIX = process.env.REACT_APP_AGORA_OSS_CDN_DOMAIN as string;
-
-export function getOSSUrl (mediaUrl: string): string {
-  const res = `${OSS_PREFIX}/${mediaUrl}`;
-  console.log("resolve: ", res, OSS_PREFIX);
-  return res;
-}
 
 export function genUUID (): string {
   let uuid = localStorage.getItem('edu_uuid');
@@ -236,7 +229,7 @@ export const resolveFileInfo = (file: any) => {
 }
 
 export function resolveChannelAttrs(json: object) {
-  const teacherJson = jsonParse(_.get(json, 'teacher.value'));
+  const teacherJson = jsonParse(get(json, 'teacher.value'));
   const room: any = {
     class_state: 0,
     link_uid: 0,
@@ -258,7 +251,7 @@ export function resolveChannelAttrs(json: object) {
   const students = [];
   for (let key of Object.keys(json)) {
     if (key === 'teacher') continue;
-    const student = jsonParse(_.get(json, `${key}.value`));
+    const student = jsonParse(get(json, `${key}.value`));
     if (student && Object.keys(student).length) {
       student.uid = key;
       students.push(student);

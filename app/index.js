@@ -1,33 +1,41 @@
 const electron = require('electron');
+const path = require('path');
 
-const ipcMain = electron.ipcMain;
+const {ipcMain} = electron;
 
 // workaround for resizable issue in mac os
 const platform = require('os').platform();
 
 const process = require('process');
 // Module to control application life.
-const app = electron.app;
+const {app, Menu, netLog} = electron;
+
+const appPath = app.getAppPath()
+
+const logPath = path.join(appPath, `log`, `agora_sdk.log`)
+const dstPath = path.join(appPath, `log`, `agora_sdk.log.zip`)
+// Menu template
+const isMac = platform === 'darwin'
 
 const globalShortcut = electron.globalShortcut;
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow;
 
-const path = require('path');
-
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 
-function createWindow() {
-  
+async function createWindow() {
+
     mainWindow = new BrowserWindow({
       frame: false,
       width: 700,
       height: 500,
       center: true,
       resizable: false,
+      show: false,
       webPreferences: {
+        autoplayPolicy: 'no-user-gesture-required',
         nodeIntegration: true,
         preload: path.join(__dirname, './preload')
       }
@@ -44,65 +52,230 @@ function createWindow() {
     // and load the index.html of the app.
     mainWindow.loadURL(startUrl);
 
+    mainWindow.webContents.once("did-finish-load", () => {
+      mainWindow.webContents.send('initialize', [logPath, dstPath])
+      mainWindow.webContents.send('appPath', [appPath])
+    })
+
+    mainWindow.webContents.on('new-window', (event, url, frameName, disposition, options, additionalFeatures) => {
+      if (frameName === 'modal') {
+        event.preventDefault();
+        Object.assign(options, {
+          modal: true,
+          parent: mainWindow,
+          width: 700,
+          height: 500,
+          resizable: true
+        })
+        event.newGuest = new BrowserWindow(options)
+      }
+    })
+
     // Emitted when the window is closed.
     mainWindow.on('closed', function () {
         // Dereference the window object, usually you would store windows
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.
-        mainWindow = null
+        const currentWindow = BrowserWindow.getFocusedWindow()
+        if (currentWindow === mainWindow) {
+          mainWindow = null
+        }
+        // mainWindow = null
     })
 
-    mainWindow.setMenu(null);
+    mainWindow.once('ready-to-show', () => {
+      mainWindow.show();
+    })
+
+    // TODO: electron menu template
+    // More details please see: https://www.electronjs.org/docs/api/menu#menubuildfromtemplatetemplate
+    const template = [
+      // { role: 'appMenu' }
+      ...(isMac ? [{
+        label: app.name,
+        submenu: [
+          // { role: 'about' },
+          { type: 'separator' },
+          { role: 'services' },
+          { type: 'separator' },
+          { role: 'hide' },
+          { role: 'hideothers' },
+          { role: 'unhide' },
+          { type: 'separator' },
+          { role: 'quit' }
+        ]
+      }] : []),
+      // { role: 'fileMenu' }
+      {
+        label: 'File',
+        submenu: [
+          isMac ? { role: 'close' } : { role: 'quit' }
+        ]
+      },
+      // { role: 'editMenu' }
+      {
+        label: 'Edit',
+        submenu: [
+          { role: 'undo' },
+          { role: 'redo' },
+          { type: 'separator' },
+          { role: 'cut' },
+          { role: 'copy' },
+          { role: 'paste' },
+          ...(isMac ? [
+            { role: 'pasteAndMatchStyle' },
+            { role: 'delete' },
+            { role: 'selectAll' },
+            { type: 'separator' },
+            {
+              label: 'Speech',
+              submenu: [
+                { role: 'startspeaking' },
+                { role: 'stopspeaking' }
+              ]
+            }
+          ] : [
+            { role: 'delete' },
+            { type: 'separator' },
+            { role: 'selectAll' }
+          ])
+        ],
+      },
+      // { role: 'viewMenu' }
+      {
+        label: 'View',
+        submenu: [
+          { role: 'reload' },
+          { role: 'forcereload' },
+          { role: 'toggledevtools' },
+          { type: 'separator' },
+          { role: 'resetzoom' },
+          { role: 'zoomin' },
+          { role: 'zoomout' },
+          { type: 'separator' },
+          { role: 'togglefullscreen' }
+        ]
+      },
+      // { role: 'windowMenu' }
+      {
+        label: 'Window',
+        submenu: [
+          { role: 'minimize' },
+          { role: 'zoom' },
+          ...(isMac ? [
+            { type: 'separator' },
+            { role: 'front' },
+            { type: 'separator' },
+            { role: 'window' }
+          ] : [
+            { role: 'close' }
+          ])
+        ]
+      },
+      {
+        label: 'Log',
+        submenu: [
+          {
+            label: 'export log',
+            click: async () => {
+              mainWindow.webContents.send("export-log", [logPath, dstPath])
+            }
+          }
+        ]
+      },
+      {
+        label: 'About Agora',
+        submenu: [
+          {
+            label: 'more info',
+            click: async () => {
+              const { shell } = require('electron')
+              await shell.openExternal('https://www.agora.io')
+            }
+          }
+        ]
+      }
+    ]
+
+    const menu = Menu.buildFromTemplate(template)
+
+    if (platform === 'darwin') {
+      mainWindow.excludedFromShownWindowsMenu = true
+      Menu.setApplicationMenu(menu)
+    }
+
+    if (platform === 'win32') {
+      // const menu = Menu.buildFromTemplate(template)
+      // Menu.setApplicationMenu(menu)
+      mainWindow.setMenu(menu);
+    }
 
     ipcMain.on('resize-window', (event, reply) => {
+      const currentWindow = BrowserWindow.getFocusedWindow() || mainWindow
       
       if (platform === 'darwin') {
-
+        if (reply.width === 700) {
+          currentWindow.setResizable(true);
+          currentWindow.setFullScreen(false);
+          currentWindow.setContentSize(reply.width, reply.height, false);
+          currentWindow.center();
+          currentWindow.setResizable(false);
+          return;
+        }
       }
 
       if (platform === 'win32') {
         if (reply.width === 700) {
-          if (mainWindow.isFullScreen()) {
-            mainWindow.setResizable(true);
-            mainWindow.setFullScreen(false);
-            mainWindow.setResizable(false);
+          if (currentWindow.isFullScreen()) {
+            currentWindow.setResizable(true);
+            currentWindow.setFullScreen(false);
+            currentWindow.setResizable(false);
           }
         }
       }
 
-      mainWindow.setContentSize(reply.width, reply.height, false);
-      mainWindow.center();
+      currentWindow.setContentSize(reply.width, reply.height, false);
+      currentWindow.center();
     });
 
-    ipcMain.on('minimum', () => {
-      mainWindow.minimize();
+    ipcMain.on('minimum', (event) => {
+      const currentWindow = BrowserWindow.getFocusedWindow()
+      currentWindow.minimize();
     });
 
     ipcMain.on('maximum', () => {
+      const currentWindow = BrowserWindow.getFocusedWindow()
 
       if (platform === 'win32') {
-        const fullscreen = mainWindow.isFullScreen();
+        const fullscreen = currentWindow.isFullScreen();
         if (fullscreen) {
-          mainWindow.setResizable(true);
-          mainWindow.setFullScreen(false);
-          mainWindow.setResizable(false);
+          currentWindow.setResizable(true);
+          currentWindow.setFullScreen(false);
+          currentWindow.setResizable(false);
         } else {
-          mainWindow.setResizable(true);
-          mainWindow.setFullScreen(true);
-          mainWindow.setResizable(false);
+          currentWindow.setResizable(true);
+          currentWindow.setFullScreen(true);
+          currentWindow.setResizable(false);
         }
       }
 
       if (platform === 'darwin') {
-        const fullscreen = mainWindow.isFullScreen();
-        mainWindow.setFullScreen(!fullscreen);
+        const fullscreen = currentWindow.isFullScreen();
+        currentWindow.setFullScreen(!fullscreen);
       }
-
     });
 
     ipcMain.on('close', () => {
-      app.quit();
+      const currentWindow = BrowserWindow.getFocusedWindow() || mainWindow
+      if (currentWindow === mainWindow) {
+        app.quit()
+      }
+      currentWindow.close()
     });
+
+    // let res = app.setAppLogsPath();
+
+    // console.log("Your electron log path", app.getPath('logs'), " res ", res)
 }
 
 // This method will be called when Electron has finished
@@ -115,7 +288,8 @@ app.whenReady().then(() => {
   // more details: https://www.electronjs.org/docs/tutorial/keyboard-shortcuts
   globalShortcut.register('Control+Shift+X', () => {
     // Open the DevTools.
-    mainWindow.webContents.openDevTools();
+    const currentWindow = BrowserWindow.getFocusedWindow()
+    currentWindow.webContents.openDevTools();
   })
 });
 
@@ -124,7 +298,7 @@ app.on('window-all-closed', function () {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
-        app.quit()
+      app.quit()
     }
 });
 
@@ -133,7 +307,7 @@ app.on('activate', function () {
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (mainWindow === null) {
-        createWindow()
+      createWindow()
     }
 
     if (mainWindow) {

@@ -30,9 +30,20 @@ export enum RoomMessage {
 
 export enum ChatCmdType {
   chat = 1,
-  update = 2,
-  replay = 3,
-  course = 4
+  roomMemberChanged = 2,
+  roomInfoChanged = 3,
+  coVideoUsersChanged = 4,
+  replay = 5,
+  screenShare = 6,
+}
+
+export enum CoVideoType {
+  studentSendApply = 1,
+  teacherSendReject = 2,
+  // studentCancelApply = 3,
+  teacherSendAccept = 4,
+  teacherSendStop = 5,
+  studentSendStop = 6,
 }
 
 export interface ChannelBodyParams {
@@ -266,18 +277,18 @@ export default class AgoraRTMClient {
     })
   }
 
-  async sendChannelMessage(data: Partial<ChannelBodyParams>) {
-    const msgData: ChatMessage = {
-      account: data.account as string,
-      content: data.content as string,
-    }
+  // async sendChannelMessage(data: Partial<ChannelBodyParams>) {
+  //   const msgData: ChatMessage = {
+  //     account: data.account as string,
+  //     content: data.content as string,
+  //   }
 
-    return this.notifyMessage({
-      cmd: ChatCmdType.chat,
-      data: msgData,
-      enableHistoricalMessaging: true
-    })
-  }
+  //   return this.notifyMessage({
+  //     cmd: ChatCmdType.chat,
+  //     data: msgData,
+  //     enableHistoricalMessaging: true
+  //   })
+  // }
 
   async updateChannelAttrsByKey (key: string, attrs: any) {
     this._channelAttrsKey = key;
@@ -303,16 +314,7 @@ export default class AgoraRTMClient {
     this._channelAttrsKey = null;
     return;
   }
-
-  async deleteAttributesByKey(uid: number) {
-    console.log("deleteAttributesByKey", uid, this._currentChannelName)
-    await this._client.deleteChannelAttributesByKeys(
-      this._currentChannelName,
-      [`${uid}`],
-      {enableNotificationToChannelMembers: true}
-    );
-  }
-
+  
   async getChannelAttrs (): Promise<string> {
     let json = await this._client.getChannelAttributes(this._currentChannelName);
     return JSON.stringify(json);

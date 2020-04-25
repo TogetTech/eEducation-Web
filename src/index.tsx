@@ -14,10 +14,13 @@ const userAgentInfo = parser.getResult();
 const isMobile = () => {
   return userAgentInfo.device.type === 'mobile';
 };
- 
-TagManager.initialize({
-  gtmId: process.env.REACT_APP_AGORA_GTM_ID
-})
+
+// use gtm
+if (process.env.REACT_APP_AGORA_GTM_ID) {
+  TagManager.initialize({
+    gtmId: process.env.REACT_APP_AGORA_GTM_ID
+  })
+}
 
 ReactDOM.render(
   <App />,

@@ -1,3 +1,12 @@
+.relative {
+  position: relative;
+  .icon-delete {
+    position: absolute;
+    right: 0px;
+    z-index: 99;
+  }
+}
+
 .whiteboard-canvas {
   display: flex;
   flex: 1;
@@ -97,6 +106,13 @@
         }
         .ppt-cover {
           background-image: url('../assets/icon-ppt@2x.png');
+        }
+
+        .title {
+          cursor: text;
+          > .MuiInputBase-input {
+            text-align: center;
+          }
         }
 
         .doc-cover {
@@ -243,7 +259,7 @@
       border:1px solid rgba(219,226,229,1);
       top: 183px;
       left: 63px;
-      z-index: 5;
+      z-index: 2;
       position: absolute;
       pointer-events: all;
       display: flex;

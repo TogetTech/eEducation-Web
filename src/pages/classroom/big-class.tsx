@@ -6,12 +6,14 @@ import ChatBoard from '../../components/chat/board';
 import MediaBoard from '../../components/mediaboard';
 import useStream from '../../hooks/use-streams';
 import useChatText from '../../hooks/use-chat-text';
-import { RoomMessage, ChatCmdType } from '../../utils/agora-rtm-client';
 import { AgoraElectronClient } from '../../utils/agora-electron-client';
 import AgoraWebClient from '../../utils/agora-rtc-client';
 import { useRoomState } from '../../containers/root-container';
 import { roomStore } from '../../stores/room';
 import { platform } from '../../utils/platform';
+import { eduApi } from '../../services/edu-api';
+import { globalStore } from '../../stores/global';
+import { t } from '../../i18n';
 
 export default function BigClass() {
   const {
@@ -27,7 +29,7 @@ export default function BigClass() {
 
   const me = roomState.me;
 
-  const memberCount = roomState.rtm.memberCount;
+  const memberCount = roomState.course.memberCount;
 
   const {teacher, currentHost, onPlayerClick} = useStream();
 
@@ -47,39 +49,56 @@ export default function BigClass() {
 
     if (type === 'hands_up') {
       if (roomStore.state.course.teacherId) {
-        rtmLock.current = true;
-        roomStore.rtmClient.sendPeerMessage(`${roomStore.state.course.teacherId}`,
-          {
-            cmd: 1,
-            data: {
-              userId: `${roomStore.state.me.userId}`,
-              uid: `${roomStore.state.me.uid}`,
-              account: `${roomStore.state.me.account}`,
-              operate: RoomMessage.applyCoVideo,
-            }
+        eduApi.studentSendApply(roomStore.state.course.roomId)
+          .then((data: any) => {
+            console.log('hands_up fulfilled', data)
           })
-          .then((result: any) => {
-            console.log("peerMessage result ", result);
+          .catch((err: any) => {
+            console.warn(err)
           })
-          .catch(console.warn)
-          .finally(() => {
-            rtmLock.current = false;
-          })
+        // rtmLock.current = true;
+        // roomStore.rtmClient.sendPeerMessage(`${roomStore.state.course.teacherId}`,
+        //   {
+        //     cmd: 1,
+        //     data: {
+        //       userId: `${roomStore.state.me.userId}`,
+        //       uid: `${roomStore.state.me.uid}`,
+        //       account: `${roomStore.state.me.account}`,
+        //       operate: RoomMessage.applyCoVideo,
+        //     }
+        //   })
+        //   .then((result: any) => {
+        //     console.log("peerMessage result ", result);
+        //   })
+        //   .catch(console.warn)
+        //   .finally(() => {
+        //     rtmLock.current = false;
+        //   })
       }
     }
   
     if (type === 'hands_up_end') {
       rtmLock.current = true;
-      roomStore.updateCoVideoUserBy({
-        userId: `${roomStore.state.me.userId}`,
-        uid: `${roomStore.state.me.uid}`,
-        account: `${roomStore.state.me.account}`,
-      }, {
-        coVideo: 0
-      }).catch(console.warn)
-      .finally(() => {
-        rtmLock.current = false;
-      })
+      eduApi.studentStopCoVideo(roomStore.state.course.roomId)
+        .then((data: any) => {
+          console.log('hands_up_end success', data)
+        })
+        .catch((err: any) => {
+          console.warn(err)
+        })
+        .finally(() => {
+          rtmLock.current = false;
+        })
+      // roomStore.updateCoVideoUserBy({
+      //   userId: `${roomStore.state.me.userId}`,
+      //   uid: `${roomStore.state.me.uid}`,
+      //   account: `${roomStore.state.me.account}`,
+      // }, {
+      //   coVideo: 0
+      // }).catch(console.warn)
+      // .finally(() => {
+      //   rtmLock.current = false;
+      // })
     }
   }
 
@@ -122,15 +141,15 @@ export default function BigClass() {
         closeLock.current = true;
         rtmLock.current = true;
         Promise.all([
-          roomStore.updateCoVideoUserBy({
-            userId: `${roomStore.state.users.get(`${streamID}`)?.userId}`,
-            uid: `${streamID}`,
-            account: `${roomStore.state.users.get(`${streamID}`)?.account}`,
-          }, {
-            coVideo: 0
-          }),
+          eduApi.studentStopCoVideo(
+            roomStore.state.course.roomId
+          ),
           quitClient
         ]).then(() => {
+          globalStore.showToast({
+            type: 'close_youself_co_video',
+            message: t('toast.close_youself_co_video')
+          })
           rtmLock.current = false;
         }).catch((err: any) => {
           rtmLock.current = false;
@@ -145,14 +164,15 @@ export default function BigClass() {
         rtmLock.current = true;
         closeLock.current = true;
         Promise.all([
-          roomStore.updateCoVideoUserBy({
-            userId: `${roomStore.state.users.get(`${streamID}`)?.userId}`,
-            uid: `${streamID}`,
-            account: `${roomStore.state.users.get(`${streamID}`)?.account}`,
-          }, {
-            coVideo: 0
-          }),
+          eduApi.teacherCancelStudent(
+            roomStore.state.course.roomId,
+            roomStore.state.applyUser.userId,
+          )
         ]).then(() => {
+          globalStore.showToast({
+            type: 'peer_hands_up',
+            message: t("toast.close_co_video")
+          })
           roomStore.updateApplyUser({
             uid: '',
             account: '',
@@ -168,6 +188,8 @@ export default function BigClass() {
       }
     }
   }
+  
+  console.log("currentHost", currentHost)
 
   return (
     <div className="room-container">
@@ -190,7 +212,7 @@ export default function BigClass() {
               video={currentHost.video}
               audio={currentHost.audio}
               local={currentHost.local}
-              autoplay={false}
+              autoplay={Boolean(me.coVideo)}
             /> :
             null
           }
@@ -211,7 +233,7 @@ export default function BigClass() {
               audio={Boolean(teacher.audio)}
               video={Boolean(teacher.video)}
               local={Boolean(teacher.local)}
-              autoplay={false}
+              autoplay={Boolean(me.coVideo)}
               /> :
             <VideoPlayer
               role="teacher"

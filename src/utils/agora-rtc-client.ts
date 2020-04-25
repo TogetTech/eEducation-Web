@@ -8,8 +8,8 @@ import { AgoraStream } from './types';
 
 // TODO: upload log file
 // TODO: 建议开启上传日志
-AgoraRTC.Logger.enableLogUpload()
-
+AgoraRTC.Logger.enableLogUpload();
+AgoraRTC.Logger.setLogLevel(AgoraRTC.Logger.DEBUG);
 export interface AgoraStreamSpec {
   streamID: number
   video: boolean
@@ -52,8 +52,6 @@ const clientEvents: string[] = [
 export const APP_ID = process.env.REACT_APP_AGORA_APP_ID as string;
 export const APP_TOKEN = process.env.REACT_APP_AGORA_APP_TOKEN as string;
 export const ENABLE_LOG = process.env.REACT_APP_AGORA_LOG as string === "true";
-// TODO: default screen sharing uid, please do not directly use it.
-export const SHARE_ID = 7;
 
 export class AgoraRTCClient {
 
@@ -384,6 +382,7 @@ export default class AgoraWebClient {
     dual && await this.rtc.enableDualStream();
     this.joined = true;
     roomStore.setRTCJoined(true);
+    console.log("join web agora sdk rtc success")
   }
 
   async leaveChannel() {

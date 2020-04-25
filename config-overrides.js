@@ -6,6 +6,8 @@ const {
   addWebpackModuleRule,
 } = require('customize-cra');
 
+const {devDependencies} = require('./package.json');
+
 const isElectron = process.env.BROWSER === 'none';
 // TODO: You can customize your env
 // TODO: 这里你可以定制自己的env
@@ -30,6 +32,14 @@ const sourceMap = () => config => {
   return config;
 }
 
+const setElectronDeps = isProd ? {
+  ...devDependencies,
+  "agora-electron-sdk": "commonjs2 agora-electron-sdk"
+} : {
+  "agora-electron-sdk": "commonjs2 agora-electron-sdk"
+}
+
+
 module.exports = override(
   sourceMap(),
   webWorkerConfig(),
@@ -37,9 +47,7 @@ module.exports = override(
     test: /\.worker\.js$/,
     use: { loader: 'worker-loader' },
   }),
-  isElectron && addWebpackExternals({
-    "agora-electron-sdk": "commonjs2 agora-electron-sdk"
-  }),
+  isElectron && addWebpackExternals(setElectronDeps),
   addBabelPlugins(
     '@babel/plugin-proposal-optional-chaining'
   ),

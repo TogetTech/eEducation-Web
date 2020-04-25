@@ -107,15 +107,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         }
       }
 
-      if (_stream.type === StreamType.remoteVideoSource) {
-        AgoraRtcEngine.subscribe(streamID, dom);
-        AgoraRtcEngine.setupViewContentMode('videosource', fitContentMode);
-        AgoraRtcEngine.setupViewContentMode(streamID, fitContentMode);
-        return () => {
-          // AgoraRtcEngine.destroyRenderView('videosource');
-          // AgoraRtcEngine.destroyRenderView(streamID, dom, (err: any) => { console.warn(err.message) });
-        }
-      }
+      // if (_stream.type === StreamType.remoteVideoSource) {
+      //   AgoraRtcEngine.subscribe(streamID, dom);
+      //   AgoraRtcEngine.setupViewContentMode('videosource', fitContentMode);
+      //   AgoraRtcEngine.setupViewContentMode(streamID, fitContentMode);
+      //   return () => {
+      //     // AgoraRtcEngine.destroyRenderView('videosource');
+      //     // AgoraRtcEngine.destroyRenderView(streamID, dom, (err: any) => { console.warn(err.message) });
+      //   }
+      // }
     }
   }, [domId, stream, AgoraRtcEngine]);
 
@@ -209,19 +209,22 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       // prevent already muted video
       if (!loadVideo.current) {
         if (!video) {
-          const res = AgoraRtcEngine.muteLocalVideoStream(true);
-          console.log("[agora-electron] muteLocalVideoStream(true); ", res);
+          // const res = AgoraRtcEngine.muteLocalVideoStream(true);
+          const res = AgoraRtcEngine.enableLocalVideo(false);
+          console.log("[agora-electron] enableLocalVideo(false); ", res);
         }
         loadVideo.current = true;
         return;
       }
 
       if (video) {
-        const res = AgoraRtcEngine.muteLocalVideoStream(false);
-        console.log("[agora-electron] muteLocalVideoStream(false); ", res);
+        // const res = AgoraRtcEngine.muteLocalVideoStream(false);
+        const res2 = AgoraRtcEngine.enableLocalVideo(true);
+        console.log("[agora-electron] enableLocalVideo(true); ", res2);
       } else {
-        const res = AgoraRtcEngine.muteLocalVideoStream(true);
-        console.log("[agora-electron] muteLocalVideoStream(true); ", res);
+        // const res = AgoraRtcEngine.muteLocalVideoStream(true);
+        const res2 = AgoraRtcEngine.enableLocalVideo(false);
+        console.log("[agora-electron] enableLocalVideo(false); ", res2);
       }
     }
   }, [stream, video, AgoraRtcEngine]);
