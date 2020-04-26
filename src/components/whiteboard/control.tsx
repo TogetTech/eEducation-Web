@@ -6,6 +6,7 @@ import moment from 'moment';
 import { globalStore } from '../../stores/global';
 import { t } from '../../i18n';
 import { Tooltip } from '@material-ui/core';
+import { useRoomState } from '../../containers/root-container';
 interface ControlItemProps {
   name: string
   onClick: (evt: any, name: string) => void
@@ -61,6 +62,8 @@ export default function Control({
   role,
   notice,
 }: ControlProps) {
+
+  const roomState = useRoomState();
   const lock = useRef<boolean>(false);
 
   const canStop = () => {
@@ -113,7 +116,7 @@ export default function Control({
   return (
     <div className="controls-container">
       <div className="interactive">
-        {notice ? 
+      {notice && roomState.users.count() <= 1 ?
           <ControlItem name={notice.reason}
             onClick={onClick}
             active={notice.reason === current} />
