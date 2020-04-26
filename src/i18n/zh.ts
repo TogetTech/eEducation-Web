@@ -90,7 +90,7 @@ const zhCN: any = {
     'student_cancel_co_video': '学生已取消连麦',
     'student_send_co_video_apply': '"{reason}" 学生发起了连麦申请',
     'student_peer_leave': '"{reason}" 离开了',
-    'stop_co_video': '您停止了"{reason}"的连麦',
+    'stop_co_video': '教师停止了"{reason}"的连麦',
     'reject_co_video': '您取消了学生的连麦申请',
     'close_co_video': '您关闭了学生的连麦',
     'close_youself_co_video': '你关闭了自己的连麦',
