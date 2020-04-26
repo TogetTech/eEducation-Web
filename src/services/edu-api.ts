@@ -515,6 +515,7 @@ export class AgoraEduApi {
 
   async fetchRoomBy(roomId: string) {
     if (!this.appID) throw `appId is empty: ${this.appID}`
+    this.roomId = roomId;
     const {data: {room, user, users: userList = []}} = await this.getRoomInfoBy(roomId)
 
     const me = user
