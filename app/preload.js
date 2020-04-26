@@ -14,7 +14,7 @@ window.ipc = ipc;
 
 const AdmZip = require('adm-zip');
 
-window.ipc.once('appPath', (event, args) => {
+window.ipc.on('appPath', (event, args) => {
   const appPath = args[0];
   const logPath = path.join(appPath, `log`, `agora_sdk.log`)
   const dstPath = path.join(appPath, `log`, `agora_sdk.log.zip`)
