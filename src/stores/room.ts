@@ -114,7 +114,6 @@ export type RtmState = {
 }
 
 export type UserParams = {
-  uid: string,
   userId: string,
   account: string,
 }
@@ -1193,6 +1192,17 @@ export class RoomStore {
     if (newCourse) {
       courseState.screenId = newCourse.screenId
       courseState.teacherId = newCourse.uid
+    }
+
+    let applyUser = this.state.applyUser;
+    if (applyUser && applyUser.userId) {
+      const foundUser = users.find((user: AgoraUser) => user.userId === applyUser.userId)
+      if (!foundUser) {
+        applyUser = {
+          userId: '',
+          account: ''
+        }
+      }
     }
 
     this.state = {
