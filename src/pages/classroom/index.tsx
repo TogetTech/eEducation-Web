@@ -270,11 +270,6 @@ export function RoomPage({ children }: any) {
                 type: 'rtmClient',
                 message: t('toast.student_peer_leave', {reason: roomStore.state.applyUser.account}),
               })
-              roomStore.updateApplyUser({
-                uid: '',
-                account: '',
-                userId: '',
-              })
             }
           }
         });
