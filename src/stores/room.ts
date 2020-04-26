@@ -423,7 +423,7 @@ export class RoomStore {
         return;
       }
       case CoVideoType.studentSendApply: {
-        if (globalStore.state.notice.reason === 'peer_hands_up') {
+        if (this.state.applyUser.userId) {
           // when notice is peer_hands_up, ignore peer message
           // 当已经收到消息以后屏蔽这条"举手申请"
           console.warn(`ignore: `, peerId, userId, type, userName)

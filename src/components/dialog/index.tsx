@@ -141,14 +141,6 @@ const DialogContainer = () => {
         .catch((err: any) => {
           console.warn(err)
         })
-      // Promise.all([
-      //   roomStore.updateCoVideoUserBy(roomStore.state.applyUser, {
-      //     coVideo: 1
-      //   })
-      // ]).then(() => {
-      //   globalStore.removeNotice();
-      //   globalStore.removeDialog();
-      // }).catch(console.warn);
     }
     else if (type === 'uploadLog') {
       globalStore.removeDialog()
