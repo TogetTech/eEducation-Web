@@ -46,6 +46,7 @@ const AgoraFetchJson = async ({url, method, data, token, full_url}:{url?: string
     }
   }
 
+  // use agora education user token
   if (token) {
     opts.headers['token'] = token;
   }
@@ -81,7 +82,7 @@ const AgoraFetchJson = async ({url, method, data, token, full_url}:{url?: string
       type: 'eduApiError',
       message: isErrorCode ? `${msg}` : error
     })
-    if (code === 401) {
+    if (code === 401 || code === 1101012) {
       historyStore.state.history.goBack()
       return
     }
@@ -144,10 +145,29 @@ const uploadLogToOSS = async ({
 
 export class AgoraEduApi {
 
-  appID: string = APP_ID;
+  _appID: string = '';
   roomId: string = '';
-  public userToken: string = '';
+  public _userToken: string = '';
   recordId: string = '';
+
+  public get userToken(): string {
+    return window.sessionStorage.getItem("agoraUserToken") as string || '';
+  }
+
+  public set userToken(newValue: string) {
+    this._userToken = newValue;
+    window.sessionStorage.setItem("agoraUserToken", this._userToken)
+  }
+
+  public set appID(newValue: string) {
+    this._appID = newValue;
+    window.sessionStorage.setItem("currentAppId", this._appID)
+  }
+
+  public get appID() {
+    const appId = window.sessionStorage.getItem("currentAppId") as string || '';
+    return appId;
+  }
 
   async roomInfo(roomId: string) {
     await this.config();
@@ -155,6 +175,7 @@ export class AgoraEduApi {
       url: `/v2/room/${roomId}`,
       method: 'GET',
     });
+    writeAgoraAuth(data.xAgoraToken, data.xAgoraUid)
     return {
       data
     }
@@ -483,7 +504,7 @@ export class AgoraEduApi {
 
   // login 登录教室
   async Login(params: EntryParams) {
-    if (!this.appID) throw `appId is empty: ${this.appID}`
+    // if (!this.appID) throw `appId is empty: ${this.appID}`
     let {data: {roomId, userToken}} = await this.entry(params)
 
     const {data: {room, user, users: userList = []}} = await this.getRoomInfoBy(roomId)
@@ -681,6 +702,55 @@ export class AgoraEduApi {
       }
     })
     return data;
+  }
+
+  async fetchRoomStateBy(roomId: string) {
+    const {data: {room, user, users: userList = []}} = await this.getRoomInfoBy(roomId)
+
+    const me = user
+
+    const teacherState = userList.find((user: any) => +user.role === 1)
+
+    const course: any = {
+      rid: room.channelName,
+      roomName: room.roomName,
+      channelName: room.channelName,
+      roomId: room.roomId,
+      roomType: room.type,
+      courseState: room.courseState,
+      muteAllChat: room.muteAllChat,
+      isRecording: room.isRecording,
+      recordId: room.recordId,
+      recordingTime: room.recordingTime,
+      boardId: room.boardId,
+      boardToken: room.boardToken,
+      lockBoard: room.lockBoard,
+      teacherId: 0
+    }
+
+    if (teacherState) {
+      course.teacherId = +teacherState.uid
+    }
+
+    if (me.role === 1) {
+      course.teacherId = me.uid
+    }
+
+    const coVideoUids = userList.map((it: any) => `${it.uid}`)
+
+    if (course.teacherId && coVideoUids.length) {
+      course.coVideoUids = coVideoUids.filter((uid: any) => `${uid}` !== `${course.teacherId}`)
+    }
+
+    const result = {
+      course,
+      me,
+      users: userList,
+      appID: this.appID,
+      onlineUsers: room.onlineUsers,
+    }
+
+    return result
   }
 }
 

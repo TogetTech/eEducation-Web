@@ -1148,19 +1148,6 @@ export class RoomStore {
     }
     this.commit(this.state)
     this.unlockRecording()
-    // await this.rtmClient.sendRecordMessage({
-    //   account: `${this.state.me.account}`,
-    //   recordId: `${recordId}`
-    // })
-    // if (this.state.me.role === 1) {
-    //   this.updateChannelMessage({
-    //     account: `${this.state.me.account}`,
-    //     text: ``,
-    //     link: `${recordId}`,
-    //     ts: +Date.now(),
-    //     id: this.state.me.uid,
-    //   })
-    // }
   }
 
   updateCoVideoUsers(rawUsers: any) {
@@ -1258,6 +1245,89 @@ export class RoomStore {
     }
 
     this.commit(this.state)
+  }
+
+  async fetchRoom(roomId: string) {
+    try {
+      let res = await eduApi.fetchRoomStateBy(roomId);
+      const {
+        course,
+        me,
+        users: rawUsers,
+        appID,
+        onlineUsers
+      } = res
+
+      let users = rawUsers.reduce((acc: Map<string, AgoraUser>, it: any) => {
+        return acc.set(`${it.uid}`, {
+          role: it.role,
+          account: it.userName,
+          uid: it.uid,
+          video: it.enableVideo,
+          audio: it.enableAudio,
+          chat: it.enableChat,
+          grantBoard: it.grantBoard,
+          userId: it.userId,
+          // coVideo: 1,
+          screenId: it.screenId,
+        });
+      }, Map<string, AgoraUser>());
+
+      await this.rtmClient.login(appID, `${me.uid}`, me.rtmToken)
+      await this.rtmClient.join(course.rid)
+      this.state = {
+        ...this.state,
+        rtm: {
+          ...this.state.rtm,
+          joined: true,
+        },
+        course: {
+          ...this.state.course,
+          rid: course.channelName,
+          roomType: course.roomType,
+          roomId: course.roomId,
+          roomName: course.roomName,
+          courseState: course.courseState,
+          muteChat: course.muteAllChat,
+          recordId: `${course.recordId}`,
+          isRecording: course.isRecording,
+          recordingTime: course.recordingTime,
+          lockBoard: course.lockBoard,
+          boardId: `${course.boardId}`,
+          boardToken: `${course.boardToken}`,
+          teacherId: `${course.teacherId}`,
+          screenId: `${me.screenId}`,
+          screenToken: `${me.screenToken}`,
+          coVideoUids: course.coVideoUids,
+          memberCount: +onlineUsers,
+        },
+        me: {
+          ...this.state.me,
+          uid: me.uid,
+          account: me.userName,
+          rtmToken: me.rtmToken,
+          rtcToken: me.rtcToken,
+          channelName: me.channelName,
+          screenId: me.screenId,
+          screenToken: me.screenToken,
+          appID: me.appID,
+          role: me.role,
+          chat: me.enableChat,
+          video: me.enableVideo,
+          audio: me.enableAudio,
+          userId: me.userId,
+          coVideo: me.coVideo,
+        },
+        users,
+        appID,
+      }
+      this.commit(this.state)
+    } catch(err) {
+      if (this.rtmClient._logged) {
+        await this.rtmClient.logout();
+      }
+      throw err;
+    }
   }
 }
 

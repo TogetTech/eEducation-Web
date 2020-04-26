@@ -43,19 +43,10 @@ export function RoomPage({ children }: any) {
       history.push('/');
     }
 
-    const sessionInfo = {
-      userName: me.account,
-      roomName: me.roomName,
-      password: me.password,
-      role: me.role,
-      type: course.roomType,
-      uuid: genUUID(),
-      roomId: course.roomId,
-    }
     lock.current = true;
     if (roomStore.state.rtm.joined) return;
     globalStore.showLoading();
-    roomStore.LoginToRoom(sessionInfo, true).then(() => {
+    roomStore.fetchRoom(roomId).then(() => {
     }).catch((err: any) => {
       if (err.reason) {
         globalStore.showToast({
