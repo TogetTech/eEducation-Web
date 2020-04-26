@@ -174,7 +174,6 @@ export default function BigClass() {
             message: t("toast.close_co_video")
           })
           roomStore.updateApplyUser({
-            uid: '',
             account: '',
             userId: '',
           })

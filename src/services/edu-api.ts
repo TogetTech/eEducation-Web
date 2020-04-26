@@ -409,6 +409,7 @@ export class AgoraEduApi {
       method: 'GET',
       token: this.userToken,
     });
+    this.roomId = data.room.roomId
     let boardData = await this.getWhiteboardBy(roomId);
     return {
       data: {
