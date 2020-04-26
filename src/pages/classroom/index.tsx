@@ -260,7 +260,6 @@ export function RoomPage({ children }: any) {
 
           if (roomStore.state.me.role === 1 && roomStore.state.course.roomType === 2) {
             if (roomStore.state.applyUser.account) {
-              globalStore.removeNotice()
               globalStore.showToast({
                 type: 'rtmClient',
                 message: t('toast.student_peer_leave', {reason: roomStore.state.applyUser.account}),
