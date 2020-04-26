@@ -1216,7 +1216,8 @@ export class RoomStore {
         ...this.state.course,
         ...courseState,
         coVideoUids,
-      }
+      },
+      applyUser
     }
     this.commit(this.state)
   }
