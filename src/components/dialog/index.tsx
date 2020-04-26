@@ -91,23 +91,6 @@ const DialogContainer = () => {
       .catch((err: any) => {
         console.warn(err)
       })
-      // roomStore.rtmClient.sendPeerMessage(
-      //   `${roomStore.state.applyUser.uid}`,
-      //   {
-      //     cmd: 1,
-      //     data: {
-      //       operate: RoomMessage.rejectCoVideo,
-      //       userId: `${roomStore.state.applyUser.userId}`,
-      //       uid: `${roomStore.state.applyUser.uid}`,
-      //       account: `${roomStore.state.applyUser.account}`,
-      //     }
-      //   }
-      // ).then(() => {
-      //   globalStore.removeNotice();
-      //   globalStore.removeDialog();
-      // }).catch((err) => {
-      //   console.warn(err)
-      // })
     } else if (type === 'uploadLog') {
       globalStore.removeDialog()
     }
@@ -141,14 +124,6 @@ const DialogContainer = () => {
         .catch((err: any) => {
           console.warn(err)
         })
-      // Promise.all([
-      //   roomStore.updateCoVideoUserBy(roomStore.state.applyUser, {
-      //     coVideo: 1
-      //   })
-      // ]).then(() => {
-      //   globalStore.removeNotice();
-      //   globalStore.removeDialog();
-      // }).catch(console.warn);
     }
     else if (type === 'uploadLog') {
       globalStore.removeDialog()

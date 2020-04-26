@@ -57,8 +57,9 @@ const AgoraFetchJson = async ({url, method, data, token, full_url}:{url?: string
       type: 'eduApiError',
       message: isErrorCode ? `${msg}` : error
     })
-    if (code === 401) {
-      historyStore.state.history.goBack()
+    if (code === 401 || code === 1101012) {
+      // historyStore.state.history.goBack()
+      historyStore.state.history.push('/')
       return
     }
     throw {api_error: error, isErrorCode}
@@ -120,7 +121,17 @@ export class AgoraEduApi {
 
   appID: string = APP_ID;
   roomId: string = '';
-  public userToken: string = '';
+  public _userToken: string = '';
+
+  public get userToken(): string {
+    const userToken = window.sessionStorage.getItem("edu-userToken") as string || '';
+    return userToken;
+  }
+
+  public set userToken(token: string) {
+    window.sessionStorage.setItem("edu-userToken", token)
+  }
+  
   recordId: string = '';
 
   // fetch stsToken
@@ -500,6 +511,56 @@ export class AgoraEduApi {
     }
 
     return result
+  }
+
+  async fetchRoomBy(roomId: string) {
+    if (!this.appID) throw `appId is empty: ${this.appID}`
+    const {data: {room, user, users: userList = []}} = await this.getRoomInfoBy(roomId)
+
+    const me = user
+
+    const teacherState = userList.find((user: any) => +user.role === 1)
+
+    const course: any = {
+      rid: room.channelName,
+      roomName: room.roomName,
+      channelName: room.channelName,
+      roomId: room.roomId,
+      roomType: room.type,
+      courseState: room.courseState,
+      muteAllChat: room.muteAllChat,
+      isRecording: room.isRecording,
+      recordId: room.recordId,
+      recordingTime: room.recordingTime,
+      boardId: room.boardId,
+      boardToken: room.boardToken,
+      lockBoard: room.lockBoard,
+      teacherId: 0
+    }
+
+    if (teacherState) {
+      course.teacherId = +teacherState.uid
+    }
+
+    if (me.role === 1) {
+      course.teacherId = me.uid
+    }
+
+    const coVideoUids = userList.map((it: any) => `${it.uid}`)
+
+    if (course.teacherId && coVideoUids.length) {
+      course.coVideoUids = coVideoUids.filter((uid: any) => `${uid}` !== `${course.teacherId}`)
+    }
+
+    const result = {
+      course,
+      me,
+      users: userList,
+      appID: this.appID,
+      onlineUsers: room.onlineUsers,
+    }
+
+    return result;
   }
 
   async getCourseRecordBy(recordId: string, roomId: string, token: string) {

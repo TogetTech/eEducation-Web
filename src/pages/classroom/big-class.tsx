@@ -56,24 +56,6 @@ export default function BigClass() {
           .catch((err: any) => {
             console.warn(err)
           })
-        // rtmLock.current = true;
-        // roomStore.rtmClient.sendPeerMessage(`${roomStore.state.course.teacherId}`,
-        //   {
-        //     cmd: 1,
-        //     data: {
-        //       userId: `${roomStore.state.me.userId}`,
-        //       uid: `${roomStore.state.me.uid}`,
-        //       account: `${roomStore.state.me.account}`,
-        //       operate: RoomMessage.applyCoVideo,
-        //     }
-        //   })
-        //   .then((result: any) => {
-        //     console.log("peerMessage result ", result);
-        //   })
-        //   .catch(console.warn)
-        //   .finally(() => {
-        //     rtmLock.current = false;
-        //   })
       }
     }
   
@@ -89,16 +71,6 @@ export default function BigClass() {
         .finally(() => {
           rtmLock.current = false;
         })
-      // roomStore.updateCoVideoUserBy({
-      //   userId: `${roomStore.state.me.userId}`,
-      //   uid: `${roomStore.state.me.uid}`,
-      //   account: `${roomStore.state.me.account}`,
-      // }, {
-      //   coVideo: 0
-      // }).catch(console.warn)
-      // .finally(() => {
-      //   rtmLock.current = false;
-      // })
     }
   }
 
@@ -174,7 +146,6 @@ export default function BigClass() {
             message: t("toast.close_co_video")
           })
           roomStore.updateApplyUser({
-            uid: '',
             account: '',
             userId: '',
           })

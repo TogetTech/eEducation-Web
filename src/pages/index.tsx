@@ -28,9 +28,6 @@ export default function () {
           <Loading />
           <Toast />
           <RoomDialog />
-          <Route exact path="/">
-            <Home />
-          </Route>
           <Route exact path="/device_test">
             <DeviceTest />
           </Route>
@@ -58,6 +55,9 @@ export default function () {
             <ReplayPageWrapper>
               <AgoraReplayContainer />
             </ReplayPageWrapper>
+          </Route>
+          <Route exact path="/">
+            <Home />
           </Route>
           {/* <Route path="/error">
             <ErrorPage />

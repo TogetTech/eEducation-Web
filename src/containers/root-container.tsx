@@ -134,9 +134,8 @@ export const RootProvider: React.FC<any> = ({children}) => {
       }).catch(console.warn);
     });
     rtmClient.on("ChannelMessage", ({ memberId, message }: { message: { text: string }, memberId: string }) => {
-      console.log("ChannelMessage cmd:  ", message)
       const {cmd, data} = jsonParse(message.text);
-      console.log("ChannelMessage cmd:  ", cmd, data)
+      console.log("ChannelMessage cmd:  ", message, cmd, data)
       // TODO: chat message
       // TODO: 更新即时聊天
       if (cmd === ChatCmdType.chat) {

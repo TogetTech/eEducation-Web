@@ -109,7 +109,6 @@ export type RtmState = {
 }
 
 export type UserParams = {
-  uid: string,
   userId: string,
   account: string,
 }
@@ -279,6 +278,89 @@ export class RoomStore {
     return true;
   }
 
+  async fetchCurrentRoom() {
+    try {
+      const res = await eduApi.fetchRoomBy(roomStore.state.course.roomId);
+      const {
+        course,
+        me,
+        users: rawUsers,
+        appID,
+        onlineUsers
+      } = res
+
+      let users = rawUsers.reduce((acc: Map<string, AgoraUser>, it: any) => {
+        return acc.set(`${it.uid}`, {
+          role: it.role,
+          account: it.userName,
+          uid: it.uid,
+          video: it.enableVideo,
+          audio: it.enableAudio,
+          chat: it.enableChat,
+          grantBoard: it.grantBoard,
+          userId: it.userId,
+          // coVideo: 1,
+          screenId: it.screenId,
+        });
+      }, Map<string, AgoraUser>());
+
+      await this.rtmClient.login(appID, `${me.uid}`, me.rtmToken)
+      await this.rtmClient.join(course.rid)
+      this.state = {
+        ...this.state,
+        rtm: {
+          ...this.state.rtm,
+          joined: true,
+        },
+        course: {
+          ...this.state.course,
+          rid: course.channelName,
+          roomType: course.roomType,
+          roomId: course.roomId,
+          roomName: course.roomName,
+          courseState: course.courseState,
+          muteChat: course.muteAllChat,
+          recordId: `${course.recordId}`,
+          isRecording: course.isRecording,
+          recordingTime: course.recordingTime,
+          lockBoard: course.lockBoard,
+          boardId: `${course.boardId}`,
+          boardToken: `${course.boardToken}`,
+          teacherId: `${course.teacherId}`,
+          screenId: `${me.screenId}`,
+          screenToken: `${me.screenToken}`,
+          coVideoUids: course.coVideoUids,
+          memberCount: +onlineUsers,
+        },
+        me: {
+          ...this.state.me,
+          uid: me.uid,
+          account: me.userName,
+          rtmToken: me.rtmToken,
+          rtcToken: me.rtcToken,
+          channelName: me.channelName,
+          screenId: me.screenId,
+          screenToken: me.screenToken,
+          appID: me.appID,
+          role: me.role,
+          chat: me.enableChat,
+          video: me.enableVideo,
+          audio: me.enableAudio,
+          userId: me.userId,
+          coVideo: me.coVideo,
+        },
+        users,
+        appID,
+      }
+      this.commit(this.state)
+    } catch(err) {
+      if (this.rtmClient._logged) {
+        await this.rtmClient.logout();
+      }
+      throw err;
+    }
+  }
+
   addLocalStream(stream: AgoraStream) {
     this.state = {
       ...this.state,
@@ -418,7 +500,7 @@ export class RoomStore {
         return;
       }
       case CoVideoType.studentSendApply: {
-        if (globalStore.state.notice.reason === 'peer_hands_up') {
+        if (this.state.applyUser.userId) {
           // when notice is peer_hands_up, ignore peer message
           // 当已经收到消息以后屏蔽这条"举手申请"
           console.warn(`ignore: `, peerId, userId, type, userName)
@@ -582,16 +664,6 @@ export class RoomStore {
 
       await this.rtmClient.login(appID, `${me.uid}`, me.rtmToken)
       await this.rtmClient.join(course.rid)
-      // if (me.coVideo) {
-      //   await this.rtmClient.notifyMessage({
-      //     cmd: ChatCmdType.update,
-      //     data: {
-      //       uid: `${me.uid}`,
-      //       account: `${me.account}`,
-      //       operate: RoomMessage.acceptCoVideo
-      //     }
-      //   })
-      // }
       this.state = {
         ...this.state,
         rtm: {
@@ -733,33 +805,6 @@ export class RoomStore {
     this.commit(this.state)
   }
 
-  resolveUserAttrsToOperate(params: Partial<AgoraUser>): any {
-    const keys = ['video', 'audio', 'chat', 'grantBoard', 'coVideo']
-    for (let key of keys) {
-      if (params.hasOwnProperty(key)) {
-        let value = -1
-        let stateValue = get(params, key, 0)
-        let stateKey = key;
-        if (key === 'video') {
-          value = stateValue ? RoomMessage.unmuteVideo : RoomMessage.muteVideo
-        } else if (key === 'audio') {
-          value = stateValue ? RoomMessage.unmuteAudio : RoomMessage.muteAudio
-        } else if (key === 'chat') {
-          value = stateValue ? RoomMessage.unmuteChat : RoomMessage.muteChat
-        } else if (key === 'grantBoard') {
-          value = stateValue ? RoomMessage.unmuteBoard : RoomMessage.muteBoard
-        } else if (key === 'coVideo') {
-          value = stateValue ? RoomMessage.acceptCoVideo : RoomMessage.cancelCoVideo
-        }
-        return {
-          key: stateKey,
-          stateValue,
-          value
-        }
-      }
-    }
-  }
-
   async updateLocalMe(params: Partial<Me & NotifyFlag>) {
     const {broad, ...meParams} = params
     const newMe = this.compositeMe(meParams)
@@ -799,40 +844,11 @@ export class RoomStore {
       users: this.state.users.set(`${this.state.me.uid}`, newMeAttrs)
     }
     this.commit(this.state)
-
-    // const {value} = this.resolveUserAttrsToOperate(params)
-
-    // if (broad) {
-    //   await this.rtmClient.notifyMessage({
-    //     cmd: ChatCmdType.update,
-    //     data: {
-    //       uid: `${this.state.me.uid}`,
-    //       account: `${this.state.me.account}`,
-    //       operate: value,
-    //     }
-    //   })
-    // }
   }
 
   async updateRoomUser({user}: {user: UserAttrsParams}) {
     return await eduApi.updateRoomUser(user)
   }
-
-  // async updateCoVideoUserBy(applyUser: UserParams, params: any) {
-    // await eduApi.updateRoomUser({
-    //   userId: applyUser.userId,
-    // })
-    // await this.rtmClient.notifyMessage({
-    //   cmd: ChatCmdType.update,
-    //   data: {
-    //     userId: `${applyUser.userId}`,
-    //     uid: `${applyUser.uid}`,
-    //     account: `${applyUser.account}`,
-    //     operate: Boolean(params.coVideo) ? RoomMessage.acceptCoVideo : RoomMessage.cancelCoVideo
-    //   }
-    // })
-    // await this.fetchRoomState()
-  // }
 
   updateApplyUser(user: any) {
     this.state = {
@@ -877,19 +893,6 @@ export class RoomStore {
       users: this.state.users.set(`${uid}`, newUserAttrs as AgoraUser)
     }
     this.commit(this.state)
-
-    // const {value} = this.resolveUserAttrsToOperate(params)
-
-    // if (broad) {
-    //   await this.rtmClient.notifyMessage({
-    //     cmd: ChatCmdType.update,
-    //     data: {
-    //       uid: `${uid}`,
-    //       account: `${prevUser?.account}`,
-    //       operate: value,
-    //     }
-    //   })
-    // }
   }
 
   resolveCourseAttrsToOperate(params: Partial<ClassState>): any {
@@ -1112,48 +1115,45 @@ export class RoomStore {
   }
   async startRecording () {
     this.lockRecording()
-    const {data: recordId} = await eduApi.startRecording()
-    this.state = {
-      ...this.state,
-      course: {
-        ...this.state.course,
-        recordId,
-        isRecording: true
+    try {
+      const {data: recordId} = await eduApi.startRecording()
+      this.state = {
+        ...this.state,
+        course: {
+          ...this.state.course,
+          recordId,
+          isRecording: true
+        }
       }
+      this.commit(this.state)
+    } catch(err) {
+      throw err;
+    } finally {
+      this.unlockRecording()
     }
-    this.commit(this.state)
-    this.unlockRecording()
   }
 
   async stopRecording () {
     this.lockRecording()
-    await eduApi.stopRecording(this.state.course.recordId)
-    const roomId = this.state.course.roomId
-    const {data: roomInfo} = await eduApi.getRoomInfoBy(roomId)
-    const recordId = roomInfo.room.recordId
-    this.state = {
-      ...this.state,
-      course: {
-        ...this.state.course,
-        recordId: recordId,
-        isRecording: false
+    try {
+      await eduApi.stopRecording(this.state.course.recordId)
+      const roomId = this.state.course.roomId
+      const {data: roomInfo} = await eduApi.getRoomInfoBy(roomId)
+      const recordId = roomInfo.room.recordId
+      this.state = {
+        ...this.state,
+        course: {
+          ...this.state.course,
+          recordId: recordId,
+          isRecording: false
+        }
       }
+      this.commit(this.state)
+    } catch(err) {
+      throw err
+    } finally {
+      this.unlockRecording()
     }
-    this.commit(this.state)
-    this.unlockRecording()
-    // await this.rtmClient.sendRecordMessage({
-    //   account: `${this.state.me.account}`,
-    //   recordId: `${recordId}`
-    // })
-    // if (this.state.me.role === 1) {
-    //   this.updateChannelMessage({
-    //     account: `${this.state.me.account}`,
-    //     text: ``,
-    //     link: `${recordId}`,
-    //     ts: +Date.now(),
-    //     id: this.state.me.uid,
-    //   })
-    // }
   }
 
   updateCoVideoUsers(rawUsers: any) {
@@ -1201,6 +1201,17 @@ export class RoomStore {
       courseState.teacherId = newCourse.uid
     }
 
+    let applyUser = this.state.applyUser;
+    if (applyUser && applyUser.userId) {
+      const foundUser = users.find((user: AgoraUser) => user.userId === applyUser.userId)
+      if (!foundUser) {
+        applyUser = {
+          userId: '',
+          account: ''
+        }
+      }
+    }
+
     this.state = {
       ...this.state,
       users: users,
@@ -1212,7 +1223,8 @@ export class RoomStore {
         ...this.state.course,
         ...courseState,
         coVideoUids,
-      }
+      },
+      applyUser
     }
     this.commit(this.state)
   }
