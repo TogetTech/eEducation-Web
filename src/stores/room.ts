@@ -40,6 +40,10 @@ export interface Me extends AgoraUser {
   appID: string
   coVideo: number
   uuid: string
+  roomId: string
+  roomName: string
+  userName: string
+  password: string
 }
 
 export interface ClassState {
@@ -547,15 +551,17 @@ export class RoomStore {
   }
 
   async LoginToRoom(payload: any, pass: boolean = false) {
-    const {userName, roomName, role, type, uuid} = payload
+    const {roomId, userName, roomName, password, role, type, uuid} = payload
     try {
       const res = await eduApi.Login({
+        roomId,
         userName,
+        password,
         roomName,
         role,
         type,
-        roomUuid: roomName,
-        userUuid: uuid
+        userUuid: uuid,
+        roomUuid: '',
       })
 
       const {

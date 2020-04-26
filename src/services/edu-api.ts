@@ -92,9 +92,11 @@ const AgoraFetchJson = async ({url, method, data, token, full_url}:{url?: string
 }
 
 export interface EntryParams {
+  roomId: string
   userName: string
   roomName: string
   roomUuid: string
+  password: string
   userUuid: string
   type: number
   role: number

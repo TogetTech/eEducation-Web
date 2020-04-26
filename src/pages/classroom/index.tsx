@@ -37,6 +37,7 @@ export function RoomPage({ children }: any) {
   useEffect(() => {
     const me = roomStore.state.me;
     const course = roomStore.state.course;
+    const roomId = roomStore.state.course.roomId;
 
     if (!me.account || !course.roomName) {
       history.push('/');
@@ -44,10 +45,12 @@ export function RoomPage({ children }: any) {
 
     const sessionInfo = {
       userName: me.account,
-      roomName: course.roomName,
+      roomName: me.roomName,
+      password: me.password,
       role: me.role,
       type: course.roomType,
-      uuid: genUUID()
+      uuid: genUUID(),
+      roomId: course.roomId,
     }
     lock.current = true;
     if (roomStore.state.rtm.joined) return;
@@ -270,11 +273,6 @@ export function RoomPage({ children }: any) {
               globalStore.showToast({
                 type: 'rtmClient',
                 message: t('toast.student_peer_leave', {reason: roomStore.state.applyUser.account}),
-              })
-              roomStore.updateApplyUser({
-                uid: '',
-                account: '',
-                userId: '',
               })
             }
           }
