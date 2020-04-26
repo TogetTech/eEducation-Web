@@ -6,6 +6,7 @@ import moment from 'moment';
 import { globalStore } from '../../stores/global';
 import { t } from '../../i18n';
 import { Tooltip } from '@material-ui/core';
+import { useRoomState } from '../../containers/root-container';
 interface ControlItemProps {
   name: string
   onClick: (evt: any, name: string) => void
@@ -63,6 +64,8 @@ export default function Control({
 }: ControlProps) {
   const lock = useRef<boolean>(false);
 
+  const roomState = useRoomState();
+
   const canStop = () => {
     const timeMoment = moment(whiteboard.state.startTime).add(15, 'seconds');
     if (+timeMoment >= +Date.now()) {
@@ -113,7 +116,7 @@ export default function Control({
   return (
     <div className="controls-container">
       <div className="interactive">
-        {notice ? 
+        {notice && roomState.users.count() <= 1 ? 
           <ControlItem name={notice.reason}
             onClick={onClick}
             active={notice.reason === current} />
