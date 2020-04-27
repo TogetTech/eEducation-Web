@@ -425,17 +425,9 @@ const items = [
         room.handToolActive = false;
         room.disableCameraTransform = true;
         room.disableDeviceInputs = true;
-        globalStore.showToast({
-          type: "whiteboard",
-          message: t("whiteboard.locked_board")
-        })
       } else {
         room.disableCameraTransform = false;
         room.disableDeviceInputs = false;
-        // mounted.current && globalStore.showToast({
-        //   type: "whiteboard",
-        //   message: t("whiteboard.unlocked_board")
-        // })
       }
     }
   }, [room, roomStore.state.course.lockBoard, roomStore.state.me.role]);

@@ -6,6 +6,7 @@ import * as serviceWorker from './serviceWorker';
 import TagManager from 'react-gtm-module';
 import Eruda from 'eruda';
 import UAParser from 'ua-parser-js';
+import {isElectron} from './utils/platform';
 
 const parser = new UAParser();
 
@@ -17,7 +18,7 @@ const isMobile = () => {
 
 // use gtm
 if (process.env.REACT_APP_AGORA_GTM_ID) {
-  TagManager.initialize({
+  !isElectron && TagManager.initialize({
     gtmId: process.env.REACT_APP_AGORA_GTM_ID
   })
 }
