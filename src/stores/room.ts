@@ -26,7 +26,6 @@ export interface AgoraUser {
   audio: number
   chat: number
   grantBoard: number
-  // coVideo: number // 当前是否为连麦状态
   userId: string // 仅用于服务端
   screenId: string //仅用于屏幕共享
 }
@@ -299,7 +298,6 @@ export class RoomStore {
           chat: it.enableChat,
           grantBoard: it.grantBoard,
           userId: it.userId,
-          // coVideo: 1,
           screenId: it.screenId,
         });
       }, Map<string, AgoraUser>());

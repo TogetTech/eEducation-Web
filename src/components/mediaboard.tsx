@@ -103,11 +103,6 @@ const MediaBoard: React.FC<MediaBoardProps> = ({
     return false
   }, [me.role, me.coVideo, location])
 
-  // TODO: need deprecate
-  // const isHost = useMemo(() => {
-  //   return +roomStore.state.me.uid === +roomStore.state.course.linkId;
-  // }, [roomStore.state.me.uid,
-  //   roomStore.state.course.linkId]);
   
   const current = useMemo(() => {
     return {

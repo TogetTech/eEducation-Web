@@ -165,7 +165,7 @@
     "uuid": "^3.3.3",
     "video.js": "^7.7.5",
     "wait-on": "^3.3.0",
-    "white-web-sdk": "^2.6.4",
+    "white-web-sdk": "2.7.5",
     "worker-loader": "^2.0.0",
     "zlib": "^1.0.5"
   }
