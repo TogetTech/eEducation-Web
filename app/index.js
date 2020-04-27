@@ -10,10 +10,16 @@ const process = require('process');
 // Module to control application life.
 const {app, Menu, netLog} = electron;
 
-const appPath = app.getAppPath()
+const getAppLogPath = () => {
+  if (process.platform === 'darwin') {
+    return path.join(process.env['HOME'], 'Library', 'Logs')
+  } else {
+    return path.join(process.env['USERPROFILE'], 'AppData', 'Roaming')
+  }
+}
 
-const logPath = path.join(appPath, `log`, `agora_sdk.log`)
-const dstPath = path.join(appPath, `log`, `agora_sdk.log.zip`)
+const appPath = getAppLogPath()
+
 // Menu template
 const isMac = platform === 'darwin'
 
@@ -52,9 +58,18 @@ async function createWindow() {
     // and load the index.html of the app.
     mainWindow.loadURL(startUrl);
 
+    const appLogPath = app.getPath('logs')
+
+    const logPath = path.join(appLogPath, `log`, `agora_sdk.log`)
+    const dstPath = path.join(appLogPath, `log`, `agora_sdk.log.zip`)
+
+    mainWindow.webContents.on("did-finish-load", () => {
+      console.log("appLogPath", appLogPath)
+      mainWindow.webContents.send('appPath', [appLogPath])
+    })
+
     mainWindow.webContents.once("did-finish-load", () => {
       mainWindow.webContents.send('initialize', [logPath, dstPath])
-      mainWindow.webContents.send('appPath', [appPath])
     })
 
     mainWindow.webContents.on('new-window', (event, url, frameName, disposition, options, additionalFeatures) => {
@@ -269,6 +284,7 @@ async function createWindow() {
       const currentWindow = BrowserWindow.getFocusedWindow() || mainWindow
       if (currentWindow === mainWindow) {
         app.quit()
+        return;
       }
       currentWindow.close()
     });

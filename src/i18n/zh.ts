@@ -57,7 +57,7 @@ const zhCN: any = {
   'whiteboard': {
     'loading': '加载中...',
     'global_state_limit': '请不要给白板设置过大的globalState size',
-    'locked_board': '白板已锁定，请不要操作白板',
+    'locked_board': '老师正在控制白板，请勿书写',
     'unlocked_board': '白板已解除锁定。',
   },
   'toast': {
