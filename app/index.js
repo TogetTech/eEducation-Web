@@ -10,16 +10,6 @@ const process = require('process');
 // Module to control application life.
 const {app, Menu, netLog} = electron;
 
-const getAppLogPath = () => {
-  if (process.platform === 'darwin') {
-    return path.join(process.env['HOME'], 'Library', 'Logs')
-  } else {
-    return path.join(process.env['USERPROFILE'], 'AppData', 'Roaming')
-  }
-}
-
-const appPath = getAppLogPath()
-
 // Menu template
 const isMac = platform === 'darwin'
 
@@ -63,9 +53,8 @@ async function createWindow() {
     const logPath = path.join(appLogPath, `log`, `agora_sdk.log`)
     const dstPath = path.join(appLogPath, `log`, `agora_sdk.log.zip`)
 
-    mainWindow.webContents.on("did-finish-load", () => {
-      console.log("appLogPath", appLogPath)
-      mainWindow.webContents.send('appPath', [appLogPath])
+    mainWindow.webContents.on("did-finish-load", (event, args) => {
+      event.sender.webContents.send('appPath', [appLogPath])
     })
 
     mainWindow.webContents.once("did-finish-load", () => {
@@ -73,17 +62,6 @@ async function createWindow() {
     })
 
     mainWindow.webContents.on('new-window', (event, url, frameName, disposition, options, additionalFeatures) => {
-      if (frameName === 'modal') {
-        event.preventDefault();
-        Object.assign(options, {
-          modal: true,
-          parent: mainWindow,
-          width: 700,
-          height: 500,
-          resizable: true
-        })
-        event.newGuest = new BrowserWindow(options)
-      }
     })
 
     // Emitted when the window is closed.
@@ -288,10 +266,6 @@ async function createWindow() {
       }
       currentWindow.close()
     });
-
-    // let res = app.setAppLogsPath();
-
-    // console.log("Your electron log path", app.getPath('logs'), " res ", res)
 }
 
 // This method will be called when Electron has finished
