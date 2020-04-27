@@ -148,8 +148,10 @@ export class AgoraRTCClient {
   }
 
   removeAllListeners() {
+    console.log("[agora-rtc] prepare remove all event listeners");
     this.unsubscribeClientEvents();
     this._bus.removeAllListeners();
+    console.log("[agora-rtc] remove all event listeners");
   }
 
   // subscribe
@@ -273,6 +275,7 @@ export class AgoraRTCClient {
     this._internalTimer && clearInterval(this._internalTimer);
     this._internalTimer = null;
     this.destroyLocalStream();
+    this.removeAllListeners();
   }
 
   async exit () {
