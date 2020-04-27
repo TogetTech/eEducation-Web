@@ -111,8 +111,8 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-optional-chaining": "^7.7.5",
-    "@material-ui/core": "^4.5.1",
-    "@material-ui/icons": "^4.5.1",
+    "@material-ui/core": "4.9.1",
+    "@material-ui/icons": "4.9.1",
     "@netless/react-seek-slider": "^1.0.4",
     "@netless/white-audio-plugin": "^1.1.10",
     "@netless/white-video-plugin": "^1.1.17",
