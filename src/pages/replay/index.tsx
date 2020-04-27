@@ -36,13 +36,13 @@ const MenuNav = () => {
   return (
     <div className={`nav-container menu-nav ${isElectron ? 'draggable' : ''}`}>
       <div className="menu-nav-right">
-        <Tooltip title={t("icon.upload-log")} placement="bottom">
+        {/* <Tooltip title={t("icon.upload-log")} placement="bottom">
           <div>
             <Icon className={loading ? "icon-loading" : "icon-upload"} onClick={(evt: any) => {
               handleClick('uploadLog')
             }}></Icon>
           </div>
-        </Tooltip>
+        </Tooltip> */}
         <NavBtn />
       </div>
     </div>
@@ -51,10 +51,15 @@ const MenuNav = () => {
 
 export function ReplayPageWrapper({ children }: any) {
   return (
-    <div>
-      {isElectron ? <MenuNav /> : null}
-      {children}
-    </div>
+    <>
+    {isElectron ? 
+      <div className="replay-page-wrapper">
+        <MenuNav />
+        {children}
+      </div>
+      : children
+    }
+    </>
   );
 }
 

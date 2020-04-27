@@ -11,6 +11,7 @@ const rtcEngine = new AgoraRtcEngine();
 
 window.rtcEngine = rtcEngine;
 window.ipc = ipc;
+window.path = path;
 
 const AdmZip = require('adm-zip');
 

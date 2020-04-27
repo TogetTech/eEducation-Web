@@ -1,3 +1,10 @@
+.replay-page-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
 .replay {
   display: flex;
   flex: 1;
@@ -154,6 +161,7 @@
       background-repeat: no-repeat;
     }
 
+    overflow: hidden;
     border-left: 2px solid #DBE2E5;
     display: flex;
     flex-direction: column;
