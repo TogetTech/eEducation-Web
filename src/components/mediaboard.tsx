@@ -404,6 +404,15 @@ const items = [
     }
   }, [convertPhase]);
 
+  useMemo(() => {
+    if (+roomState.me.role === 2 && +roomState.course.lockBoard === 1) {
+      globalStore.showToast({
+         type: "whiteboard",
+         message: t("whiteboard.locked_board")
+       })
+     }
+  }, [roomState.course.lockBoard, roomState.me.role])
+
   useEffect(() => {
     if (!me.role || !room) return;
     if (+me.role === 1) {

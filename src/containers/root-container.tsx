@@ -167,13 +167,6 @@ export const RootProvider: React.FC<any> = ({children}) => {
       // TODO: update course state
       // TODO: 更新房间信息
       if (cmd === ChatCmdType.roomInfoChanged) {
-        if (+data.lockBoard === 1 &&
-          +roomStore.state.course.lockBoard !== +data.lockBoard) {
-          globalStore.showToast({
-            type: "whiteboard",
-            message: t("whiteboard.locked_board")
-          })
-        }
         roomStore.updateRoomInfo({
           muteAllChat: data.muteAllChat,
           lockBoard: data.lockBoard,

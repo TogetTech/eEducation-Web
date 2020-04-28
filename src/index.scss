@@ -4,6 +4,12 @@ html, body, #root {
   overflow: hidden;
 }
 
+.screen-sharing {
+  video {
+    object-fit: contain !important;
+  }
+}
+
 .flex-row {
   display: flex;
   flex-direction: row;
