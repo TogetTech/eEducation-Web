@@ -309,6 +309,14 @@ export class AgoraElectronClient {
     }
   }
 
+  releaseScreenShare() {
+    this.rtcEngine.videoSourceLeave()
+    this.rtcEngine.videoSourceRelease();
+    this.rtcEngine.removeAllListeners();
+    this.shared = false;
+    this.rtcEngine.subscribeVideoSource = false;
+  }
+
   exit () {
     try {
       this.leave();

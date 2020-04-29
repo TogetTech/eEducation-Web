@@ -85,13 +85,9 @@ export default class Log {
   static async uploadElectronLog(roomId: any) {
     //@ts-ignore
     let file = await window.doGzip();
-    await eduApi.uploadZipLogFile(
+    const res = await eduApi.uploadZipLogFile(
       roomId,
       file
-    )
-    let res = await eduApi.uploadLogFile(
-      roomId,
-      file,
     )
     return get(res, 'data.data', -1);
   }

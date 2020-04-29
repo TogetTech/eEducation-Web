@@ -1,6 +1,11 @@
 const electron = require('electron');
 const path = require('path');
 
+if (process.env.REACT_APP_SENTRY_URL) {
+  const Sentry = require('@sentry/electron');
+  Sentry.init({dsn: REACT_APP_SENTRY_URL});
+}
+
 const {ipcMain} = electron;
 
 // workaround for resizable issue in mac os
@@ -52,13 +57,14 @@ async function createWindow() {
 
     const logPath = path.join(appLogPath, `log`, `agora_sdk.log`)
     const dstPath = path.join(appLogPath, `log`, `agora_sdk.log.zip`)
+    const videoSourceLogPath = path.join(appLogPath, `log`, `video_source_agora_sdk.log`)
 
     mainWindow.webContents.on("did-finish-load", (event, args) => {
       event.sender.webContents.send('appPath', [appLogPath])
     })
 
     mainWindow.webContents.once("did-finish-load", () => {
-      mainWindow.webContents.send('initialize', [logPath, dstPath])
+      mainWindow.webContents.send('initialize', [logPath, dstPath, videoSourceLogPath])
     })
 
     mainWindow.webContents.on('new-window', (event, url, frameName, disposition, options, additionalFeatures) => {

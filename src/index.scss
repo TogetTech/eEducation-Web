@@ -32,6 +32,10 @@ html, body, #root {
   -webkit-user-select: none;
 }
 
+.nav-container.draggable {
+  z-index: 200000;
+}
+
 button {
   -webkit-app-region: no-drag;
 }

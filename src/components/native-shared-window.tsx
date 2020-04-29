@@ -129,10 +129,14 @@ export default function NativeSharedWindowContainer() {
             roomStore.addLocalSharedStream(new AgoraStream(electronStream, electronStream.uid, true));
           }
         } catch(err) {
+          const rtcClient = roomStore.rtcClient;
+          const nativeClient = rtcClient as AgoraElectronClient;
+          nativeClient.releaseScreenShare()
           globalStore.showToast({
             type: 'nativeScreenShare',
             message: t("electron.start_screen_share_failed")
           })
+          console.warn(JSON.stringify(err))
           throw err;
         } finally {
           globalStore.stopLoading();

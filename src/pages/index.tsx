@@ -18,6 +18,7 @@ import BigClass from './classroom/big-class';
 import { PageNotFound } from './404';
 import RoomDialog from '../components/dialog';
 import { ReplayPageWrapper } from './replay';
+import { ConfigPage } from './config';
 
 export default function () {
   return (
@@ -55,6 +56,9 @@ export default function () {
             <ReplayPageWrapper>
               <AgoraReplayContainer />
             </ReplayPageWrapper>
+          </Route>
+          <Route path="/config">
+            <ConfigPage />
           </Route>
           <Route exact path="/">
             <Home />
