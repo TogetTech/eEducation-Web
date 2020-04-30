@@ -1079,11 +1079,8 @@ export class RoomStore {
 
   async stopNativeScreenShare() {
     const nativeClient = this.rtcClient as AgoraElectronClient;
-    if (nativeClient.shared) {
-      await nativeClient.stopScreenShare();
-    }
+    await nativeClient.stopScreenShare();
   }
-
 
   async stopScreenShare() {
     if (platform === 'web') {

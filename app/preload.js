@@ -21,11 +21,15 @@ window.ipc.on('appPath', (event, args) => {
   const dstPath = path.join(appPath, `log`, `agora_sdk.log.zip`)
   window.dstPath = dstPath;
   window.logPath = logPath;
+  window.videoSourceLogPath = args[1];
 })
 
 const doGzip = async () => {
   const zip = new AdmZip();
   zip.addLocalFile(window.logPath)
+  // if (window.videoSourceLogPath) {
+  zip.addLocalFile(window.videoSourceLogPath)
+  // }
   zip.writeZip(window.dstPath)
   return promisify(fs.readFile)(window.dstPath)
 }

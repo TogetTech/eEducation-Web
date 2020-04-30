@@ -29,7 +29,7 @@
 ### 所用技术
   * typescript ^3.6.4
   * react & react hooks & rxjs
-  * electron 5.0.8 & electron-builder
+  * electron 7.1.2 & electron-builder
   * material-ui
   * Agora eEducation 教育后端服务
 
@@ -37,20 +37,20 @@
 ### 开发环境
   * mac or windows
   * nodejs LTS
-  * electron 5.0.8
+  * electron 7.1.2
 
 ### electron & node-sass 下载慢的解决方案
   * mac
   ```
   export ELECTRON_MIRROR="https://npm.taobao.org/mirrors/electron/"
-  export ELECTRON_CUSTOM_DIR="5.0.8"
+  export ELECTRON_CUSTOM_DIR="7.1.2"
   export SASS_BINARY_SITE="https://npm.taobao.org/mirrors/node-sass/"
 
   ```
   * windows
   ```
   set ELECTRON_MIRROR=https://npm.taobao.org/mirrors/electron/
-  set ELECTRON_CUSTOM_DIR=5.0.8
+  set ELECTRON_CUSTOM_DIR=7.1.2
   set SASS_BINARY_SITE=https://npm.taobao.org/mirrors/node-sass/
   ```
 
@@ -59,14 +59,14 @@
   * windows 需要找到package.json里的`agora_electron` 按照如下结构替换
   ```
     "agora_electron": {
-      "electron_version": "5.0.8",
+      "electron_version": "7.1.2",
       "prebuilt": true,
       "platform": "win32"
     },
   ```
-  (windows上推荐手动安装electron 5.0.8)
+  (windows上推荐手动安装electron 7.1.2)
   ```
-  npm install electron@5.0.8 --arch=ia32 --save-dev
+  npm install electron@7.1.2 --arch=ia32 --save-dev
   ```
 
 ### 环境搭建

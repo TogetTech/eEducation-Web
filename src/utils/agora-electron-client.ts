@@ -16,6 +16,12 @@ if (AgoraRtcEngine) {
   //@ts-ignore
   window.ipc && window.ipc.once("initialize", (events: any, args: any) => {
     const logPath = args[0]
+    const videoSourceLogPath = args[2];
+    const videoSourceAddonLogPath = args[3];
+    //@ts-ignore
+    window.videoSourceLogPath = videoSourceLogPath;
+    //@ts-ignore
+    window.videoSourceAddonLogPath = videoSourceAddonLogPath;
     AgoraRtcEngine.setLogFile(logPath)
   })
 }
@@ -45,7 +51,7 @@ export class AgoraElectronStream {
   private domID: string;
   constructor(
     public uid: number = uid,
-    public readonly type: StreamType = StreamType.remote,
+    public type: StreamType = StreamType.remote,
   ) {
     this.domID = '';
     this.stream = {
@@ -167,6 +173,7 @@ export class AgoraElectronClient {
     })
     rtcEngine.on('userjoined', (uid: number) => {
       const stream = new AgoraElectronStream(uid, StreamType.remote);
+      console.log("userjoined", uid)
       this.bus.emit('userjoined', {stream});
     })
     rtcEngine.on('removestream', (uid: number) => {
@@ -266,6 +273,20 @@ export class AgoraElectronClient {
       shareClient.videoSourceEnableWebSdkInteroperability(true);
       // shareClient.setVideoRenderDimension(3, SHARE_ID, 1280, 960);
       shareClient.videoSourceSetVideoProfile(50, false);
+      //@ts-ignore
+      if (window.videoSourceLogPath) {
+        //@ts-ignore
+        shareClient.videoSourceSetLogFile(window.videoSourceLogPath)
+        //@ts-ignore
+        console.log(`[native] videoSourceSetLogFile, videoSourceLogPath: `, window.videoSourceLogPath)
+      }
+      //@ts-ignore
+      // if (window.videoSourceAddonLogPath) {
+      //   //@ts-ignore
+      //   shareClient.videoSourceSetAddonLogFile(window.videoSourceAddonLogPath)
+      //   //@ts-ignore
+      //   console.log(`[native] videoSourceSetAddonLogFile, videoSourceAddonLogPath: `, window.videoSourceAddonLogPath)
+      // }
       // to adjust render dimension to optimize performance
       console.log("[electron-debug] SHARE_ID", uid, " TOKEN: ", token, " CHANNEL", channel);
       shareClient.videoSourceJoin(token, channel, '', uid);
@@ -295,21 +316,38 @@ export class AgoraElectronClient {
     })
   }
 
-  stopScreenShare() {
+  async stopScreenShare() {
     globalStore.showLoading();
-    if (this.shared) {
-      this.rtcEngine.once('videoSourceLeaveChannel', (evt: any) => {
+    let stopPromise = new Promise((resolve, reject) => {
+
+      const onSuccess = () => {
         this.roomStore.removeLocalSharedStream();
         this.rtcEngine.off('videoSourceLeaveChannel', (evt: any) => {});
         globalStore.stopLoading();
+      }
+
+      const onFailure = () => {
+        this.roomStore.removeLocalSharedStream();
+        this.rtcEngine.off('videoSourceLeaveChannel', (evt: any) => {});
+        globalStore.stopLoading();
+      }
+
+      this.rtcEngine.once('videoSourceLeaveChannel', (evt: any) => {
+        onSuccess();
       });
       this.rtcEngine.videoSourceLeave();
       this.rtcEngine.videoSourceRelease();
       this.shared = false;
-    }
+      setTimeout(() => {
+        reject(onFailure())
+      }, 5000)
+    })
+
+    return await stopPromise;
   }
 
   releaseScreenShare() {
+    this.roomStore.removeLocalSharedStream();
     this.rtcEngine.videoSourceLeave()
     this.rtcEngine.videoSourceRelease();
     this.rtcEngine.removeAllListeners();

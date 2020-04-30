@@ -10,7 +10,7 @@ import { useRoomState } from '../../containers/root-container';
 import { globalStore } from '../../stores/global';
 import { platform } from '../../utils/platform';
 import AgoraWebClient, { AgoraStreamSpec } from '../../utils/agora-rtc-client';
-import { AgoraElectronClient } from '../../utils/agora-electron-client';
+import { AgoraElectronClient, StreamType } from '../../utils/agora-electron-client';
 import { t } from '../../i18n';
 import { eduApi } from '../../services/edu-api';
 import { genUUID } from '../../utils/api';
@@ -344,6 +344,9 @@ export function RoomPage({ children }: any) {
               const res = nativeClient.rtcEngine.setRemoteVideoStreamType(stream, 1);
               console.log("[agora-electron] dual stream set low for student, ", res);
             }
+          }
+          if (_stream && _stream.stream && +roomStore.state.course.screenId === +stream.uid) {
+            _stream.stream.type = StreamType.remoteVideoSource
           }
           roomStore.addRTCUser(stream.uid);
           roomStore.addRemoteStream(_stream);

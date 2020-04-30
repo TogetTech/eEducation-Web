@@ -107,15 +107,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         }
       }
 
-      // if (_stream.type === StreamType.remoteVideoSource) {
-      //   AgoraRtcEngine.subscribe(streamID, dom);
-      //   AgoraRtcEngine.setupViewContentMode('videosource', fitContentMode);
-      //   AgoraRtcEngine.setupViewContentMode(streamID, fitContentMode);
-      //   return () => {
-      //     // AgoraRtcEngine.destroyRenderView('videosource');
-      //     // AgoraRtcEngine.destroyRenderView(streamID, dom, (err: any) => { console.warn(err.message) });
-      //   }
-      // }
+      if (_stream.type === StreamType.remoteVideoSource) {
+        AgoraRtcEngine.subscribe(streamID, dom);
+        // AgoraRtcEngine.setupViewContentMode('videosource', fitContentMode);
+        AgoraRtcEngine.setupViewContentMode(streamID, fitContentMode);
+        return () => {
+          // AgoraRtcEngine.destroyRenderView('videosource');
+          // AgoraRtcEngine.destroyRenderView(streamID, dom, (err: any) => { console.warn(err.message) });
+        }
+      }
     }
   }, [domId, stream, AgoraRtcEngine]);
 

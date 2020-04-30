@@ -1,12 +1,11 @@
 const electron = require('electron');
 const path = require('path');
 
-if (process.env.REACT_APP_SENTRY_URL) {
-  const Sentry = require('@sentry/electron');
-  Sentry.init({dsn: REACT_APP_SENTRY_URL});
-}
-
 const {ipcMain} = electron;
+
+const { crashReporter } = require('electron');
+
+// const bt = require('backtrace-node');
 
 // workaround for resizable issue in mac os
 const platform = require('os').platform();
@@ -27,6 +26,26 @@ const BrowserWindow = electron.BrowserWindow;
 let mainWindow;
 
 async function createWindow() {
+
+    if (process.env.REACT_APP_CRASH_REPORT_URL) {
+      crashReporter.start({
+        productName: 'eEducation-demo',
+        companyName: 'agora-web-electron',
+        submitURL: process.env.REACT_APP_CRASH_REPORT_URL,
+        uploadToServer: true,
+        extra: {
+          version: '5.3.2'
+        }
+      });
+    }
+
+    // if (process.env.REACT_APP_BACKTRACE_TOKEN) {
+    //   bt.initialize({
+    //     endpoint: "",
+    //     token: process.env.REACT_APP_BACKTRACE_TOKEN,
+    //   });
+    // }
+
 
     mainWindow = new BrowserWindow({
       frame: false,
@@ -58,13 +77,14 @@ async function createWindow() {
     const logPath = path.join(appLogPath, `log`, `agora_sdk.log`)
     const dstPath = path.join(appLogPath, `log`, `agora_sdk.log.zip`)
     const videoSourceLogPath = path.join(appLogPath, `log`, `video_source_agora_sdk.log`)
+    const videoSourceAddonLogPath = path.join(appLogPath, `log`, `video_source_addon_agora_sdk.log`)
 
     mainWindow.webContents.on("did-finish-load", (event, args) => {
-      event.sender.webContents.send('appPath', [appLogPath])
+      event.sender.webContents.send('appPath', [appLogPath, videoSourceLogPath])
     })
 
     mainWindow.webContents.once("did-finish-load", () => {
-      mainWindow.webContents.send('initialize', [logPath, dstPath, videoSourceLogPath])
+      mainWindow.webContents.send('initialize', [logPath, dstPath, videoSourceLogPath, videoSourceAddonLogPath])
     })
 
     mainWindow.webContents.on('new-window', (event, url, frameName, disposition, options, additionalFeatures) => {
