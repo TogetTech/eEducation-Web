@@ -20,7 +20,7 @@ export const ossConfig: OSSConfig = {
   "folder": get(process.env, 'REACT_APP_YOUR_OWN_OSS_BUCKET_FOLDER', 'empty-placeholder'),
 }
 
-console.log("your oss config ", ossConfig)
+// console.log("your oss config ", ossConfig)
 
 export const ossClient = new OSS(ossConfig);
 
