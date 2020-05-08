@@ -1,4 +1,4 @@
-import { BUILD_VERSION } from './../i18n';
+import { BUILD_VERSION, t } from './../i18n';
 import { AgoraFetch } from "../utils/fetch";
 import { ClassState, AgoraUser, Me } from "../stores/room";
 import {Map} from 'immutable'
@@ -232,13 +232,21 @@ export class AgoraEduApi {
       endpoint: 'oss-accelerate.aliyuncs.com',
     })
 
-    return await ossClient.put(ossKey, file, {
-      callback: {
-        url: `${PREFIX}/v1/log/sts/callback`,
-        body: callbackBody,
-        contentType: callbackContentType,
-      }
-    });
+    try {
+      return await ossClient.put(ossKey, file, {
+        callback: {
+          url: `${PREFIX}/v1/log/sts/callback`,
+          body: callbackBody,
+          contentType: callbackContentType,
+        }
+      });
+    } catch(err) {
+      globalStore.showToast({
+        type: 'oss',
+        message: t("toast.upload_log_failure", {reason: err.name})
+      })
+      throw err
+    }
   }
 
   async uploadZipLogFile(
