@@ -92,7 +92,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       if (_stream.type === StreamType.localVideoSource) {
         AgoraRtcEngine.setupLocalVideoSource(dom);
         AgoraRtcEngine.setupViewContentMode('videosource', fitContentMode);
-        AgoraRtcEngine.setupViewContentMode(streamID, fitContentMode);
+        // AgoraRtcEngine.setupViewContentMode(streamID, fitContentMode);
         return () => {
           // AgoraRtcEngine.destroyRenderView('videosource');
           // AgoraRtcEngine.destroyRenderView(streamID, dom, (err: any) => { console.warn(err.message) });

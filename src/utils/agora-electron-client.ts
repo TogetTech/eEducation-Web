@@ -319,7 +319,6 @@ export class AgoraElectronClient {
   async stopScreenShare() {
     globalStore.showLoading();
     let stopPromise = new Promise((resolve, reject) => {
-
       const onSuccess = () => {
         this.roomStore.removeLocalSharedStream();
         this.rtcEngine.off('videoSourceLeaveChannel', (evt: any) => {});
@@ -332,15 +331,16 @@ export class AgoraElectronClient {
         globalStore.stopLoading();
       }
 
-      this.rtcEngine.once('videoSourceLeaveChannel', (evt: any) => {
-        onSuccess();
-      });
-      this.rtcEngine.videoSourceLeave();
+      // this.rtcEngine.once('videoSourceLeaveChannel', (evt: any) => {
+      //   onSuccess();
+      // });
+      // this.rtcEngine.videoSourceLeave();
       this.rtcEngine.videoSourceRelease();
       this.shared = false;
-      setTimeout(() => {
-        reject(onFailure())
-      }, 5000)
+      resolve(onSuccess());
+      // setTimeout(() => {
+      //   reject(onFailure())
+      // }, 5000)
     })
 
     return await stopPromise;

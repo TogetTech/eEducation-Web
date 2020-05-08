@@ -346,7 +346,11 @@ export function RoomPage({ children }: any) {
             }
           }
           if (_stream && _stream.stream && +roomStore.state.course.screenId === +stream.uid) {
-            _stream.stream.type = StreamType.remoteVideoSource
+            if (+roomStore.state.course.screenId === +roomStore.state.me.screenId) {
+              _stream.stream.type = StreamType.localVideoSource
+            } else {
+              _stream.stream.type = StreamType.remoteVideoSource
+            }
           }
           roomStore.addRTCUser(stream.uid);
           roomStore.addRemoteStream(_stream);
