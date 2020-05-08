@@ -54,6 +54,21 @@
   set SASS_BINARY_SITE=https://npm.taobao.org/mirrors/node-sass/
   ```
 
+### electron 打包程序慢的解决方案
+  * mac
+  ```
+  export ELECTRON_CUSTOM_DIR=7.1.2
+  export ELECTRON_BUILDER_BINARIES_MIRROR=https://npm.taobao.org/mirrors/electron-builder-binaries/
+  export ELECTRON_MIRROR=https://npm.taobao.org/mirrors/electron/ 
+
+  ```
+  * windows
+  ```
+  set ELECTRON_CUSTOM_DIR=7.1.2
+  set ELECTRON_BUILDER_BINARIES_MIRROR=https://npm.taobao.org/mirrors/electron-builder-binaries/
+  set ELECTRON_MIRROR=https://npm.taobao.org/mirrors/electron/
+  ```
+
 ### electron环境注意事项
   * mac 不需要修改package.json
   * windows 需要找到package.json里的`agora_electron` 按照如下结构替换
