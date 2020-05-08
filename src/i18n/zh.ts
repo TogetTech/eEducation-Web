@@ -61,6 +61,7 @@ const zhCN: any = {
     'unlocked_board': '白板已解除锁定。',
   },
   'toast': {
+    'upload_log_failure': '上传日志失败，错误类型：{reason}, 详情参考开发者工具',
     'show_log_id': `请提供你的日志ID: {no}`,
     'api_login_failured': '房间加入失败, 原因: {reason}',
     'confirm': '确定',

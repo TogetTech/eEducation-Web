@@ -61,6 +61,7 @@ const en = {
     'unlocked_board': 'The whiteboard already unlocked',
   },
   'toast': {
+    'upload_log_failure': 'Upload Log Failure，ErrorName: {reason}，see more details in devtool',
     'show_log_id': `Report your log ID: {reason}`,
     'api_login_failured': 'Join Failured, Reason: {reason}',
     'confirm': 'Confirm',
