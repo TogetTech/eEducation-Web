@@ -10,8 +10,6 @@ import { useGlobalState } from '../containers/root-container';
 import { eduApi } from '../services/edu-api';
 import { t } from '../i18n';
 
-globalStore.showLoading()
-
 export const WindowItem: React.FC<any> = ({
   ownerName,
   name,
