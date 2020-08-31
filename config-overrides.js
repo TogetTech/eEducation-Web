@@ -17,7 +17,13 @@ const sourceMap = () => config => {
   return config;
 }
 
+const addWebpackTarget = target => config => {
+  config.target = target
+  return config
+}
+
 module.exports = override(
+  addWebpackTarget('electron-renderer'),
   sourceMap(),
   isElectron && addWebpackExternals({
     "agora-electron-sdk": "commonjs2 agora-electron-sdk"
