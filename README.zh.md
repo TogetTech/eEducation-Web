@@ -10,7 +10,7 @@
 
 ### 在线体验
 
-[web demo](https://solutions.agora.io/education/web/)
+[web demo](https://solutions.agora.io/education/web_v2/)
 
 ### 使用的 SDK
 

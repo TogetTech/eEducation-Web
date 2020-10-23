@@ -10,7 +10,7 @@
 
 ### Online preview
 
-[web demo](https://solutions.agora.io/education/web/)
+[web demo](https://solutions.agora.io/education/web_v2/)
 
 ### Core SDKs
 - agora-rtc-sdk (agora rtc web sdk)
