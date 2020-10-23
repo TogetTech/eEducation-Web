@@ -1,34 +1,39 @@
-import React, { useRef, useEffect } from 'react';
-import {Message} from './message';
+import React, { useRef, useEffect, useMemo } from 'react';
+import {Message, RoomMessage} from './message';
 import { Input } from '@material-ui/core';
-import Button from '../custom-button';
+import {CustomButton} from '../custom-button';
 import './panel.scss';
-import { List } from 'immutable';
-import { ChatMessage } from '../../utils/types';
-import { useRoomState } from '../../containers/root-container';
-import useChatControl from '../../hooks/use-chat-control';
-import { t } from '../../i18n';
+import { ChatMessage } from '@/utils/types';
+import { t } from '@/i18n';
+import {observer} from 'mobx-react';
 
-interface ChatPanelProps {
-  messages: List<ChatMessage>
+export interface ChatPanelProps {
+  canChat: boolean
+  muteControl: boolean
+  muteChat: boolean
+  messages: ChatMessage[]
   value: string
+  handleMute: (evt: any) => Promise<any>
   sendMessage: (evt: any) => void
   handleChange: (evt: any) => void
+  showRoomName?: boolean
 }
 
 const regexPattern = /^\s+/;
 
 const truncateBlank: (m: string) => string = (message: string) => message.replace(regexPattern, '');
 
-export default function ChatPanel ({
+export const ChatPanel: React.FC<ChatPanelProps> = observer(({
   messages,
   value,
   sendMessage,
   handleChange,
-}: ChatPanelProps) {
-  
-  const {handleMute, disableChat, muteControl, muteChat} = useChatControl();
-
+  muteControl,
+  muteChat,
+  handleMute,
+  canChat,
+  showRoomName,
+}) => {
   const ref = useRef(null);
 
   const scrollDown = (current: any) => {
@@ -37,44 +42,55 @@ export default function ChatPanel ({
 
   useEffect(() => {
     scrollDown(ref.current);
-  }, [messages]);
+  }, [messages.length]);
 
-  const roomState = useRoomState();
+  const showText = useMemo(() => {
+    if (canChat) return false
+    return muteChat
+  }, [canChat, muteChat])
 
   return (
     <>
       <div className="chat-messages-container">
         <div className="chat-messages" ref={ref}>
-          {messages.map((item: ChatMessage, key: number) => (
-            <Message key={key} nickname={item.account} content={item.text} link={item.link} sender={item.id === roomState.me.uid} />
-          ))}
+          {
+            showRoomName ? 
+            messages.map((item: ChatMessage, key: number) => (
+              <RoomMessage key={key} roomName={item.fromRoomName} role={item.role} nickname={item.account} content={item.text} link={item.link} sender={item.sender} />
+            )) :
+            messages.map((item: ChatMessage, key: number) => (
+              <Message key={key} nickname={item.account} content={item.text} role={item.role} link={item.link} sender={item.sender} />
+            ))
+          }
         </div>   
       </div>
       <div className="message-panel">
         {muteControl ?
           <div className={`icon ${muteChat ? 'icon-chat-off' : 'icon-chat-on' }`}
-            onClick={() => {
-              handleMute(muteChat ? 'unmute' : 'mute')
-            }}></div> : null}
+            onClick={handleMute}></div> : null}
         <Input
-          disabled={disableChat}
-          value={value}
-          placeholder={disableChat ? t("chat.banned") : t("chat.placeholder")}
+          disabled={canChat ? false : muteChat}
+          value={!showText ? value : ''}
+          placeholder={showText ? t("chat.banned") : t("chat.placeholder")}
           disableUnderline
           className={"message-input"}
           onKeyPress={async (evt: any) => {
             if (evt.key === 'Enter') {
-              const val = truncateBlank(value)
-              val.length > 0 && await sendMessage(val);
+              if (canChat || !muteChat) {
+                const val = truncateBlank(value)
+                val.length > 0 && await sendMessage(val);
+              }
             }
           }}
           onChange={handleChange}/>
-        <Button className={'chat-panel-btn'} name={t("chat.send")}
+        <CustomButton className={'chat-panel-btn'} name={t("chat.send")}
           onClick={async (evt: any) => {
-            const val = truncateBlank(value)
-            val.length > 0 && await sendMessage(val);
+            if (canChat || !muteChat) {
+              const val = truncateBlank(value)
+              val.length > 0 && await sendMessage(val);
+            }
           }} />
       </div>
     </>
   )
-}
+})

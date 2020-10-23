@@ -3,6 +3,30 @@
   justify-content: space-between;
   min-width: 46px;
   align-items: center;
+  -webkit-app-region: no-drag !important;
+  user-select: inherit !important;
+}
+
+@-webkit-keyframes rotate{
+  0%{
+    -webkit-transform:rotate(0deg);
+    transform:rotate(0deg);
+  }
+  100%{
+    -webkit-transform:rotate(360deg);
+    transform:rotate(360deg);
+  }
+}
+
+@keyframes rotate{
+  0%{
+    -webkit-transform:rotate(0deg);
+    transform:rotate(0deg);
+  }
+  100%{
+    -webkit-transform:rotate(360deg);
+    transform:rotate(360deg);
+  }
 }
 
 .network-bad {
@@ -178,7 +202,9 @@
 }
 
 .icon-setting,
-.icon-exit {
+.icon-exit,
+.icon-upload,
+.icon-loading {
   display: flex;
   max-width: 28px;
   max-height: 28px;
@@ -194,6 +220,28 @@
   background-size: contain;
   content: ' ';
   background-image: url('./assets/icon-setting@2x.png');
+}
+
+.icon-upload::after {
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  background-image: url('./assets/icon-upload-log@2x.png');
+}
+
+.icon-loading::after {
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  animation: rotate 1.3s infinite linear;
+  -webkit-animation: rotate 1.3s infinite linear;
+  background-image: url('./assets/icon-loading.png');
 }
 
 .icon-exit::after {
@@ -273,6 +321,16 @@
   background-image: url('./assets/icon-max@2x.png');
 }
 
+.icon-delete::after {
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  background-image: url('./assets/icon-delete@2x.png');
+}
+
 .icon-close::after {
   width: 100%;
   height: 100%;
@@ -305,229 +363,11 @@
   cursor: pointer;
 }
 
-.media-board {
-  .selector::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    content: ' ';
-    background-image: url('./assets/Rectangle-6@2x.png');
-  }
-
-  .pencil::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    content: ' ';
-    background-image: url('./assets/Rectangle-6-Copy@2x.png');
-  }
-
-  .rectangle::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    content: ' ';
-    background-image: url('./assets/tool-square@2x.png');
-  }
-
-  .ellipse::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    content: ' ';
-    background-image: url('./assets/tool-circle@2x.png');
-  }
-
-  .text::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    content: ' ';
-    background-image: url('./assets/Rectangle-6-Copy-6@2x.png');
-  }
-
-  .eraser::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    content: ' ';
-    background-image: url('./assets/Rectangle-6-Copy-7@2x.png');
-  }
-
-  .color_picker::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    content: ' ';
-    background-image: url('./assets/Rectangle-6-Copy-8@2x.png');
-  }
-
-  .folder::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    content: ' ';
-    background-image: url('./assets/whiteboard_file.png');
-  }
-
-  .add::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    content: ' ';
-    background-image: url('./assets/Rectangle-6-Copy-9@2x.png');
-  }
-
-  .upload::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    content: ' ';
-    background-image: url('./assets/icon-upload-file@2x.png');
-  }
-
-  .hand_tool::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    content: ' ';
-    background-size: 20px;
-    background-image: url('./assets/icon-move.png');
-  }
-
-  .lock_board::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    content: ' ';
-    background-size: 20px;
-    background-image: url('./assets/icon-lock-board.png');
-  }
-
-  // .folder::after {
-  //   width: 100%;
-  //   height: 100%;
-  //   background-position: center;
-  //   background-repeat: no-repeat;
-  //   background-size: contain;
-  //   content: ' ';
-  //   background-image: url('./assets/icon-folder@2x.png');
-  // }
-}
-
-.media-board {
-  .first_page::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    content: ' ';
-    background-image: url('./assets/icon-first@2x.png');
-  }
-  .prev_page::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    content: ' ';
-    background-image: url('./assets/icon-prev@2x.png');
-  }
-  .next_page::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    content: ' ';
-    background-image: url('./assets/icon-next@2x.png');
-  }
-  .last_page::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    content: ' ';
-    background-image: url('./assets/icon-end@2x.png');
-  }
-  .recording::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    content: ' ';
-    background-image: url('./assets/icon-record@2x.png');
-  }
-  .stop_recording::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    content: ' ';
-    background-image: url('./assets/icon-stop@2x.png');
-  }
-  .screen_sharing::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    content: ' ';
-    background-image: url('./assets/icon-share@2x.png');
-  }
-  .hands_up::after {
-    width: 100%;
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    content: ' ';
-    background-image: url('./assets/icon-hand@2x.png');
-  }
-  .hands_up_end::after {
-    width: 100%;
-    height: 100%;
-    display: block;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    content: ' ';
-    background-image: url('./assets/icon-hand-disable.png');
-  }
-}
-
 .icon-expand {
   cursor: pointer;
   display: flex;
   width: 30px;
   height: 30px;
-
   &::after {
     width: 100%;
     height: 100%;
@@ -855,49 +695,6 @@
       background-size: contain;
       content: ' ';
       background-image: url('./assets/icon-right@2x.png');
-    }
-  }
-}
-
-.media-board {
-  .control-btn {
-    cursor: pointer;
-    background: #44A2FC;
-    font-size: 14px;
-    color: #ffffff;
-    border-radius: 4px;
-    align-items: center;
-    display: flex;
-    padding: 2px;
-    &:hover {
-      background: #7CBFFF;
-    }
-    .active {
-      background: #2780D5;
-    }
-    .btn-icon {
-      width: 28px;
-      height: 28px;
-    }
-    // .icon-btn.control-quit_screen_sharing:hover {
-    //   &::after {
-    //     content: ' ';
-    //     background-color: rgba($color: #000000, $alpha: 0.07);
-    //     border-radius: 16px;
-    //   }
-    // }
-    .quit_screen_sharing::after {
-      width: 100%;
-      height: 100%;
-      display: block;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-size: contain;
-      content: ' ';
-      background-image: url('./assets/icon-share-white.png');
-    }
-    .control-text {
-      margin-right: 4px;
     }
   }
 }

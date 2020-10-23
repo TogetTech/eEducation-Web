@@ -1,7 +1,7 @@
-import React, { Children } from 'react';
+import React from 'react';
 import './index.scss';
 import { Link } from 'react-router-dom';
-import { useRoomState } from '../../containers/root-container';
+import { t } from '@/i18n';
 interface MessageProps {
   nickname: string
   content: string
@@ -10,7 +10,15 @@ interface MessageProps {
   children?: any
   ref?: any
   className?: string
+  role?: number
 }
+
+const roles = [
+  'unknown',
+  'teacher_role',
+  'student_role',
+  'assistant_role',
+]
 
 export const Message: React.FC<MessageProps> = ({
   nickname,
@@ -19,27 +27,53 @@ export const Message: React.FC<MessageProps> = ({
   sender,
   children,
   ref,
+  role,
   className
 }) => {
-
-  const roomState = useRoomState();
-
-  const text = React.useMemo(() => {
-    if (link && roomState.course.rid) {
-      return (
-        <Link to={`${link}?rid=${roomState.course.rid}&senderId=${roomState.me.uid}`} target="_blank">course recording</Link>
-      )
-    }
-    return link ? link : content;
-  }, [content, link, roomState.course.rid])
 
   return (
   <div ref={ref} className={`message ${sender ? 'sent': 'receive'} ${className ? className : ''}`}>
     <div className="nickname">
-      {nickname}
+    {!sender && role? t(roles[role as number]) : ''}{nickname}
     </div>
     <div className="content">
-      {text}
+      {link ?
+        <Link to={`/replay/record/${link}`} target="_blank">{t('course_recording')}</Link>
+        : content
+      }
+    </div>
+    {children ? children : null}
+  </div>
+  )
+}
+
+interface RoomMessageProps extends MessageProps {
+  roomName?: string
+}
+
+export const RoomMessage: React.FC<RoomMessageProps> = ({
+  nickname,
+  roomName,
+  content,
+  link,
+  sender,
+  children,
+  ref,
+  role,
+  className
+}) => {
+
+  return (
+  <div ref={ref} className={`message ${sender ? 'sent': 'receive'} ${className ? className : ''}`}>
+    {!sender && roomName && (<div className="roomname">{t('from_room')}{roomName}</div>)}
+    <div className="nickname">
+      {!sender && role ? t(roles[role as number]) : ''}{nickname}
+    </div>
+    <div className="content">
+      {link ?
+        <Link to={`/replay/record/${link}`} target="_blank">{t('course_recording')}</Link>
+        : content
+      }
     </div>
     {children ? children : null}
   </div>

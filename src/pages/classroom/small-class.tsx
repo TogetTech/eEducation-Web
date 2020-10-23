@@ -1,16 +1,20 @@
 import React from 'react';
-import VideoMarquee from '../../components/video-marquee';
-import MediaBoard from '../../components/mediaboard';
-import Roomboard from '../../components/roomboard';
+import {VideoMarquee} from '@/components/video-marquee';
+import {NetlessBoard} from '@/components/netless-board';
+import { ScreenSharing } from '@/components/screen-sharing';
+import { RoomBoard } from '@/components/room-board';
 import './small-class.scss';
 
-export default function SmallClass() {
+export const SmallClass = () => {
   return (
     <div className="room-container">
       <VideoMarquee />
       <div className="container">
-        <MediaBoard />
-        <Roomboard currentActive={'media'} />
+        <div className="biz-container">
+          <NetlessBoard />
+          <ScreenSharing />
+        </div>
+        <RoomBoard />
       </div>
     </div>
   )

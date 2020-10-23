@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import Icon from '../icon';
+import {CustomIcon} from '@/components/icon';
 import { makeStyles } from '@material-ui/core/styles';
 import Slider from '@material-ui/core/Slider';
 
@@ -18,27 +18,30 @@ const useStyles = makeStyles({
 });
 
 interface SliderProps {
+  totalVolume?: number
   volume: number
   onChange: (volume: number) => void
+  hideIcon?: boolean
+  siderClassName?: string
 }
 
 export default function ContinuousSlider(props: SliderProps) {
   const classes = useStyles(props);
-  const [value, setValue] = React.useState<number>(props.volume);
+  // const [value, setValue] = React.useState<number>(props.volume);
 
   const handleChange = (event: any, newValue: any) => {
-    setValue(newValue);
+    props.onChange(newValue)
   };
 
-  useEffect(() => {
-    props.onChange(value);
-  }, [value]);
+  // useEffect(() => {
+  //   props.onChange(value);
+  // }, [value]);
 
   return (
     <div className="volume-container">
       <div className={classes.root}>
-        <Icon className="icon-speaker" disable/>
-        <Slider className={classes.sliderClass} value={value} onChange={handleChange} aria-labelledby="continuous-slider" />
+        {!props.hideIcon ? <CustomIcon className="icon-speaker" disable/> : null}
+        <Slider className={props.siderClassName ? props.siderClassName : classes.sliderClass} value={props.volume} onChange={handleChange} aria-labelledby="continuous-slider" />
       </div>
     </div>
   );
