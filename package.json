@@ -158,6 +158,7 @@
     "moment": "^2.24.0",
     "node-sass": "^4.12.0",
     "progress-bar-webpack-plugin": "^2.1.0",
+    "promise-polyfill": "^8.2.0",
     "react": "^16.13.1",
     "react-app-rewired": "^2.1.4",
     "react-color": "2.17.3",

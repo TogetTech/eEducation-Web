@@ -50,7 +50,6 @@ export class MediaStore {
   constructor(appStore: any) {
     this.appStore = appStore
     this.mediaService.on('rtcStats', (evt: any) => {
-      console.log("rtcStats", JSON.stringify(evt))
       this.appStore.updateCpuRate(evt.cpuTotalUsage)
     })
     this.mediaService.on('audio-device-changed', debounce(async (info: any) => {

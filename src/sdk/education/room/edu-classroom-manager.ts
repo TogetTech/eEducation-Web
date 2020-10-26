@@ -27,7 +27,7 @@ export class EduClassroomManager extends EventEmitter {
   private eduManager: EduManager
   private _apiService?: AgoraEduApi
   private _userService?: EduUserService
-  private _bus?: EventEmitter
+  private _rtmObserver?: EventEmitter
   // private _mediaService?: MediaService
 
   constructor(payload: EduClassroomInitParams) {
@@ -38,7 +38,7 @@ export class EduClassroomManager extends EventEmitter {
     this._roomName = payload.roomName
     this._apiService = payload.apiService
     this._userService = undefined
-    this._bus = undefined
+    this._rtmObserver = undefined
     // this._mediaService = new MediaService(payload.rtcProvider)
   }
 
@@ -105,10 +105,10 @@ export class EduClassroomManager extends EventEmitter {
     let joinRoomData = await this.prepareRoomJoin(roomParams)
     EduLogger.debug(`join classroom [prepareRoomJoin] ${this.roomUuid} success`)
     if (this.rtmWrapper) {
-      const [channel, bus] = this.rtmWrapper.createObserverChannel({
+      const [channel, observer] = this.rtmWrapper.createObserverChannel({
         channelName: this.roomUuid,
       })
-      bus.on('ChannelMessage', (evt: any) => {
+      observer.on('ChannelMessage', (evt: any) => {
         console.log("[rtm] ChannelMessage channelName", evt.channelName)
         if (evt.channelName !== this.roomUuid) {
           return
@@ -150,13 +150,13 @@ export class EduClassroomManager extends EventEmitter {
       })
 
       await this.rtmWrapper.join(
-        channel, bus,
+        channel, observer,
         {
           channelName: this.roomUuid,
         }
       )
 
-      this._bus = bus
+      this._rtmObserver = observer
       this.data.setLocalData(joinRoomData)
       await this.data.syncFullSequence()
       this.data.BatchUpdateData()
@@ -166,9 +166,9 @@ export class EduClassroomManager extends EventEmitter {
   }
 
   async leave() {
-    if (this._bus) {
-      this._bus.removeAllListeners()
-      this._bus = undefined
+    if (this._rtmObserver) {
+      this._rtmObserver.removeAllListeners()
+      this._rtmObserver = undefined
     }
     EduLogger.debug(`leave classroom ${this.roomUuid}`)
     if (this.eduManager._rtmWrapper) {

@@ -599,10 +599,10 @@ export class EduClassroomDataController {
           this._streamList[targetIdx] = newItem;
           if (this.isLocalStreams(targetStream.stream)) {
             if (this.isScreenShare(targetStream.stream.streamUuid)) {
-              this.upsertLocalStream('screen', newItem)
+              this.upsertLocalStream('screen', newItem, seqId)
             }
             if (this.isMainStream(targetStream.stream.streamUuid)) {
-              this.upsertLocalStream('main', newItem)
+              this.upsertLocalStream('main', newItem, seqId)
             }
           } else {
             this.fire('remote-stream-updated', {stream: newItem.stream})
@@ -615,10 +615,10 @@ export class EduClassroomDataController {
         this._streamList.push(newItem)
         if (this.isLocalStreams(newItem.stream)) {
           if (this.isScreenShare(newItem.stream.streamUuid)) {
-            this.upsertLocalStream('screen', newItem)
+            this.upsertLocalStream('screen', newItem, seqId)
           }
           if (this.isMainStream(newItem.stream.streamUuid)) {
-            this.upsertLocalStream('main', newItem)
+            this.upsertLocalStream('main', newItem, seqId)
           }
         } else {
           this.fire('remote-stream-added', {stream: newItem.stream})
@@ -739,9 +739,17 @@ export class EduClassroomDataController {
           })
           this.removeTargetStream(mainStream)
           EduLogger.info(`${Date.now()} local-stream-removed local-stream`, mainStream, this._userList)
+          // TODO: removed
+          // this.fire('local-stream-updated', {
+          //   action: 'removed',
+          //   stream: mainStream.stream,
+          //   type: 'main',
+          //   seqId
+          // })
           this.fire('local-stream-removed', {
             stream: mainStream.stream,
-            type: 'main'
+            type: 'main',
+            seqId
           })
         }
         break;
@@ -765,6 +773,13 @@ export class EduClassroomDataController {
           })
           this.removeTargetStream(screenStream)
           EduLogger.info(`${Date.now()} local-stream-removed screen`, screenStream, this._userList)
+          // TODO: removed
+          // this.fire('local-stream-updated', {
+          //   action: 'removed',
+          //   stream: screenStream.stream,
+          //   type: 'screen',
+          //   seqId
+          // })
           this.fire('local-stream-removed', {
             stream: screenStream.stream,
             type: 'screen'
@@ -1049,8 +1064,8 @@ export class EduClassroomDataController {
     }
   }
 
-  upsertLocalStream(type: string, data: EduStreamData) {
-    EduLogger.info(`type: ${type}, data: ${JSON.stringify(data)}`)
+  upsertLocalStream(type: string, data: EduStreamData, seqId?: any) {
+    EduLogger.info(`[EDU-STATE] upsertLocalStream: [${seqId}] type: ${type}, data: ${JSON.stringify(data)}`)
     if (type === 'main') {
       const mainStream = this._cachedLocalStreams['main'] as EduStreamData
       EduLogger.info("mainStream  ", mainStream)
@@ -1059,7 +1074,8 @@ export class EduClassroomDataController {
         this.upsertTargetStream(mainStream)
         this.fire('local-stream-updated', {
           data: this._cachedLocalStreams['main'],
-          type: 'main'
+          type: 'main',
+          seqId
         })
       } else {
         const streamData = new EduStreamData({
@@ -1213,9 +1229,7 @@ export class EduClassroomDataController {
   }
 
   fire(evtName: string, ...args: any[]) {
-    // EduLogger.info("fire>>>> ", evtName, ...args)
     this.roomManager.emit(evtName, ...args)
-    // this.fire(args[0], ...args)
   }
 
   setRoomInfo(state: any) {
