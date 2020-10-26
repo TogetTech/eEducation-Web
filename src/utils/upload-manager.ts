@@ -1,8 +1,7 @@
 import { MultipartUploadResult } from 'ali-oss';
 import uuidv4 from 'uuid/v4';
-import {Room, PptConverter, PptKind, Ppt} from 'white-web-sdk';
+import { Room, PPT, PPTKind, ApplianceNames } from 'white-web-sdk';
 import MD5 from 'js-md5';
-import { whiteboard } from '../stores/whiteboard';
 import { resolveFileInfo } from './helper';
 
 export type imageSize = {
@@ -56,8 +55,8 @@ export class UploadManager {
   
   public async convertFile(
     rawFile: File,
-    pptConverter: PptConverter,
-    kind: PptKind,
+    pptConverter: any,
+    kind: PPTKind,
     folder: string,
     uuid: string,
     onProgress?: PPTProgressListener,
@@ -65,12 +64,12 @@ export class UploadManager {
     const {fileType} = resolveFileInfo(rawFile);
     const path = `/${folder}/${uuid}${fileType}`;
     const pptURL = await this.addFile(path, rawFile, onProgress);
-    let res: Ppt;
-    if (kind === PptKind.Static) {
+    let res: PPT;
+    if (kind === PPTKind.Static) {
         res = await pptConverter.convert({
           url: pptURL,
           kind: kind,
-          onProgressUpdated: progress => {
+          onProgressUpdated: (progress: number) => {
             if (onProgress) {
               onProgress(PPTProgressPhase.Converting, progress);
             }
@@ -85,17 +84,11 @@ export class UploadManager {
         const scenePath = MD5(`/${uuid}/${documentFile.id}`);
         this.room.putScenes(`/${scenePath}`, res.scenes);
         this.room.setScenePath(`/${scenePath}/${res.scenes[0].name}`);
-        console.log("current room state", this.room.state);
-        whiteboard.updateRoomState({
-          name: rawFile.name,
-          type: fileType
-        });
     } else {
-      console.log("convert no static ppt");
         res = await pptConverter.convert({
           url: pptURL,
           kind: kind,
-          onProgressUpdated: progress => {
+          onProgressUpdated: (progress: number) => {
             if (onProgress) {
               onProgress(PPTProgressPhase.Converting, progress);
             }
@@ -110,10 +103,6 @@ export class UploadManager {
         const scenePath = MD5(`/${uuid}/${documentFile.id}`);
         this.room.putScenes(`/${scenePath}`, res.scenes);
         this.room.setScenePath(`/${scenePath}/${res.scenes[0].name}`);
-        whiteboard.updateRoomState({
-          name: rawFile.name,
-          type: fileType
-        });
     }
     if (onProgress) {
         onProgress(PPTProgressPhase.Converting, 1);
@@ -156,10 +145,10 @@ export class UploadManager {
       }
     }
   }
-  public async uploadImageFiles(imageFiles: File[], x: number, y: number, onProgress?: PPTProgressListener): Promise<void> {
+  public async uploadImageFiles(folder: string, imageFiles: File[], x: number, y: number, onProgress?: PPTProgressListener): Promise<void> {
     const newAcceptedFilePromises = imageFiles.map(file => this.fetchWhiteImageFileWith(file, x, y));
     const newAcceptedFiles = await Promise.all(newAcceptedFilePromises);
-    await this.uploadImageFilesArray(newAcceptedFiles, onProgress);
+    await this.uploadImageFilesArray(folder, newAcceptedFiles, onProgress);
   }
 
   private fetchWhiteImageFileWith(file: File, x: number, y: number): Promise<NetlessImageFile> {
@@ -183,7 +172,7 @@ export class UploadManager {
       };
     });
   }
-  private async uploadImageFilesArray(imageFiles: NetlessImageFile[], onProgress?: PPTProgressListener): Promise<void> {
+  private async uploadImageFilesArray(folder: string, imageFiles: NetlessImageFile[], onProgress?: PPTProgressListener): Promise<void> {
     if (imageFiles.length > 0) {
 
       const tasks: { uuid: string, imageFile: NetlessImageFile }[] = imageFiles.map(imageFile => {
@@ -201,17 +190,22 @@ export class UploadManager {
           centerY: y,
           width: imageFile.width,
           height: imageFile.height,
+          locked: false,
         });
       }
-      await Promise.all(tasks.map(task => this.handleUploadTask(task, onProgress)));
-      this.room.setMemberState({
-        currentApplianceName: "selector",
-      });
+      await Promise.all(tasks.map(task => this.handleUploadTask(folder, task, onProgress)));
+      if (this.room.isWritable) {
+        this.room.setMemberState({
+          currentApplianceName: ApplianceNames.selector,
+        });
+      }
     }
   }
-  private async handleUploadTask(task: TaskType, onProgress?: PPTProgressListener): Promise<void> {
-    const fileUrl: string = await this.addFile(`${task.uuid}${task.imageFile.file.name}`, task.imageFile.file, onProgress);
-    this.room.completeImageUpload(task.uuid, fileUrl);
+  private async handleUploadTask(folder: string, task: TaskType, onProgress?: PPTProgressListener): Promise<void> {
+    const fileUrl: string = await this.addFile(`/${folder}/${task.uuid}${task.imageFile.file.name}`, task.imageFile.file, onProgress);
+    if (this.room.isWritable) {
+      this.room.completeImageUpload(task.uuid, fileUrl);
+    }
   }
 
   private getFile = (name: string): string => {

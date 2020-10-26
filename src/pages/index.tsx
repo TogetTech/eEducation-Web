@@ -1,35 +1,36 @@
 import React from 'react';
-import { Route } from 'react-router-dom';
-import CustomBrowserRouter from '../containers/custom-browser-router';
+import { Route, HashRouter } from 'react-router-dom';
 import ThemeContainer from '../containers/theme-container';
 import Home from './home';
-import DeviceTest from './device-test';
+import {DeviceDetectPage} from './device-detect/index';
 import { RoomPage } from './classroom';
 import Loading from '../components/loading';
-import Toast from '../components/toast';
+import {Toast} from '../components/toast';
 import '../icons.scss';
-import { PlatformContainer } from '../containers/platform-container';
-import ReplayContainer from './replay';
-import { RootProvider } from '../containers/root-container';
-import SmallClass from './classroom/small-class';
-import OneToOne from './classroom/one-to-one';
-import BigClass from './classroom/big-class';
-import { PageNotFound } from './404';
-// import ErrorPage from './error-page/error-page';
+import {SmallClass} from './classroom/small-class';
+import {BreakoutClassroom} from './breakout-class/breakout-class';
+import {OneToOne} from './classroom/one-to-one';
+import {BigClass} from './classroom/big-class';
+import RoomDialog from '../components/dialog';
+import { ReplayPage } from './replay';
+import {Provider} from 'mobx-react';
+import { AppStore } from '@/stores/app';
+import {AssistantCoursesPage} from './breakout-class/assistant-courses-page';
+
+const defaultStore = new AppStore()
+//@ts-ignore
+window.store = defaultStore
 
 export default function () {
   return (
-    <ThemeContainer>
-      <CustomBrowserRouter>
-        <PlatformContainer>
-        <RootProvider>
+    <Provider store={defaultStore}>
+      <ThemeContainer>
+        <HashRouter>
           <Loading />
           <Toast />
-          <Route exact path="/">
-            <Home />
-          </Route>
-          <Route exact path="/device_test">
-            <DeviceTest />
+          <RoomDialog />
+          <Route path="/setting">
+            <DeviceDetectPage />
           </Route>
           <Route exact path="/classroom/one-to-one">
             <RoomPage >
@@ -46,18 +47,23 @@ export default function () {
               <BigClass />
             </RoomPage>
           </Route>
-          <Route exact path="/replay/:uuid/:startTime/:endTime/:mediaUrl">
-            <ReplayContainer />
+          <Route exact path="/breakout-class/assistant/courses/:course_name">
+            <BreakoutClassroom />
           </Route>
-          {/* <Route path="/error">
-            <ErrorPage />
-          </Route> */}
-          <Route exact path="/404">
-            <PageNotFound />
+          <Route exact path="/breakout-class/assistant/courses">
+            <AssistantCoursesPage />
           </Route>
-        </RootProvider>
-        </PlatformContainer>
-      </CustomBrowserRouter>
-    </ThemeContainer>
+          <Route exact path="/classroom/breakout-class">
+            <BreakoutClassroom />
+          </Route>
+          <Route path="/replay/record/:roomUuid">
+            <ReplayPage />
+          </Route>
+          <Route exact path="/">
+            <Home />
+          </Route>
+        </HashRouter>
+      </ThemeContainer>
+    </Provider>
   )
 }

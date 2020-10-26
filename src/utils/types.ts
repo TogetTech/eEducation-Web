@@ -4,6 +4,10 @@ export interface ChatMessage {
   link?: string
   ts: number
   id: string
+  sender?: boolean
+  role: number
+  fromRoomUuid?: string
+  fromRoomName?: string
 }
 export enum ClassState {
   CLOSED = 0,

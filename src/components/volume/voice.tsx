@@ -1,5 +1,5 @@
 import React from 'react';
-import Icon from '../icon';
+import {CustomIcon} from '@/components/icon';
 import {makeStyles} from '@material-ui/core/styles';
 
 import './index.scss';
@@ -24,9 +24,10 @@ const useStyles = makeStyles({
   }
 });
 
-const totalVolumes = 52;
-
 function CustomSlider(props: any) {
+
+  const totalVolumes = props.totalVolumes
+
   return (
     <div className="voice-sliders">
       {[...Array(totalVolumes)].map((e: any, key: number) => <span className={props.volume > key ? "active" : ""} key={key}></span>)}
@@ -34,14 +35,18 @@ function CustomSlider(props: any) {
   )
 }
 
+const defaultTotalVolumes = 52;
+
 function VoiceSlider(props: any) {
   const classes = useStyles(props);
   const volume = props.volume;
 
+  const totalVolumes = props.totalVolumes ? props.totalVolumes : defaultTotalVolumes;
+
   return (
     <div className={classes.root}>
-      <Icon className="icon-voice" disable />
-      <CustomSlider volume={volume * totalVolumes} className={classes.sliderClass} />
+      {!props.hideIcon ? <CustomIcon className="icon-voice" disable /> : null}
+      <CustomSlider totalVolumes={totalVolumes} volume={volume * totalVolumes} className={classes.sliderClass} />
     </div>
   );
 }
@@ -49,7 +54,11 @@ function VoiceSlider(props: any) {
 export default function (props: any) {
   return (
     <div className="volume-container">
-      <VoiceSlider volume={props.volume}/>
+      <VoiceSlider
+        totalVolumes={props.totalVolumes}
+        hideIcon={props.hideIcon}
+        volume={props.volume}
+      />
     </div>
   )
 }

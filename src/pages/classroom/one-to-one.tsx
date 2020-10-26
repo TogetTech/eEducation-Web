@@ -1,75 +1,85 @@
-import React from 'react';
-import VideoPlayer from '../../components/video-player';
-import MediaBoard from '../../components/mediaboard';
-import ChatBoard from '../../components/chat/board';
-import useStream from '../../hooks/use-streams';
-import useChatText from '../../hooks/use-chat-text';
+import React, {useState} from 'react';
+import {VideoPlayer} from '@/components/video-player';
+import {ChatBoard} from '@/components/chat/board';
+import { NetlessBoard } from '@/components/netless-board';
+import { ScreenSharing } from '@/components/screen-sharing';
+import { useRoomStore } from '@/hooks';
+import { observer } from 'mobx-react';
 
-export default function OneToOne() {
+export const OneToOne = observer(() => {
+
+  const roomStore = useRoomStore()
+
   const {
-    value,
-    messages,
-    sendMessage,
-    handleChange,    
-  } = useChatText();
+    teacherStream,
+    studentStreams,
+    roomInfo,
+    mutedChat,
+    muteControl,
+  } = roomStore
 
-  const {teacher, students, onPlayerClick} = useStream();
+  const handleMute = async () => {
+    if (mutedChat) {
+      await roomStore.unmuteChat()
+    } else {
+      await roomStore.muteChat()
+    }
+  }
+
+  const [chat, setChat] = useState<string>('')
+
+  const sendMessage = async () => {
+    await roomStore.sendMessage(chat)
+    setChat('')
+  }
 
   return (
     <div className="room-container">
-      <MediaBoard />
+      <div className="biz-container">
+        <NetlessBoard />
+        <ScreenSharing />
+      </div>
       <div className="live-board">
         <div className="video-board">
-          {teacher ?
             <VideoPlayer
+              showClose={false}
               role="teacher"
-              streamID={teacher.streamID}
-              stream={teacher.stream}
-              domId={`${teacher.streamID}`}
-              id={`${teacher.streamID}`}
-              account={teacher.account}
-              handleClick={onPlayerClick}
-              video={teacher.video}
-              audio={teacher.audio}
-              local={teacher.local}
-              /> :
-            <VideoPlayer
-              role="teacher"
-              account={'teacher'}
-              domId={'teacher'}
-              streamID={0}
-              video
-              audio
-              />}
-          {students[0] ?
-            <VideoPlayer
-              role="student"
-              streamID={students[0].streamID}
-              stream={students[0].stream}
-              domId={`${students[0].streamID}`}
-              id={`${students[0].streamID}`}
-              handleClick={onPlayerClick}
-              account={students[0].account}
-              video={students[0].video}
-              audio={students[0].audio}
-              local={students[0].local}
-            /> :
-            <VideoPlayer
-              role="student"
-              account={"student"}
-              domId={"student"}
-              streamID={0}
-              video={false}
-              audio={false}
-            />}
+              {...teacherStream}
+            />
+            {studentStreams[0]?
+              <VideoPlayer
+                showClose={false}
+                role="student"
+                {...studentStreams[0]}
+              /> : 
+              <VideoPlayer
+                userUuid={''}
+                streamUuid={''}
+                showClose={false}
+                account={'student'}
+                renderer={{}}
+                local={false}
+                role="student"
+                video={false}
+                audio={false}
+                showControls={false}
+              />
+            }
         </div>
         <ChatBoard
-          messages={messages}
-          value={value}
+          canChat={roomStore.roomInfo.userRole === 'teacher'}
+          messages={roomStore.roomChatMessages}
+          value={chat}
           sendMessage={sendMessage}
-          handleChange={handleChange}
+          handleChange={(evt: any) => {
+            setChat(evt.target.value)
+          }}
+          messageCount={roomStore.unreadMessageCount}
+          muteControl={muteControl}
+          muteChat={mutedChat}
+          handleMute={handleMute}
         />
       </div>
     </div>
   )
-}
+})

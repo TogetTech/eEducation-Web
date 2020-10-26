@@ -47,80 +47,16 @@
     position: relative;
 
     .video-container {
-      // position: absolute;
+      position: absolute;
       margin-left: 10px;
-      // top: 10px;
-      // left: 67px;
+      top: 10px;
+      left: 67px;
       display: flex;
       z-index: 5;
     }
-  }
 
-  .chat-board {
-    position: relative;
-    .chat-roomname {
-      z-index: 1;
-      justify-content: center;
-      align-items: center;
-      display: flex;
-      border-bottom: 2px solid #DBE2E5;
-      box-sizing: border-box;
-      width:96px;
-      height:16px;
-      font-size:14px;
-      color:rgba(51,51,51,1);
-      line-height:16px;
-      max-width: 280px;
-      min-width: 280px;
-      max-height:47px;
-      min-height:47px;
-      background:rgba(255,255,255,1);
-    }
-
-    .menu {
-      display: flex;
-      justify-content: space-evenly;
-      border-bottom: 2px solid #eeeeee;
-      font-size: 14px;
-      line-height: 16px;
-      color: #666666;
-
-      .item {
-        position: relative;
-        padding: 14px 16px;
-        cursor: pointer;
-        min-width: 85px;
-        text-align: center;
-      }
-
-      .active {
-        color: #44A2FC;
-        border-bottom: 2px solid #44A2FC;
-      }
-    }
-
-    .message-panel {
-      .icon {
-        width: 34px;
-        height: 34px;
-        margin-right: 5px;
-      }
-
-      .message-input {
-        flex: 1;
-        font-size: 14px;
-        line-height: 20px;
-        color: #333333;
-        padding-left: 10px;
-        max-height: 34px;
-        min-height: 34px;
-        background: #F2F4F5;
-        border-radius: 17px;
-        box-sizing: border-box;
-        .MuiInput-input {
-          padding-right: 66px;
-        }
-      }
+    .left-offset {
+      left: 67px;
     }
   }
 }
@@ -128,4 +64,41 @@
 .media-board {
   overflow: hidden;
   height: 100%;
+}
+
+.interactive {
+  display: flex;
+  justify-content: flex-end;
+  position: absolute;
+  z-index: 3;
+  &.student {
+    bottom: 10px;
+    right: 10px;
+  }
+  .items {
+    display: flex;
+    height: 42px;
+    width: 42px;
+    border-radius: 4px;
+    box-sizing: border-box;
+    &.hands_up::after {
+      width: 100%;
+      height: 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      content: ' ';
+      background-image: url('../../assets/icon-hand@2x.png');
+    }
+    &.hands_up_end::after {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      content: ' ';
+      background-image: url('../../assets/icon-hand-disable.png');
+    }
+  }
 }
