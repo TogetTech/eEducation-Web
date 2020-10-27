@@ -1,11 +1,14 @@
 {
+  "extends": "./edu-demo-tsconfig.json",
   "compilerOptions": {
     "target": "es6",
-    "module": "commonjs",
+    "experimentalDecorators": true,
+    "module": "esnext",
     "lib": [
       "dom",
       "dom.iterable",
-      "esnext"
+      "esnext",
+      "webworker"
     ],
     "noImplicitAny": true,
     "noImplicitThis": true,
@@ -16,7 +19,6 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -25,5 +27,8 @@
   },
   "include": [
     "src"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }
