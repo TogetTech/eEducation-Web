@@ -169,6 +169,12 @@ export class MessageSerializer {
 
     const onlineStreams = eduStreams.filter((it: EduStreamData) => it.state !== 0)
     const offlineStreams = eduStreams.filter((it: EduStreamData) => it.state === 0)
+
+    console.log("[EduUsersStreams] onlineUsers: ", onlineUsers)
+    console.log("[EduUsersStreams] offlineUsers: ", offlineUsers)
+
+    console.log("[EduUsersStreams] onlineStreams: ", onlineStreams)
+    console.log("[EduUsersStreams] offlineStreams: ", offlineStreams)
     
     return {
       onlineUsers: onlineUsers,

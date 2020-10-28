@@ -134,7 +134,6 @@ export class AgoraWebRtcWrapper extends EventEmitter implements IWebRTCWrapper {
     this.videoMuted = false
     this.audioMuted = false
     this.channelName = ''
-    // this.init()
   }
 
   get client(): IAgoraRTCClient {

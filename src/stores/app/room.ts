@@ -1,3 +1,5 @@
+import { Mutex } from './../../utils/mutex';
+import uuidv4 from 'uuid/v4';
 import { SimpleInterval } from './../mixin/simple-interval';
 import { EduBoardService } from './../../sdk/board/edu-board-service';
 import { EduRecordService } from './../../sdk/record/edu-record-service';
@@ -230,6 +232,8 @@ export class RoomStore extends SimpleInterval {
     this.cameraLabel = ''
     this.microphoneLabel = ''
     this.mediaService.reset()
+    this.resetCameraTrack()
+    this.resetMicrophoneTrack()
     this.resetScreenStream()
     this.streamList = []
     this.userList = []
@@ -245,7 +249,8 @@ export class RoomStore extends SimpleInterval {
     this.joined = false
     this._hasCamera = undefined
     this._hasMicrophone = undefined
-    this.joiningRTC = false
+    this.microphoneLock = false
+    this.cameraLock = false
     this.recordState = false
   }
 
@@ -359,37 +364,87 @@ export class RoomStore extends SimpleInterval {
   private _hasCamera?: boolean = undefined
   private _hasMicrophone?: boolean = undefined
 
+  public readonly mutex = new Mutex()
+
   public cameraLock: boolean = false
 
   lockCamera() {
     this.cameraLock = true
+    console.log('[demo] lockCamera ')
   }
 
   unLockCamera() {
     this.cameraLock = false
+    console.log('[demo] unlockCamera ')
   }
 
   @action
   async openCamera() {
-    
-    if (this.cameraLock) return console.warn('openCamera locking')
+    if (this._cameraRenderer) {
+      return console.warn('[demo] Camera already exists')
+    }
+    if (this.cameraLock) {
+      return console.warn('[demo] openCamera locking')
+    }
     this.lockCamera()
     try {
-      if (this._cameraRenderer) {
-        this.unLockCamera()
-        return console.warn('Camera already exists')
-      }
       const deviceId = this._cameraId
       await this.mediaService.openCamera({deviceId})
       this._cameraRenderer = this.mediaService.cameraRenderer
       this.cameraLabel = this.mediaService.getCameraLabel()
       this._cameraId = this.cameraId
+      console.log('[demo] action in openCamera >>> openCamera')
       this.unLockCamera()
     } catch (err) {
       this.unLockCamera()
+      console.log('[demo] action in openCamera >>> openCamera')
       console.warn(err)
       throw err
     }
+  }
+
+  @action
+  async muteLocalCamera() {
+    if (this.cameraLock) {
+      return console.warn('[demo] openCamera locking')
+    }
+    console.log('[demo] [local] muteLocalCamera')
+    if (this._cameraRenderer) {
+      await this.closeCamera()
+      this.unLockCamera()
+    }
+    await this.roomManager?.userService.updateMainStreamState({'videoState': false})
+  }
+
+  @action 
+  async unmuteLocalCamera() {
+    console.log('[demo] [local] unmuteLocalCamera')
+    if (this.cameraLock) {
+      return console.warn('[demo] [mic lock] unmuteLocalCamera')
+    }
+    await this.openCamera()
+    await this.roomManager?.userService.updateMainStreamState({'videoState': true})
+  }
+
+  @action
+  async muteLocalMicrophone() {
+    console.log('[demo] [local] muteLocalMicrophone')
+    if (this.microphoneLock) {
+      return console.warn('[demo] [mic lock] muteLocalMicrophone')
+    }
+    await this.closeMicrophone()
+    this.unLockMicrophone()
+    await this.roomManager?.userService.updateMainStreamState({'audioState': false})
+  }
+
+  @action 
+  async unmuteLocalMicrophone() {
+    console.log('[demo] [local] unmuteLocalMicrophone')
+    if (this.microphoneLock) {
+      return console.warn('[demo] [mic lock] unmuteLocalMicrophone')
+    }
+    await this.openMicrophone()
+    await this.roomManager?.userService.updateMainStreamState({'audioState': true})
   }
 
   @action
@@ -409,37 +464,35 @@ export class RoomStore extends SimpleInterval {
 
   lockMicrophone() {
     this.microphoneLock = true
+    console.log('[demo] lockMicrophone ')
   }
 
   unLockMicrophone() {
     this.microphoneLock = false
+    console.log('[demo] unLockMicrophone ')
   }
+
   @action
   async openMicrophone() {
-    if (this.microphoneLock) return console.warn('openMicrophone locking')
+    if (this._microphoneTrack) {
+      return console.warn('[demo] Microphone already exists')
+    }
+
+    if (this.microphoneLock) {
+      return console.warn('[demo] openMicrophone locking 1')
+    }
     this.lockMicrophone()
     try {
-      if (this._microphoneTrack) {
-        this.unLockMicrophone()
-        return console.warn('Microphone already exists')
-      }
       const deviceId = this._microphoneId
       await this.mediaService.openMicrophone({deviceId})
       this._microphoneTrack = this.mediaService.microphoneTrack
       this.microphoneLabel = this.mediaService.getMicrophoneLabel()
-      this.mediaService.on('volume-indication', ({speakers, speakerNumber, totalVolume}: any) => {
-        runInAction(() => {
-          if (this.isElectron) {
-            this.totalVolume = Number((totalVolume / 255).toFixed(3))
-          } else {
-            this.totalVolume = totalVolume;
-          }
-        })
-      })
+      console.log('[demo] action in openMicrophone >>> openMicrophone')
       this._microphoneId = this.microphoneId
       this.unLockMicrophone()
     } catch (err) {
       this.unLockMicrophone()
+      console.log('[demo] action in openMicrophone >>> openMicrophone')
       console.warn(err)
       throw err
     }
@@ -447,12 +500,8 @@ export class RoomStore extends SimpleInterval {
 
   @action
   async closeMicrophone() {
+    if (this.microphoneLock) return console.warn('[demo] closeMicrophone microphone is locking')
     await this.mediaService.closeMicrophone()
-    this.mediaService.off('volume-indication', ({speakers, speakerNumber, totalVolume}: any) => {
-      runInAction(() => {
-        this.totalVolume = 0;
-      })
-    })
     this.resetMicrophoneTrack()
   }
 
@@ -529,7 +578,8 @@ export class RoomStore extends SimpleInterval {
           this.appStore.uiStore.addToast(t('toast.failed_to_enable_screen_sharing') + ` code: ${err.code}, msg: ${err.msg}`)
         }
       }
-      console.warn(err)
+      console.log('SCREEN-SHARE ERROR ', err)
+      console.error(err)
     } finally {
       this.waitingShare = false
     }
@@ -704,8 +754,9 @@ export class RoomStore extends SimpleInterval {
 
   async leaveRtc() {
     try {
-      await this.closeCamera()
-      await this.closeMicrophone()
+      this.joiningRTC = false
+      // await this.closeCamera()
+      // await this.closeMicrophone()
       // await this.mediaService.closeCamera()
       // await this.mediaService.closeMicrophone()
       await this.mediaService.leave()
@@ -748,6 +799,22 @@ export class RoomStore extends SimpleInterval {
     return this.appStore.eduManager
   }
 
+  promiseLock(): Function {
+    let promise: Promise<any>;
+
+    return function(fn: Function) {
+      return function(...args: any[]) {
+        if (promise) {
+          const resultPromise = promise.then(() => fn(...args));
+          promise = resultPromise.then(() => undefined);
+          return resultPromise;
+        }
+        promise = fn(...args);
+        return promise;
+      };
+    };
+  }
+
   @action
   async join() {
     try {
@@ -773,6 +840,28 @@ export class RoomStore extends SimpleInterval {
         this.userList = roomManager.getFullUserList()
         console.log("local-user-updated", evt)
       })
+      // 本地流移除
+      roomManager.on('local-stream-removed', async (evt: any) => {
+        await this.mutex.dispatch<Promise<void>>(async () => {
+          if (!this.joiningRTC) {
+            return 
+          }
+          try {
+            const tag = uuidv4()
+            console.log(`[demo] tag: ${tag}, [${Date.now()}], handle event: local-stream-removed, `, JSON.stringify(evt))
+            if (evt.type === 'main') {
+              this._cameraEduStream = undefined
+              await this.closeCamera()
+              await this.closeMicrophone()
+              console.log(`[demo] tag: ${tag}, [${Date.now()}], main stream closed local-stream-removed, `, JSON.stringify(evt))
+            }
+            console.log("[demo] local-stream-removed emit done", evt)
+          } catch (error) {
+            console.error(`[demo] local-stream-removed async handler failed`)
+            console.error(error)
+          }
+        })
+      })
       // 本地流加入
       // roomManager.on('local-stream-added', (evt: any) => {
       //   this.streamList = roomManager.getFullStreamList()
@@ -780,65 +869,67 @@ export class RoomStore extends SimpleInterval {
       // })
       // 本地流更新
       roomManager.on('local-stream-updated', async (evt: any) => {
-        console.log("local-stream-updated, ", JSON.stringify(evt))
-        if (evt.type === 'main') {
-          const localStream = roomManager.getLocalStreamData()
-          console.log("local-stream-updated# localStream ", JSON.stringify(localStream), this.joiningRTC)
-          if (localStream && localStream.state !== 0) {
-            this._cameraEduStream = localStream.stream
-            await this.prepareCamera()
-            await this.prepareMicrophone()
-            console.log("this._cameraEduStream", JSON.stringify(this._cameraEduStream))
-            if (this.joiningRTC) {
-              if (this._hasCamera) {
-                if (this.cameraEduStream.hasVideo) {
-                  await this.openCamera()
-                } else {
-                  await this.closeCamera()
-                }
-              }
-              if (this._hasMicrophone) {
-                if (this.cameraEduStream.hasAudio) {
-                  console.log('open microphone')
-                  await this.openMicrophone()
-                } else {
-                  console.log('close microphone')
-                  await this.closeMicrophone()
-                }
-              }
-            }
-          } else {
-            console.log("reset camera edu stream", JSON.stringify(localStream), localStream && localStream.state)
-            this._cameraEduStream = undefined
+        await this.mutex.dispatch<Promise<void>>(async () => {
+          if (!this.joiningRTC) {
+            return 
           }
-        }
-  
-        if (evt.type === 'screen') {
-          if (this.roomInfo.userRole === 'teacher') {
-            const screenStream = roomManager.getLocalScreenData()
-            console.log("getLocalScreenData#screenStream ", JSON.stringify(screenStream))
-            if (screenStream && screenStream.state !== 0) {
-              this._screenEduStream = screenStream.stream
-              this.sharing = true
+          const tag = uuidv4()
+          console.log(`[demo] tag: ${tag}, seq[${evt.seqId}] time: ${Date.now()} local-stream-updated, `, JSON.stringify(evt))
+          if (evt.type === 'main') {
+            const localStream = roomManager.getLocalStreamData()
+            console.log(`[demo] local-stream-updated tag: ${tag}, time: ${Date.now()} local-stream-updated, main stream `, JSON.stringify(localStream), this.joiningRTC)
+            if (localStream && localStream.state !== 0) {
+              console.log(`[demo] local-stream-updated tag: ${tag}, time: ${Date.now()} local-stream-updated, main stream is online`, ' _hasCamera', this._hasCamera, ' _hasMicrophone ', this._hasMicrophone, this.joiningRTC)
+              this._cameraEduStream = localStream.stream
+              await this.prepareCamera()
+              await this.prepareMicrophone()
+              console.log(`[demo] tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()} local-stream-updated, main stream is online`, ' _hasCamera', this._hasCamera, ' _hasMicrophone ', this._hasMicrophone, this.joiningRTC, ' _eduStream', JSON.stringify(this._cameraEduStream))
+              if (this.joiningRTC) {
+                if (this._hasCamera) {
+                  if (this.cameraEduStream.hasVideo) {
+                    await this.openCamera()
+                    console.log(`[demo] local-stream-updated tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()}  after openCamera  local-stream-updated, main stream is online`, ' _hasCamera', this._hasCamera, ' _hasMicrophone ', this._hasMicrophone, this.joiningRTC, ' _eduStream', JSON.stringify(this._cameraEduStream))
+                  } else {
+                    await this.closeCamera()
+                    console.log(`[demo] local-stream-updated tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()}  after closeCamera  local-stream-updated, main stream is online`, ' _hasCamera', this._hasCamera, ' _hasMicrophone ', this._hasMicrophone, this.joiningRTC, ' _eduStream', JSON.stringify(this._cameraEduStream))
+                  }
+                }
+                if (this._hasMicrophone) {
+                  if (this.cameraEduStream.hasAudio) {
+                    console.log('open microphone')
+                    await this.openMicrophone()
+                    console.log(`[demo] local-stream-updated tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()} after openMicrophone  local-stream-updated, main stream is online`, ' _hasCamera', this._hasCamera, ' _hasMicrophone ', this._hasMicrophone, this.joiningRTC, ' _eduStream', JSON.stringify(this._cameraEduStream))
+                  } else {
+                    console.log('close local-stream-updated microphone')
+                    await this.closeMicrophone()
+                    console.log(`[demo] local-stream-updated tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()}  after closeMicrophone  local-stream-updated, main stream is online`, ' _hasCamera', this._hasCamera, ' _hasMicrophone ', this._hasMicrophone, this.joiningRTC, ' _eduStream', JSON.stringify(this._cameraEduStream))
+                  }
+                }
+              }
             } else {
-              console.log("reset screen edu stream", screenStream, screenStream && screenStream.state)
-              this._screenEduStream = undefined
-              this.sharing = false
+              console.log("reset camera edu stream", JSON.stringify(localStream), localStream && localStream.state)
+              this._cameraEduStream = undefined
             }
           }
-        }
-  
-        console.log("local-stream-updated", evt)
-      })
-      // 本地流移除
-      roomManager.on('local-stream-removed', async (evt: any) => {
-        console.log("local-stream-removed, ", JSON.stringify(evt))
-        if (evt.type === 'main') {
-          this._cameraEduStream = undefined
-          await this.closeCamera()
-          await this.closeMicrophone()
-        }
-        console.log("local-stream-removed", evt)
+    
+          if (evt.type === 'screen') {
+            if (this.roomInfo.userRole === 'teacher') {
+              const screenStream = roomManager.getLocalScreenData()
+              console.log("local-stream-updated getLocalScreenData#screenStream ", JSON.stringify(screenStream))
+              if (screenStream && screenStream.state !== 0) {
+                this._screenEduStream = screenStream.stream
+                this.sharing = true
+              } else {
+                console.log("local-stream-updated reset screen edu stream", screenStream, screenStream && screenStream.state)
+                this._screenEduStream = undefined
+                this.sharing = false
+              }
+            }
+          }
+    
+          console.log(`[demo] local-stream-updated tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()} local-stream-updated emit done`, evt)
+          console.log(`[demo] local-stream-updated tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()} local-stream-updated emit done`, ' _hasCamera', this._hasCamera, ' _hasMicrophone ', this._hasMicrophone, this.joiningRTC, ' _eduStream', JSON.stringify(this._cameraEduStream))
+        })
       })
       // 远端人加入
       roomManager.on('remote-user-added', (evt: any) => {
@@ -912,50 +1003,60 @@ export class RoomStore extends SimpleInterval {
         }
       }
       this.eduManager.on('user-message', async (evt: any) => {
-        console.log('[rtm] user-message', evt)
-        const fromUserUuid = evt.message.fromUser.userUuid
-        const fromUserName = evt.message.fromUser.userName
-        const msg = decodeMsg(evt.message.message)
-        console.log("user-message", msg)
-        if (msg) {
-          const {cmd, data} = msg
-          const {type, userName} = data
-          console.log("data", data)
-          this.showNotice(type as PeerInviteEnum, fromUserUuid)
-          if (type === PeerInviteEnum.studentApply) {
-            this.showDialog(fromUserName, fromUserUuid)
+        await this.mutex.dispatch<Promise<void>>(async () => {
+          if (!this.joiningRTC) {
+            return 
           }
-          if (type === PeerInviteEnum.teacherStop) {
-            try {
-              await this.closeCamera()
-              await this.closeMicrophone()
-              this.appStore.uiStore.addToast(t('toast.co_video_close_success'))
-            } catch (err) {
-              this.appStore.uiStore.addToast(t('toast.co_video_close_failed'))
-              console.warn(err)
-            }
-          }
-          if (type === PeerInviteEnum.teacherAccept 
-            && this.isBigClassStudent()) {
-            try {
-              await this.prepareCamera()
-              await this.prepareMicrophone()
-              console.log("propertys ", this._hasCamera, this._hasMicrophone)
-              if (this._hasCamera) {
-                await this.openCamera()
+          try {
+            console.log('[rtm] user-message', evt)
+            const fromUserUuid = evt.message.fromUser.userUuid
+            const fromUserName = evt.message.fromUser.userName
+            const msg = decodeMsg(evt.message.message)
+            console.log("user-message", msg)
+            if (msg) {
+              const {cmd, data} = msg
+              const {type, userName} = data
+              console.log("data", data)
+              this.showNotice(type as PeerInviteEnum, fromUserUuid)
+              if (type === PeerInviteEnum.studentApply) {
+                this.showDialog(fromUserName, fromUserUuid)
               }
-  
-              if (this._hasMicrophone) {
-                console.log('open microphone')
-                await this.openMicrophone()
+              if (type === PeerInviteEnum.teacherStop) {
+                try {
+                  await this.closeCamera()
+                  await this.closeMicrophone()
+                  this.appStore.uiStore.addToast(t('toast.co_video_close_success'))
+                } catch (err) {
+                  this.appStore.uiStore.addToast(t('toast.co_video_close_failed'))
+                  console.warn(err)
+                }
               }
-            } catch (err) {
-              console.warn('published failed', err) 
-              throw err
+              if (type === PeerInviteEnum.teacherAccept 
+                && this.isBigClassStudent()) {
+                try {
+                  await this.prepareCamera()
+                  await this.prepareMicrophone()
+                  console.log("propertys ", this._hasCamera, this._hasMicrophone)
+                  if (this._hasCamera) {
+                    await this.openCamera()
+                  }
+      
+                  if (this._hasMicrophone) {
+                    console.log('open microphone')
+                    await this.openMicrophone()
+                  }
+                } catch (err) {
+                  console.warn('published failed', err) 
+                  throw err
+                }
+                this.appStore.uiStore.addToast(t('toast.publish_rtc_success'))
+              }
             }
-            this.appStore.uiStore.addToast(t('toast.publish_rtc_success'))
+          } catch (error) {
+            console.error(`[demo] user-message async handler failed`)
+            console.error(error)
           }
-        }
+        })
       })
       // 教室更新
       roomManager.on('classroom-property-updated', (classroom: any) => {
@@ -1273,6 +1374,7 @@ export class RoomStore extends SimpleInterval {
   @action
   async leave() {
     try {
+      this.joiningRTC = true
       await this.leaveRtc()
       await this.appStore.boardStore.leave()
       await this.eduManager.logout()
@@ -1283,7 +1385,6 @@ export class RoomStore extends SimpleInterval {
       this.resetRoomInfo()
       this.appStore.uiStore.updateCurSeqId(0)
       this.appStore.uiStore.updateLastSeqId(0)
-      // this.appStore.uiStore.reset()
     } catch (err) {
       this.reset()
       console.error(err)
@@ -1306,7 +1407,6 @@ export class RoomStore extends SimpleInterval {
   async stopClass() {
     try {
       await this.roomManager?.userService.updateCourseState(EduCourseState.EduCourseStateStop)
-      // this.classState = false
       this.appStore.uiStore.addToast(t('toast.the_course_ends_successfully'))
     } catch (err) {
       console.log(err)
@@ -1398,13 +1498,6 @@ export class RoomStore extends SimpleInterval {
           await this.mediaService.closeMicrophone()
         }
       }
-      // if (this._screenEduStream) {
-      //   if (this.screenEduStream.userInfo.userUuid === userUuid) {
-      //     console.log("准备结束屏幕共享")
-      //     this._screenEduStream = undefined
-      //     await this.mediaService.stopScreenShare()
-      //   }
-      // }
     } else {
       if (this.roomManager?.userService) {
         const targetStream = this.streamList.find((it: EduStream) => it.userInfo.userUuid === userUuid)
@@ -1419,13 +1512,11 @@ export class RoomStore extends SimpleInterval {
 
   async muteAudio(userUuid: string, isLocal: boolean) {
     if (isLocal) {
-      await this.closeMicrophone()
-      await this.roomManager?.userService.updateMainStreamState({'audioState': false})
+      console.log('before muteLocalAudio', this.microphoneLock)
+      await this.muteLocalMicrophone()
+      console.log('after muteLocalAudio', this.microphoneLock)
     } else {
       const stream = this.getStreamBy(userUuid)
-      // if (stream) {
-      //   await this.mediaService.muteRemoteAudio(+stream.streamUuid, true)
-      // }
       const targetStream = this.streamList.find((it: EduStream) => it.userInfo.userUuid === userUuid)
       await this.roomManager?.userService.remoteStopStudentMicrophone(targetStream as EduStream)
     }
@@ -1434,15 +1525,12 @@ export class RoomStore extends SimpleInterval {
   async unmuteAudio(userUuid: string, isLocal: boolean) {
     console.log("unmuteAudio", userUuid, isLocal)
     if (isLocal) {
-      await this.roomManager?.userService.updateMainStreamState({'audioState': true})
+      await this.unmuteLocalMicrophone()
     } else {
       const stream = this.getStreamBy(userUuid)
       if (stream && this.mediaService.isElectron) {
         await this.mediaService.muteRemoteAudio(+stream.streamUuid, false)
       }
-      // if (stream) {
-      //   await this.mediaService.muteRemoteAudio(+stream.streamUuid, false)
-      // }
       const targetStream = this.streamList.find((it: EduStream) => it.userInfo.userUuid === userUuid)
       await this.roomManager?.userService.remoteStartStudentMicrophone(targetStream as EduStream)
     }
@@ -1451,13 +1539,11 @@ export class RoomStore extends SimpleInterval {
   async muteVideo(userUuid: string, isLocal: boolean) {
     console.log("muteVideo", userUuid, isLocal)
     if (isLocal) {
-      await this.closeCamera()
-      await this.roomManager?.userService.updateMainStreamState({'videoState': false})
+      console.log('before muteLocalCamera', this.cameraLock)
+      await this.muteLocalCamera()
+      console.log('after muteLocalCamera', this.cameraLock)
     } else {
       const stream = this.getStreamBy(userUuid)
-      // if (stream) {
-      //   await this.mediaService.muteRemoteVideo(+stream.streamUuid, true)
-      // }
       const targetStream = this.streamList.find((it: EduStream) => it.userInfo.userUuid === userUuid)
       await this.roomManager?.userService.remoteStopStudentCamera(targetStream as EduStream)
     }
@@ -1466,15 +1552,14 @@ export class RoomStore extends SimpleInterval {
   async unmuteVideo(userUuid: string, isLocal: boolean) {
     console.log("unmuteVideo", userUuid, isLocal)
     if (isLocal) {
-      await this.roomManager?.userService.updateMainStreamState({'videoState': true})
+      console.log('before unmuteLocalCamera', this.cameraLock)
+      await this.unmuteLocalCamera()
+      console.log('after unmuteLocalCamera', this.cameraLock)
     } else {
       const stream = this.getStreamBy(userUuid)
       if (stream && this.mediaService.isElectron) {
         await this.mediaService.muteRemoteVideo(+stream.streamUuid, false)
       }
-      // if (stream) {
-      //   await this.mediaService.muteRemoteVideo(+stream.streamUuid, false)
-      // }
       const targetStream = this.streamList.find((it: EduStream) => it.userInfo.userUuid === userUuid)
       await this.roomManager?.userService.remoteStartStudentCamera(targetStream as EduStream)
     }

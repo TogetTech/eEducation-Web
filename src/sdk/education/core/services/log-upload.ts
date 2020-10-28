@@ -1,16 +1,10 @@
-import { getIntlError, setIntlError } from "@/services/intl-error-helper";
+import { getIntlError } from "@/services/intl-error-helper";
 import { AgoraFetch } from "../utils/fetch";
 import OSS from "ali-oss";
 import md5 from "js-md5";
 import { t } from "@/i18n";
 import { get } from "lodash";
-
-const genToken = (): string => {
-  return window.btoa(`${process.env.REACT_APP_AGORA_CUSTOMER_ID}:${process.env.REACT_APP_AGORA_CUSTOMER_CERTIFICATE}`)
-}
-
-const APP_ID: string = process.env.REACT_APP_AGORA_APP_ID as string;
-const AUTHORIZATION: string = genToken();
+import { AUTHORIZATION, APP_ID } from "@/utils/config";
 
 const AgoraFetchJson = async ({url, method, data, token, outHeaders}:{url?: string, method: string, data?: any, token?: string, outHeaders?: any}) => {  
   const opts: any = {

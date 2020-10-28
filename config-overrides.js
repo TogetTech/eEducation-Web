@@ -79,7 +79,6 @@ const useOptimizeBabelConfig = () => config => {
       break;
     }
   }
-  console.log(JSON.stringify(config.extension))
   return config;
 }
 

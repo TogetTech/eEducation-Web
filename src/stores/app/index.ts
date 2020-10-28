@@ -27,7 +27,6 @@ import { AgoraElectronRTCWrapper } from '@/sdk/education/core/media-service/elec
 
 const APP_ID: string = process.env.REACT_APP_AGORA_APP_ID as string;
 console.log("APP_ID ", APP_ID)
-const AUTHORIZATION: string = process.env.REACT_APP_AGORA_RESTFULL_TOKEN as string;
 const CUSTOMER_ID: string = process.env.REACT_APP_AGORA_CUSTOMER_ID as string;
 const CUSTOMER_CERTIFICATE: string = process.env.REACT_APP_AGORA_CUSTOMER_CERTIFICATE as string;
 const platform = process.env.REACT_APP_RUNTIME_PLATFORM as string;
@@ -284,7 +283,8 @@ export class AppStore {
       } else {
         this.uiStore.addToast(t('toast.failed_to_enable_screen_sharing') + `${err.msg}`)
       }
-      console.warn(err)
+      console.log('SCREEN-SHARE ERROR ', err)
+      console.error(err)
     } finally {
       this.waitingShare = false
     }
