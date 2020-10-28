@@ -588,8 +588,8 @@ export class BreakoutRoomStore extends SimpleInterval {
         uid: +this.largeClassroomManager?.userService.screenStream.stream.streamUuid,
         token: this.largeClassroomManager?.userService.screenStream.token,
       }
-      console.log("screenStreamData params >>>>>> ", params)
-      console.log("screenStreamData >>>>>> ", this.largeClassroomManager?.userService.screenStream)
+      console.log("screenStreamData params ", params)
+      console.log("screenStreamData ", this.largeClassroomManager?.userService.screenStream)
 
       await this.mediaService.startScreenShare({
         params
