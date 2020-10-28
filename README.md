@@ -29,25 +29,27 @@
 
 ## Preparations
 
-- Make sure you have made the preparations mentioned in the [Agora e-Education Guide](https://github.com/AgoraIO-Usecase/eEducation).
-- Set up your Alibaba Cloud OSS Guide. For details, see [Alibaba Cloud OSS Guide
-](https://github.com/AgoraIO-Usecase/eEducation/wiki/Alibaba-Cloud-OSS-Guide).  
-- Getting start [here](https://github.com/AgoraIO-Usecase/eEducation#prerequisites) to obtain appId & sdkToken & restful token
+- Make sure you have made the preparations mentioned in the [Agora e-Education Guide](../README.md#prerequisites).
+- Set up your Alibaba Cloud OSS Guide. For details, see [Alibaba Cloud OSS Guide](https://github.com/AgoraIO-Usecase/eEducation/wiki/Alibaba-Cloud-OSS-Guide).
 - Rename `.env.example` to `.env.local` and configure the following parameters:
-  - **(Required) Agora App ID** 
+  - **(Required) The Agora App ID that you get**
   ```bash
   # Agora App ID
   REACT_APP_AGORA_APP_ID=agora appId
   REACT_APP_AGORA_LOG=true
   ELECTRON_START_URL=http://localhost:3000
   ```
-  - **(Required) The Agora HTTP basic authorization**
+  - **(Required) The Agora Customer ID and Customer Secret that you get**
   ```bash
   # agora http basic authorization customer_id, customer_certificate
   REACT_APP_AGORA_CUSTOMER_ID=customer_id
   REACT_APP_AGORA_CUSTOMER_CERTIFICATE=customer_certificate
   ```
-  - **(Optional) OSS configurations for whiteboard courseware. Ignore these if you do not need this.**
+  - **(Required) The Netless AppIdentifier that you get**
+  ```bash
+  REACT_APP_NETLESS_APP_ID=netless appId
+  ```
+  - **(Optional) OSS configurations for whiteboard courseware. Ignore these if you do not need this**
   ```bash
   # your oss bucket name
   REACT_APP_YOUR_OWN_OSS_BUCKET_NAME=your_oss_bucket_name

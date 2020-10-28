@@ -232,6 +232,8 @@ export class RoomStore extends SimpleInterval {
     this.cameraLabel = ''
     this.microphoneLabel = ''
     this.mediaService.reset()
+    this.resetCameraTrack()
+    this.resetMicrophoneTrack()
     this.resetScreenStream()
     this.streamList = []
     this.userList = []
@@ -576,7 +578,8 @@ export class RoomStore extends SimpleInterval {
           this.appStore.uiStore.addToast(t('toast.failed_to_enable_screen_sharing') + ` code: ${err.code}, msg: ${err.msg}`)
         }
       }
-      console.warn(err)
+      console.log('SCREEN-SHARE ERROR ', err)
+      console.error(err)
     } finally {
       this.waitingShare = false
     }
@@ -752,8 +755,8 @@ export class RoomStore extends SimpleInterval {
   async leaveRtc() {
     try {
       this.joiningRTC = false
-      await this.closeCamera()
-      await this.closeMicrophone()
+      // await this.closeCamera()
+      // await this.closeMicrophone()
       // await this.mediaService.closeCamera()
       // await this.mediaService.closeMicrophone()
       await this.mediaService.leave()

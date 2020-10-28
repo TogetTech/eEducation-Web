@@ -265,8 +265,8 @@ export class AppStore {
         uid: +streamUuid,
         token: this.roomManager?.userService.screenStream.token,
       }
-      console.log("screenStreamData params >>>>>> ", JSON.stringify(params))
-      console.log("screenStreamData >>>>>> ", JSON.stringify(this.roomManager?.userService.screenStream))
+      console.log("screenStreamData params ", JSON.stringify(params))
+      console.log("screenStreamData ", JSON.stringify(this.roomManager?.userService.screenStream))
 
       await this.mediaService.startScreenShare({
         params
@@ -283,7 +283,8 @@ export class AppStore {
       } else {
         this.uiStore.addToast(t('toast.failed_to_enable_screen_sharing') + `${err.msg}`)
       }
-      console.warn(err)
+      console.log('SCREEN-SHARE ERROR ', err)
+      console.error(err)
     } finally {
       this.waitingShare = false
     }

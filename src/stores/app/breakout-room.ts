@@ -610,7 +610,8 @@ export class BreakoutRoomStore extends SimpleInterval {
           this.appStore.uiStore.addToast(t('toast.failed_to_enable_screen_sharing') + ` code: ${err.code}, msg: ${err.msg}`)
         }
       }
-      console.warn(err)
+      console.log('SCREEN-SHARE ERROR ', err)
+      console.error(err)
     } finally {
       this.waitingShare = false
     }
@@ -990,8 +991,8 @@ export class BreakoutRoomStore extends SimpleInterval {
         console.log("[rtc] mediaGroup success")
       }
       if (this.mediaService) {
-        await this.closeCamera()
-        await this.closeMicrophone()
+        // await this.closeCamera()
+        // await this.closeMicrophone()
         await this.mediaService.leave()
         this.appStore.uiStore.addToast(t('toast.leave_rtc_channel'))
       }
