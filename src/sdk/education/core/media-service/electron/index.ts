@@ -303,7 +303,7 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
   async joinChannel(option: any): Promise<any> {
     try {
       this.superChannel = this.client.createChannel(option.channel)
-      // useroffline 
+       
       this.superChannel.on('joinChannelSuccess', (uid: number, elapsed: number) => {
         EduLogger.info("joinChannelSuccess", uid)
       })
