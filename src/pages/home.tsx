@@ -37,8 +37,8 @@ const defaultState: SessionInfo = {
   userName: '',
 }
 
-const roomTypes = isElectron ?  UIStore.roomTypes.filter((it: any) => it.value !== 3) : UIStore.roomTypes
-
+// const roomTypes = isElectron ?  UIStore.roomTypes.filter((it: any) => it.value !== 3) : UIStore.roomTypes
+const roomTypes = UIStore.roomTypes
 
 function HomePage() {
   document.title = t(`home.short_title.title`)
