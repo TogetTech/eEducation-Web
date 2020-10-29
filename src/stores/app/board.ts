@@ -7,6 +7,7 @@ import { Room, PPTKind, ViewMode } from 'white-web-sdk'
 import { BoardClient } from '@/components/netless-board/board-client';
 import { get, isEmpty, omit } from 'lodash';
 import { OSSConfig } from '@/utils/helper';
+import { BizLogger } from '@/utils/biz-logger';
 import OSS from 'ali-oss';
 import uuidv4 from 'uuid/v4';
 import { t } from '@/i18n';
@@ -339,9 +340,9 @@ export class BoardStore {
         this.updateBoardState()
       }
     })
-    console.log("[breakout board] join", data)
+    BizLogger.info("[breakout board] join", data)
     await this.boardClient.join(data)
-    console.log("[breakout board] after join", data)
+    BizLogger.info("[breakout board] after join", data)
     this.online = true
     // this.updateSceneItems()
     //@ts-ignore
@@ -582,7 +583,7 @@ export class BoardStore {
     if (!room || !room.isWritable) return;
     const _idx = idx
     if (_idx < 0 || _idx >= this.totalPage) {
-      console.warn(_idx < 0, _idx >= this.totalPage)
+      BizLogger.warn(_idx < 0, _idx >= this.totalPage)
       return
     }
     if (force) {
@@ -828,7 +829,7 @@ export class BoardStore {
         if (this.convertPhase === 'converting') {
           this.updateConvertPhase('convert_failure')
         }
-        console.warn(err)
+        BizLogger.warn(err)
       }
     }
   }
@@ -872,7 +873,7 @@ export class BoardStore {
       if (this.convertPhase === 'converting') {
         this.updateConvertPhase('convert_failure')
       }
-      console.warn(err)
+      BizLogger.warn(err)
     }
   }
 
@@ -947,7 +948,7 @@ export class BoardStore {
         if (this.convertPhase === 'converting') {
           this.updateConvertPhase('convert_failure')
         }
-        console.warn(err)
+        BizLogger.warn(err)
       }
     }
   }
@@ -992,7 +993,7 @@ export class BoardStore {
         if (this.convertPhase === 'converting') {
           this.updateConvertPhase('convert_failure')
         }
-        console.warn(err)
+        BizLogger.warn(err)
       }
     }
   }
@@ -1110,7 +1111,7 @@ export class BoardStore {
   }
 
   mount(dom: any) {
-    console.log("mounted", dom, this.boardClient && this.boardClient.room)
+    BizLogger.info("mounted", dom, this.boardClient && this.boardClient.room)
     if (this.boardClient && this.boardClient.room) {
       this.boardClient.room.bindHtmlElement(dom)
     }

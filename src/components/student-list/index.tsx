@@ -2,6 +2,7 @@ import React from 'react';
 import './student-list.scss';
 import {CustomIcon} from '@/components/icon';
 import { observer } from 'mobx-react';
+import { BizLogger } from '@/utils/biz-logger';
 
 interface CustomIconProps {
   value: boolean
@@ -19,7 +20,7 @@ function IconWrapper ({
   onClick
 }: CustomIconProps) {
   const handleClick = async (evt: any) => {
-    console.log("click", evt)
+    BizLogger.info("click", evt)
     await onClick(evt, id, type);
   }
   return (

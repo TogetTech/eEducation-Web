@@ -159,11 +159,11 @@ export class AgoraWebRtcWrapper extends EventEmitter implements IWebRTCWrapper {
       // this.fire('user-left', user)
     })
     this.client.on('user-published', async (user, mediaType) => {
-        console.log("user-published ", user, mediaType)
+        EduLogger.info("user-published ", user, mediaType)
         if (user.uid !== this.localScreenUid) {
           if (mediaType === 'audio') {
             if (!this.audioMuted) {
-              console.log("subscribeAudio, user", user)
+              EduLogger.info("subscribeAudio, user", user)
               await this.client.subscribe(user, 'audio')
               // this.fire('user-published', {
               //   user,
@@ -178,7 +178,7 @@ export class AgoraWebRtcWrapper extends EventEmitter implements IWebRTCWrapper {
 
           if (mediaType === 'video') {
             if (!this.videoMuted) {
-              console.log("subscribeVideo, user", user)
+              EduLogger.info("subscribeVideo, user", user)
               // await this.subscribeVideo(user)
               await this.client.subscribe(user, 'video')
               this.fire('user-published', {
@@ -226,7 +226,7 @@ export class AgoraWebRtcWrapper extends EventEmitter implements IWebRTCWrapper {
       })
     })
     this.client.on('network-quality', (evt: any) => {
-      // console.log('[web] network-quality', evt)
+      // EduLogger.info('[web] network-quality', evt)
       this.fire('network-quality', {
         downlinkNetworkQuality: evt.downlinkNetworkQuality,
         uplinkNetworkQuality: evt.uplinkNetworkQuality,
@@ -254,7 +254,7 @@ export class AgoraWebRtcWrapper extends EventEmitter implements IWebRTCWrapper {
   registerClientByChannelName(channelName: string) {
     const client = this.agoraWebSdk.createClient(this.clientConfig);
     client.on('user-published', async (user, mediaType) => {
-      console.log("user-published ", user, mediaType)
+      EduLogger.info("user-published ", user, mediaType)
       if (user.uid !== this.localScreenUid) {
         if (mediaType === 'audio') {
           await client.subscribe(user, 'audio')
@@ -507,7 +507,7 @@ export class AgoraWebRtcWrapper extends EventEmitter implements IWebRTCWrapper {
   }
 
   private async subscribeVideo(user: any): Promise<any> {
-    console.log("subscribe user", user)
+    EduLogger.info("subscribe user", user)
     await this.client.subscribe(user, 'video')
     // this.fire('user-published', {user})
   }
@@ -523,7 +523,7 @@ export class AgoraWebRtcWrapper extends EventEmitter implements IWebRTCWrapper {
     if (val) {
       await this.unsubscribeVideo(targetUser)
     } else {
-      console.log("call subscribeVideo")
+      EduLogger.info("call subscribeVideo")
     }
   }
 
@@ -533,7 +533,7 @@ export class AgoraWebRtcWrapper extends EventEmitter implements IWebRTCWrapper {
     if (val) {
       await client.unsubscribe(targetUser, 'video')
     } else {
-      console.log("call subscribeVideo")
+      EduLogger.info("call subscribeVideo")
     }
   }
 
@@ -544,7 +544,7 @@ export class AgoraWebRtcWrapper extends EventEmitter implements IWebRTCWrapper {
       await client.unsubscribe(targetUser, 'audio')
       this.fire('user-unpublished')
     } else {
-      console.log("call subscribeVideo")
+      EduLogger.info("call subscribeVideo")
     }
   }
 
@@ -554,7 +554,7 @@ export class AgoraWebRtcWrapper extends EventEmitter implements IWebRTCWrapper {
     if (val) {
       await this.unsubscribeAudio(targetUser)
     } else {
-      console.log("call subscribeAudio")
+      EduLogger.info("call subscribeAudio")
       // await this.subscribeAudio(targetUser)
     }
   }
@@ -871,7 +871,7 @@ export class AgoraWebRtcWrapper extends EventEmitter implements IWebRTCWrapper {
     if (!option) {
       this.cameraTestTrack = await this.agoraWebSdk.createCameraVideoTrack()
       this.cameraTestTrack.on('track-ended', () => {
-        console.log("track-ended")
+        EduLogger.info("track-ended")
         this.cameraTestTrack && this.closeMediaTrack(this.cameraTestTrack)
         this.fire('track-ended', {video: true})
       })
@@ -881,7 +881,7 @@ export class AgoraWebRtcWrapper extends EventEmitter implements IWebRTCWrapper {
         encoderConfig: option.encoderConfig
       })
       this.cameraTestTrack.on('track-ended', () => {
-        console.log("track-ended")
+        EduLogger.info("track-ended")
         this.cameraTestTrack && this.closeMediaTrack(this.cameraTestTrack)
         this.fire('track-ended', {video: true})
       })

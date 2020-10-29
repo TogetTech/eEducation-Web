@@ -2,6 +2,7 @@ import { AgoraEduApi } from '../core/services/edu-api';
 import { IAgoraRTC } from 'agora-rtc-sdk-ng';
 import { EnumOnlineState } from '../core/services/interface';
 import { isEmpty } from 'lodash';
+import { EduLogger } from '../core/logger';
 
 export enum EduClassroomStateType {
   EduClassroomStateTypeAllStudentsChat = 0,
@@ -565,7 +566,7 @@ export class EduStreamData {
         ...stream
       }
     }
-    console.log("...stream", this._stream)
+    EduLogger.info("...stream", this._stream)
     if (args.hasOwnProperty('updateTime')) {
       this._ts = updateTime
     }

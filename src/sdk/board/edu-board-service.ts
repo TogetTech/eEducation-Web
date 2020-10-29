@@ -1,7 +1,5 @@
-import { ReplayParams } from './../replay/index';
-import { Room, WhiteWebSdk, DeviceType, createPlugins, Plugins, JoinRoomParams, Player, ReplayRoomParams, ViewMode } from 'white-web-sdk';
-import { EventEmitter } from 'events';
 import { AgoraBoardApi } from "../education/core/services/board-api";
+import { EduLogger } from '../education/core/logger';
 
 export class EduBoardService {
   apiService: AgoraBoardApi;
@@ -12,17 +10,19 @@ export class EduBoardService {
 
   async getBoardInfo() {
     let info = await this.apiService.getCurrentBoardInfo()
-    console.log(">>> info", info)
+    EduLogger.info("getBoardInfo ", arguments)
     return info
   }
 
   async updateBoardUserState(userUuid: string, grantPermission: number) {
     let info = await this.apiService.updateCurrentBoardUserState(userUuid, grantPermission)
+    EduLogger.info("updateBoardUserState ", arguments)
     return info
   }
 
   async updateBoardRoomState(follow: number) {
     let info = await this.apiService.updateCurrentBoardState(follow)
+    EduLogger.info("updateBoardRoomState ", arguments)
     return info
   }
 }

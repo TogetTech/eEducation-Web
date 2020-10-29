@@ -14,7 +14,7 @@ export class MessageSerializer {
   }
 
   static getStreamsFromUserList(data: any) {
-    console.log('getStreamsFromUserList#data', data)
+    EduLogger.info('getStreamsFromUserList#data', data)
     const streamList: EduStreamData[] = []
     return streamList
   }
@@ -94,7 +94,7 @@ export class MessageSerializer {
   }
 
   static getUsersStreams(data: any) {
-    console.log("[serializer] getUserStreams: ", data)
+    EduLogger.info("[serializer] getUserStreams: ", data)
     let eduStreams: EduStreamData[] = [];
     const rawOnlineUsers = get(data, 'onlineUsers', [])
       .reduce((acc: any, it: any) => {
@@ -170,11 +170,11 @@ export class MessageSerializer {
     const onlineStreams = eduStreams.filter((it: EduStreamData) => it.state !== 0)
     const offlineStreams = eduStreams.filter((it: EduStreamData) => it.state === 0)
 
-    console.log("[EduUsersStreams] onlineUsers: ", onlineUsers)
-    console.log("[EduUsersStreams] offlineUsers: ", offlineUsers)
+    EduLogger.info("[EduUsersStreams] onlineUsers: ", onlineUsers)
+    EduLogger.info("[EduUsersStreams] offlineUsers: ", offlineUsers)
 
-    console.log("[EduUsersStreams] onlineStreams: ", onlineStreams)
-    console.log("[EduUsersStreams] offlineStreams: ", offlineStreams)
+    EduLogger.info("[EduUsersStreams] onlineStreams: ", onlineStreams)
+    EduLogger.info("[EduUsersStreams] offlineStreams: ", offlineStreams)
     
     return {
       onlineUsers: onlineUsers,

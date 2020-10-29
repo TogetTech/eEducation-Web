@@ -435,7 +435,7 @@ export class AgoraEduApi {
     let users: any[] = []
     do {
       let data = await this.fetchUsersStreams(nextId, 1000)
-      console.log("fetchUsersStreams", data)
+      EduLogger.info("fetchUsersStreams", data)
       nextId = data.nextId
       const userList = data.list.reduce((acc: any[], userItem: any) => {
         const {streams, ...userAttrs} = userItem
@@ -553,7 +553,7 @@ export class AgoraEduApi {
           nextTs
         }
       })
-      console.log('subRoomData', resp)
+      EduLogger.info('subRoomData', resp)
       return resp.msg
     } catch (err) {
       throw err
@@ -914,7 +914,7 @@ export class AgoraEduApi {
   }
 
   async syncSnapShot(roomUuid: string): Promise<any> {
-    console.log('[syncing] , userToken: ', this.localInfo?.userToken)
+    EduLogger.info('[syncing] , userToken: ', this.localInfo?.userToken)
     let res = await this.fetch({
       url: `/v1/rooms/${roomUuid}/snapshot`,
       method: 'GET',

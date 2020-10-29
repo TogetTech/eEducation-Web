@@ -8,6 +8,11 @@ import TagManager from 'react-gtm-module';
 import Eruda from 'eruda';
 import UAParser from 'ua-parser-js';
 import {isElectron} from './utils/platform';
+import { EduManager } from './sdk/education/manager';
+
+if (isElectron) {
+  EduManager.useElectron()
+}
 
 const parser = new UAParser();
 

@@ -38,8 +38,8 @@ export default function useChatControl () {
         // roomStore.updateCourse({
         //   muteChat: type === 'mute' ? 1 : 0
         // }).then(() => {
-        //   console.log("update success");
-        // }).catch(console.warn)
+        //   BizLogger.info("update success");
+        // }).catch(BizLogger.warn)
         // .finally(() => {
         //   lock.current = false;
         // })

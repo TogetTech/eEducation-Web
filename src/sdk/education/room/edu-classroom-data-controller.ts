@@ -175,7 +175,7 @@ export class EduClassroomDataController {
           delete this._bufferMap[`${seqId}`]
         }
       } else {
-        EduLogger.info("gap>>>>>> !!!")
+        EduLogger.info(`[${this._id} [seqId] gaping !!!`)
         break;
       }
     }
@@ -463,7 +463,7 @@ export class EduClassroomDataController {
     }
     EduLogger.info('Raw ChannelMessage, buffer >>> ', JSON.stringify(this._bufferMap[buffer.seqId]))
     if (!buffer.hasOwnProperty('seqId')) {
-      console.error("buffer", buffer)
+      EduLogger.error("buffer", buffer)
       throw 'seqId not exists'
     }
 

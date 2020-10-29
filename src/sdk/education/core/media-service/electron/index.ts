@@ -65,7 +65,7 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
     super();
     this.logPath = options.logPath
     this.videoSourceLogPath = options.videoSourceLogPath
-    console.log(`[electron-log], logPath: ${this.logPath}, videoSourceLogPath: ${this.videoSourceLogPath}, appId: ${options.appId}`)
+    EduLogger.info(`[electron-log], logPath: ${this.logPath}, videoSourceLogPath: ${this.videoSourceLogPath}, appId: ${options.appId}`)
     this.role = 2
     this.joined = false
     this.videoMuted = false
@@ -90,7 +90,7 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
     this.client.setVideoProfile(43, false);
     this.client.setClientRole(2)
     if (this.logPath) {
-      console.log(`[electron-log-path] set logPath: ${this.logPath}`)
+      EduLogger.info(`[electron-log-path] set logPath: ${this.logPath}`)
       this.client.setLogFile(this.logPath)
     }
     this.init()
@@ -103,7 +103,7 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
 
   public enableLogPersist() {
     if (this.logPath) {
-      console.log(`[electron-log-path] set logPath: ${this.logPath}`)
+      EduLogger.info(`[electron-log-path] set logPath: ${this.logPath}`)
       this.client.setLogFile(this.logPath)
       //@ts-ignore
       window.setNodeAddonLogPath = this.logPath
@@ -200,14 +200,14 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
       })
     })
     this.client.on('networkquality', (...args: any[]) => {
-      console.log("network-quality, uid: ", args[0], " downlinkNetworkQuality: ", args[1], " uplinkNetworkQuality ", args[2])
+      EduLogger.info("network-quality, uid: ", args[0], " downlinkNetworkQuality: ", args[1], " uplinkNetworkQuality ", args[2])
       this.fire('network-quality', {
         downlinkNetworkQuality: args[1],
         uplinkNetworkQuality: args[2]
       })
     })
     this.client.on('remoteVideoStateChanged', (uid: number, state: number, reason: any) => {
-      console.log('remoteVideoStateChanged ', reason, uid)
+      EduLogger.info('remoteVideoStateChanged ', reason, uid)
       if (reason === 5) {
         this.fire('user-unpublished', {
           user: {
@@ -227,7 +227,7 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
       }
     })
     this.client.on('remoteAudioStateChanged', (uid: number, state: number, reason: any) => {
-      console.log('remoteAudioStateChanged ', reason, uid)
+      EduLogger.info('remoteAudioStateChanged ', reason, uid)
 
       // remote user disable audio
       if (reason === 5) {
@@ -544,12 +544,12 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
         this.client.videoSourceSetChannelProfile(1)
         this.client.videoSourceEnableWebSdkInteroperability(true)
         this.client.videoSourceSetVideoProfile(config && config.profile ? config.profile : 50, false)
-        console.log(`[electron-log-path] checkout videoSourceLogPath: ${this.videoSourceLogPath}`)
+        EduLogger.info(`[electron-log-path] checkout videoSourceLogPath: ${this.videoSourceLogPath}`)
         if (this.videoSourceLogPath) {
           this.client.videoSourceSetLogFile(this.videoSourceLogPath)
           //@ts-ignore
           window.setNodeAddonVideoSourceLogPath = this.videoSourceLogPath
-          console.log(`[electron-log-path] set videoSourceLogPath: ${this.videoSourceLogPath}`)
+          EduLogger.info(`[electron-log-path] set videoSourceLogPath: ${this.videoSourceLogPath}`)
         }
         const handleVideoSourceJoin = (uid: number) => {
           this.client.off('videoSourceJoinedSuccess', handleVideoSourceJoin)

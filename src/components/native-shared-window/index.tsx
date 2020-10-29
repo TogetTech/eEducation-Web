@@ -3,6 +3,7 @@ import './native-shared-window.scss';
 import {CustomButton} from '@/components/custom-button';
 import { useRoomStore } from '@/hooks'
 import { observer } from 'mobx-react';
+import { BizLogger } from '@/utils/biz-logger';
 
 export const WindowItem: React.FC<any> = ({
   ownerName,
@@ -92,15 +93,15 @@ const NativeSharedWindowController = observer(() => {
         roomStore.removeScreenShareWindow()
       }}
       selectWindow={(windowId: any) => {
-        console.log('windowId', windowId)
+        BizLogger.info('windowId', windowId)
         setWindowId(windowId)
       }}
       confirm={async (evt: any) => {
         if (!windowId) {
-          console.warn("windowId is empty");
+          BizLogger.warn("windowId is empty");
           return;
         }
-        console.log('windowId confirm', windowId)
+        BizLogger.info('windowId confirm', windowId)
         await roomStore.startNativeScreenShareBy(windowId)
       }}
     />

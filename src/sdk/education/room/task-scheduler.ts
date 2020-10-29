@@ -28,7 +28,7 @@ class SyncRoomTask {
         // this.nextId = params.nextId
         // this.nextTs = params.nextTs
         const res = await this.apiService.subRoomData(params)
-        console.log("perform >>>> ", params)
+        EduLogger.info("perform >>>> ", params)
         return {
           step: params.step,
           requestId: params.requestId,
@@ -67,7 +67,7 @@ export class TaskScheduler extends EventEmitter {
     this.apiService = apiService
     this.on('task', (task: any) => {
       if (this.lock) {
-        console.log("locking", this.lock)
+        EduLogger.info("locking", this.lock)
       } else {
         this.run(task)
       }
@@ -82,14 +82,14 @@ export class TaskScheduler extends EventEmitter {
     const {id, args} = task
 
     this.timer = setTimeout(() => {
-      console.log("retrying >>>", task)
+      EduLogger.info("retrying >>>", task)
       const onSuccess = (res: any) => {
-        console.log('重试成功', task.name, args)
+        EduLogger.info('重试成功', task.name, args)
         this.handleSuccess(res)
       }
 
       const onFailure = (err: any) => {
-        console.log('重试失败', task.name, 'id', id, 'delay', delay, 'queue', this.jobQueue, args)
+        EduLogger.info('重试失败', task.name, 'id', id, 'delay', delay, 'queue', this.jobQueue, args)
         this.handleFailure(task, delay, err)
       }
       task.perform(args)
@@ -102,7 +102,7 @@ export class TaskScheduler extends EventEmitter {
     if (this.release) return
     this.data.push(res)
     if (this.jobQueue.length === 0) {
-      console.log("...data", this.data)
+      EduLogger.info("...data", this.data)
       this.emit('request-success', this.data)
       this.data = []
     } else {
@@ -118,7 +118,7 @@ export class TaskScheduler extends EventEmitter {
     if (this.release) return
     this.timer && clearTimeout(this.timer)
     this.timer = null
-    console.log(err)
+    EduLogger.info(err)
     this.retry(task, delay)
   }
 
@@ -127,15 +127,15 @@ export class TaskScheduler extends EventEmitter {
     const {id, args} = task
 
     this._lock = true
-    console.log("run >>>", task.name, id, args)
+    EduLogger.info("run >>>", task.name, id, args)
 
     const onSuccess = (res: any) => {
-      console.log('执行成功', task.name, args)
+      EduLogger.info('执行成功', task.name, args)
       this.handleSuccess(res)
     }
 
     const onFailure = (err: any) => {
-      console.log('执行失败', task.name, id, args)
+      EduLogger.info('执行失败', task.name, id, args)
       this.handleFailure(task, 1000, err)
     }
 
@@ -153,7 +153,7 @@ export class TaskScheduler extends EventEmitter {
       id: ++this.num,
       args,
     })
-    console.log("task ", task.id, args)
+    EduLogger.info("task ", task.id, args)
     // const _task = {run: task, id: ++this.num, args}
     this.emit("task", task)
   }
@@ -191,7 +191,7 @@ export class TaskScheduler extends EventEmitter {
 
   syncRoom(args: any) {
     this.requestId = uuidv4()
-    console.log("syncRoom ", args.text)
+    EduLogger.info("syncRoom ", args.text)
     this.append(new SyncRoomTask(
       this.apiService
     ), {
@@ -299,7 +299,7 @@ export class InternalTaskScheduler extends EventEmitter {
   }
 
   release() {
-    console.log("release")
+    EduLogger.info("release")
     this.removeAllListeners()
     const timerId = InternalTaskScheduler.defaultInternalSyncMapState.timerId
     if (timerId !== null) {

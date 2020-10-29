@@ -52,7 +52,7 @@ export class MediaService extends EventEmitter implements IMediaService {
         window.videoSourceLogPath = videoSourceLogPath;
         //@ts-ignore
         window.logPath = logPath
-        console.log(`[media-service] set logPath: ${logPath}, ${videoSourceLogPath}`)
+        EduLogger.info(`[media-service] set logPath: ${logPath}, ${videoSourceLogPath}`)
         this.electron.setAddonLogPath({logPath, videoSourceLogPath})
         this.electron.enableLogPersist()
       })
@@ -75,7 +75,7 @@ export class MediaService extends EventEmitter implements IMediaService {
       this.fire('network-quality', quality)
     })
     this.sdkWrapper.on('connection-state-change', (curState: any) => {
-      console.log("[media-service] connection-state-change ", curState)
+      EduLogger.info("[media-service] connection-state-change ", curState)
       this.fire('connection-state-change', {curState})
     })
     this.sdkWrapper.on('volume-indication', ({totalVolume}: any) => {

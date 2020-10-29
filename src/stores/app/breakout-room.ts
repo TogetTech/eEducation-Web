@@ -22,6 +22,7 @@ import { t } from '@/i18n';
 import { SimpleInterval } from '../mixin/simple-interval';
 import { DialogType } from '@/components/dialog';
 import { Mutex } from '@/utils/mutex';
+import { BizLogger } from '@/utils/biz-logger';
 
 const delay = 2000
 
@@ -291,7 +292,7 @@ export class BreakoutRoomStore extends SimpleInterval {
           this.customScreenShareItems = items
         })
       }).catch(err => {
-        console.warn('show screen share window with items', err)
+        BizLogger.warn('show screen share window with items', err)
         if (err.code === 'ELECTRON_PERMISSION_DENIED') {
           this.appStore.uiStore.addToast(t('toast.failed_to_enable_screen_sharing_permission_denied'))
         } else {
@@ -328,7 +329,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       this.removeScreenShareWindow()
       this.sharing = true
     } catch (err) {
-      console.warn(err)
+      BizLogger.warn(err)
       // if (!this.mediaService.screenRenderer) {
       //   await this.mediaService.stopScreenShare()
       // }
@@ -395,10 +396,10 @@ export class BreakoutRoomStore extends SimpleInterval {
   @action
   async openCamera() {
     if (this._cameraRenderer) {
-      return console.warn('[demo] Camera already exists')
+      return BizLogger.warn('[demo] Camera already exists')
     }
     if (this.cameraLock) {
-      return console.warn('[demo] openCamera locking')
+      return BizLogger.warn('[demo] openCamera locking')
     }
     this.lockCamera()
     try {
@@ -407,12 +408,12 @@ export class BreakoutRoomStore extends SimpleInterval {
       this._cameraRenderer = this.mediaService.cameraRenderer
       this.cameraLabel = this.mediaService.getCameraLabel()
       this._cameraId = this.cameraId
-      console.log('[demo] action in openCamera >>> openCamera')
+      BizLogger.info('[demo] action in openCamera >>> openCamera')
       this.unLockCamera()
     } catch (err) {
       this.unLockCamera()
-      console.log('[demo] action in openCamera >>> openCamera')
-      console.warn(err)
+      BizLogger.info('[demo] action in openCamera >>> openCamera')
+      BizLogger.warn(err)
       throw err
     }
   }
@@ -424,7 +425,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       this.resetCameraTrack()
     } catch (err) {
       this.resetCameraTrack()
-      console.log('[breakout-room] err', err)
+      BizLogger.info('[breakout-room] err', err)
     }
   }
 
@@ -439,20 +440,20 @@ export class BreakoutRoomStore extends SimpleInterval {
 
   lockCamera() {
     this.cameraLock = true
-    console.log('[demo] lockCamera ')
+    BizLogger.info('[demo] lockCamera ')
   }
 
   unLockCamera() {
     this.cameraLock = false
-    console.log('[demo] unlockCamera ')
+    BizLogger.info('[demo] unlockCamera ')
   }
 
   @action
   async muteLocalCamera() {
     if (this.cameraLock) {
-      return console.warn('[demo] openCamera locking')
+      return BizLogger.warn('[demo] openCamera locking')
     }
-    console.log('[demo] [local] muteLocalCamera')
+    BizLogger.info('[demo] [local] muteLocalCamera')
     if (this._cameraRenderer) {
       await this.closeCamera()
       this.unLockCamera()
@@ -462,9 +463,9 @@ export class BreakoutRoomStore extends SimpleInterval {
 
   @action 
   async unmuteLocalCamera() {
-    console.log('[demo] [local] unmuteLocalCamera')
+    BizLogger.info('[demo] [local] unmuteLocalCamera')
     if (this.cameraLock) {
-      return console.warn('[demo] [mic lock] unmuteLocalCamera')
+      return BizLogger.warn('[demo] [mic lock] unmuteLocalCamera')
     }
     await this.openCamera()
     await this.roomManager?.userService.updateMainStreamState({'videoState': true})
@@ -472,9 +473,9 @@ export class BreakoutRoomStore extends SimpleInterval {
 
   @action
   async muteLocalMicrophone() {
-    console.log('[demo] [local] muteLocalMicrophone')
+    BizLogger.info('[demo] [local] muteLocalMicrophone')
     if (this.microphoneLock) {
-      return console.warn('[demo] [mic lock] muteLocalMicrophone')
+      return BizLogger.warn('[demo] [mic lock] muteLocalMicrophone')
     }
     await this.closeMicrophone()
     this.unLockMicrophone()
@@ -483,9 +484,9 @@ export class BreakoutRoomStore extends SimpleInterval {
 
   @action 
   async unmuteLocalMicrophone() {
-    console.log('[demo] [local] unmuteLocalMicrophone')
+    BizLogger.info('[demo] [local] unmuteLocalMicrophone')
     if (this.microphoneLock) {
-      return console.warn('[demo] [mic lock] unmuteLocalMicrophone')
+      return BizLogger.warn('[demo] [mic lock] unmuteLocalMicrophone')
     }
     await this.openMicrophone()
     await this.roomManager?.userService.updateMainStreamState({'audioState': true})
@@ -495,21 +496,21 @@ export class BreakoutRoomStore extends SimpleInterval {
 
   lockMicrophone() {
     this.microphoneLock = true
-    console.log('[demo] lockMicrophone ')
+    BizLogger.info('[demo] lockMicrophone ')
   }
 
   unLockMicrophone() {
     this.microphoneLock = false
-    console.log('[demo] unLockMicrophone ')
+    BizLogger.info('[demo] unLockMicrophone ')
   }
   @action
   async openMicrophone() {
     if (this._microphoneTrack) {
-      return console.warn('[demo] Microphone already exists')
+      return BizLogger.warn('[demo] Microphone already exists')
     }
 
     if (this.microphoneLock) {
-      return console.warn('[demo] openMicrophone locking 1')
+      return BizLogger.warn('[demo] openMicrophone locking 1')
     }
     this.lockMicrophone()
     try {
@@ -517,20 +518,20 @@ export class BreakoutRoomStore extends SimpleInterval {
       await this.mediaService.openMicrophone({deviceId})
       this._microphoneTrack = this.mediaService.microphoneTrack
       this.microphoneLabel = this.mediaService.getMicrophoneLabel()
-      console.log('[breakout-demo] action in openMicrophone >>> openMicrophone')
+      BizLogger.info('[breakout-demo] action in openMicrophone >>> openMicrophone')
       this._microphoneId = this.microphoneId
       this.unLockMicrophone()
     } catch (err) {
       this.unLockMicrophone()
-      console.log('[demo] action in openMicrophone >>> openMicrophone')
-      console.warn(err)
+      BizLogger.info('[demo] action in openMicrophone >>> openMicrophone')
+      BizLogger.warn(err)
       throw err
     }
   }
 
   @action
   async closeMicrophone() {
-    if (this.microphoneLock) return console.warn('[demo] closeMicrophone microphone is locking')
+    if (this.microphoneLock) return BizLogger.warn('[demo] closeMicrophone microphone is locking')
     await this.mediaService.closeMicrophone()
     this.resetMicrophoneTrack()
   }
@@ -588,8 +589,8 @@ export class BreakoutRoomStore extends SimpleInterval {
         uid: +this.largeClassroomManager?.userService.screenStream.stream.streamUuid,
         token: this.largeClassroomManager?.userService.screenStream.token,
       }
-      console.log("screenStreamData params ", params)
-      console.log("screenStreamData ", this.largeClassroomManager?.userService.screenStream)
+      BizLogger.info("screenStreamData params ", params)
+      BizLogger.info("screenStreamData ", this.largeClassroomManager?.userService.screenStream)
 
       await this.mediaService.startScreenShare({
         params
@@ -610,8 +611,8 @@ export class BreakoutRoomStore extends SimpleInterval {
           this.appStore.uiStore.addToast(t('toast.failed_to_enable_screen_sharing') + ` code: ${err.code}, msg: ${err.msg}`)
         }
       }
-      console.log('SCREEN-SHARE ERROR ', err)
-      console.error(err)
+      BizLogger.info('SCREEN-SHARE ERROR ', err)
+      BizLogger.info(err)
     } finally {
       this.waitingShare = false
     }
@@ -722,10 +723,10 @@ export class BreakoutRoomStore extends SimpleInterval {
           fromRoomName: '',
           fromRoomUuid: fromRoomUuid
         })
-        console.log('[chat-message] teacher sent', fromRoomUuid, ' isMain ', fromRoomUuid ? 'true' : 'false')
+        BizLogger.info('[chat-message] teacher sent', fromRoomUuid, ' isMain ', fromRoomUuid ? 'true' : 'false')
       } catch (err) {
         this.appStore.uiStore.addToast(t('toast.failed_to_send_chat'))
-        console.warn(err)
+        BizLogger.warn(err)
       }
     }
 
@@ -750,10 +751,10 @@ export class BreakoutRoomStore extends SimpleInterval {
           fromRoomName: this.groupClassroomManager?.roomName || '',
           fromRoomUuid: fromRoomUuid,
         })
-        console.log('[chat-message] assistant sent', fromRoomUuid)
+        BizLogger.info('[chat-message] assistant sent', fromRoomUuid)
       } catch (err) {
         this.appStore.uiStore.addToast(t('toast.failed_to_send_chat'))
-        console.warn(err)
+        BizLogger.warn(err)
       }
     }
   }
@@ -783,10 +784,10 @@ export class BreakoutRoomStore extends SimpleInterval {
           fromRoomName: this.groupClassroomManager?.roomName || '',
           fromRoomUuid: fromRoomUuid,
         })
-        console.log('[chat-message] student sent', fromRoomUuid)
+        BizLogger.info('[chat-message] student sent', fromRoomUuid)
       } catch (err) {
         this.appStore.uiStore.addToast(t('toast.failed_to_send_chat'))
-        console.warn(err)
+        BizLogger.warn(err)
       }
     }
   }
@@ -920,7 +921,7 @@ export class BreakoutRoomStore extends SimpleInterval {
     const breakoutRoomStore = this
     const hash = evt.currentTarget.location.hash
     const isClass = hash.match(/\/assistant\/courses\/\S+/)
-    console.log("[popstate] isClass", isClass, hash)
+    BizLogger.info("[popstate] isClass", isClass, hash)
     if (isClass) {
       if (breakoutRoomStore.joinedGroup && !uiStore.hasDialog('exitRoom')) {
         uiStore.showDialog({
@@ -946,7 +947,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       this.joiningRTC = true
     } catch (err) {
       this.appStore.uiStore.addToast(t('toast.failed_to_join_rtc_please_refresh_and_try_again'))
-      console.warn(err)
+      BizLogger.warn(err)
       throw err
     }
   }
@@ -954,14 +955,14 @@ export class BreakoutRoomStore extends SimpleInterval {
   @action
   async joinRtcAsStudent(args: any) {
     try {
-      console.log('[breakout] ', args)
+      BizLogger.info('[breakout] ', args)
       if (!this.mediaService.isWeb) throw 'electron not supported'
       await this.mediaService.join(args.studentChannel)
       this.mediaGroup = await this.mediaService.web.joinChannel(args.teacherChannel)
       this.joiningRTC = true
     } catch (err) {
       this.appStore.uiStore.addToast(t('toast.failed_to_join_rtc_please_refresh_and_try_again'))
-      console.warn(err)
+      BizLogger.warn(err)
       throw err
     }
   }
@@ -975,7 +976,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       this.joiningRTC = true
     } catch (err) {
       this.appStore.uiStore.addToast(t('toast.failed_to_join_rtc_please_refresh_and_try_again'))
-      console.warn(err)
+      BizLogger.warn(err)
       throw err
     }
   }
@@ -988,7 +989,7 @@ export class BreakoutRoomStore extends SimpleInterval {
         await this.mediaGroup?.leave()
         this.mediaGroup.removeAllListeners()
         this.mediaGroup = null as any
-        console.log("[rtc] mediaGroup success")
+        BizLogger.info("[rtc] mediaGroup success")
       }
       if (this.mediaService) {
         // await this.closeCamera()
@@ -999,7 +1000,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       this.appStore.reset()
     } catch (err) {
       this.appStore.uiStore.addToast(t('toast.failed_to_leave_rtc'))
-      console.warn(err)
+      BizLogger.warn(err)
       throw err;
     }
   }
@@ -1042,7 +1043,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       try {
         return JSON.parse(str)
       } catch(err) {
-        console.warn(err)
+        BizLogger.warn(err)
         return null
       }
     }
@@ -1052,15 +1053,15 @@ export class BreakoutRoomStore extends SimpleInterval {
           return
         }
         try {
-          console.log('[rtm] user-message', evt)
+          BizLogger.info('[rtm] user-message', evt)
           const fromUserUuid = evt.message.fromUser.userUuid
           const fromUserName = evt.message.fromUser.userName
           const msg = decodeMsg(evt.message.message)
-          console.log("user-message", msg)
+          BizLogger.info("user-message", msg)
           if (msg) {
             const {cmd, data} = msg
             const {type, userName} = data
-            console.log("data", data)
+            BizLogger.info("data", data)
             this.showNotice(type as PeerInviteEnum, fromUserUuid)
             if (type === PeerInviteEnum.studentApply) {
               this.showDialog(fromUserName)
@@ -1072,7 +1073,7 @@ export class BreakoutRoomStore extends SimpleInterval {
                 this.appStore.uiStore.addToast(t('toast.co_video_close_success'))
               } catch (err) {
                 this.appStore.uiStore.addToast(t('toast.co_video_close_failed'))
-                console.warn(err)
+                BizLogger.warn(err)
               }
             }
             if (type === PeerInviteEnum.teacherAccept 
@@ -1080,7 +1081,7 @@ export class BreakoutRoomStore extends SimpleInterval {
               try {
                 await this.prepareCamera()
                 await this.prepareMicrophone()
-                console.log("propertys ", this._hasCamera, this._hasMicrophone)
+                BizLogger.info("propertys ", this._hasCamera, this._hasMicrophone)
                 if (this._hasCamera) {
                   await this.openCamera()
                 }
@@ -1089,15 +1090,15 @@ export class BreakoutRoomStore extends SimpleInterval {
                   await this.openMicrophone()
                 }
               } catch (err) {
-                console.warn('published failed', err) 
+                BizLogger.warn('published failed', err) 
                 throw err
               }
               this.appStore.uiStore.addToast(t('toast.publish_rtc_success'))
             }
           }
         } catch (err) {
-          console.error(`[demo] [breakout] user-message async handler failed`)
-          console.error(err)
+          BizLogger.error(`[demo] [breakout] user-message async handler failed`)
+          BizLogger.error(err)
         }
       })
     })
@@ -1109,7 +1110,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       roomName: this.roomInfo.roomName
     })
     roomManager.on('seqIdChanged', (evt: any) => {
-      console.log("seqIdChanged", evt)
+      BizLogger.info("seqIdChanged", evt)
       if (this.roomInfo.userRole === 'teacher') {
         this.appStore.uiStore.updateCurSeqId(evt.curSeqId)
         this.appStore.uiStore.updateLastSeqId(evt.latestSeqId)
@@ -1118,12 +1119,12 @@ export class BreakoutRoomStore extends SimpleInterval {
     // 本地用户更新
     roomManager.on('local-user-updated', (evt: any) => {
       this.teacherRoomUserList =roomManager.getFullUserList()
-      console.log("local-user-updated", evt)
+      BizLogger.info("local-user-updated", evt)
     })
     // 本地流加入
     // roomManager.on('local-stream-added', (evt: any) => {
     //   this.teacherRoomStreamList = roomManager.getFullStreamList()
-    //   console.log("local-stream-added", evt)
+    //   BizLogger.info("local-stream-added", evt)
     // })
     // 本地流更新
     roomManager.on('local-stream-updated', async (evt: any) => {
@@ -1135,12 +1136,12 @@ export class BreakoutRoomStore extends SimpleInterval {
           if (this.roomInfo.userRole !== 'teacher') return
           if (evt.type === 'main') {
             const localStream = roomManager.getLocalStreamData()
-            console.log("[demo] [breakout] largeClassroom local-stream-updated# localStream ", localStream, this.joiningRTC)
+            BizLogger.info("[demo] [breakout] largeClassroom local-stream-updated# localStream ", localStream, this.joiningRTC)
             if (localStream && localStream.state !== 0) {
               this._cameraEduStream = localStream.stream
               await this.prepareCamera()
               await this.prepareMicrophone()
-              console.log("[demo] [breakout] largeClassroom this._cameraEduStream", this._cameraEduStream)
+              BizLogger.info("[demo] [breakout] largeClassroom this._cameraEduStream", this._cameraEduStream)
               if (this.joiningRTC) {
                 if (this._hasCamera) {
                   if (this.cameraEduStream.hasVideo) {
@@ -1158,27 +1159,27 @@ export class BreakoutRoomStore extends SimpleInterval {
                 }
               }
             } else {
-              console.log("[demo] [breakout] largeClassroom reset camera edu stream", localStream, localStream && localStream.state)
+              BizLogger.info("[demo] [breakout] largeClassroom reset camera edu stream", localStream, localStream && localStream.state)
               this._cameraEduStream = undefined
             }
           }
   
           if (evt.type === 'screen') {
             const screenStream = roomManager.getLocalScreenData()
-            console.log("[demo] [breakout] largeClassroom getLocalScreenData#screenStream ", screenStream)
+            BizLogger.info("[demo] [breakout] largeClassroom getLocalScreenData#screenStream ", screenStream)
             if (screenStream && screenStream.state !== 0) {
               this._screenEduStream = screenStream.stream
               this.sharing = true
             } else {
-              console.log("reset screen edu stream", screenStream, screenStream && screenStream.state)
+              BizLogger.info("reset screen edu stream", screenStream, screenStream && screenStream.state)
               this._screenEduStream = undefined
               this.sharing = false
             }
           }
-          console.log("[demo] [breakout] largeClassroom# local-stream-updated", evt)
+          BizLogger.info("[demo] [breakout] largeClassroom# local-stream-updated", evt)
         } catch (err) {
-          console.error('[demo] [breakout] largeClassroom# local-stream-updated ', err.msg)
-          console.error(err)
+          BizLogger.error('[demo] [breakout] largeClassroom# local-stream-updated ', err.msg)
+          BizLogger.error(err)
         }
       })
     })
@@ -1195,10 +1196,10 @@ export class BreakoutRoomStore extends SimpleInterval {
             await this.closeCamera()
             await this.closeMicrophone()
           }
-          console.log("local-stream-removed", evt)
+          BizLogger.info("local-stream-removed", evt)
         } catch (err) {
-          console.error('[demo] [breakout] LargeClassroom# local-stream-removed ', err.msg)
-          console.error(err)
+          BizLogger.error('[demo] [breakout] LargeClassroom# local-stream-removed ', err.msg)
+          BizLogger.error(err)
         }
       })
     })
@@ -1207,21 +1208,21 @@ export class BreakoutRoomStore extends SimpleInterval {
       runInAction(() => {
         this.teacherRoomUserList =roomManager.getFullUserList()
       })
-      console.log("remote-user-added", evt)
+      BizLogger.info("remote-user-added", evt)
     })
     // 远端人更新
     roomManager.on('remote-user-updated', (evt: any) => {
       runInAction(() => {
         this.teacherRoomUserList =roomManager.getFullUserList()
       })
-      console.log("remote-user-updated", evt)
+      BizLogger.info("remote-user-updated", evt)
     })
     // 远端人移除
     roomManager.on('remote-user-removed', (evt: any) => {
       runInAction(() => {
         this.teacherRoomUserList =roomManager.getFullUserList()
       })
-      console.log("remote-user-removed", evt)
+      BizLogger.info("remote-user-removed", evt)
     })
     // 远端流加入
     roomManager.on('remote-stream-added', (evt: any) => {
@@ -1235,7 +1236,7 @@ export class BreakoutRoomStore extends SimpleInterval {
           }
         }
       })
-      console.log("remote-stream-added", evt)
+      BizLogger.info("remote-stream-added", evt)
     })
     // 远端流移除
     roomManager.on('remote-stream-removed', (evt: any) => {
@@ -1249,7 +1250,7 @@ export class BreakoutRoomStore extends SimpleInterval {
           }
         }
       })
-      console.log("remote-stream-removed", evt)
+      BizLogger.info("remote-stream-removed", evt)
     })
     // 远端流更新
     roomManager.on('remote-stream-updated', (evt: any) => {
@@ -1263,11 +1264,11 @@ export class BreakoutRoomStore extends SimpleInterval {
           }
         }
       })
-      console.log("remote-stream-updated", evt)
+      BizLogger.info("remote-stream-updated", evt)
     })
     // 教室更新
     roomManager.on('classroom-property-updated', (classroom: any) => {
-      console.log("classroom-property-updated", classroom)
+      BizLogger.info("classroom-property-updated", classroom)
       const groups = get(classroom, 'roomProperties.groups')
       if (groups) {
         this._courseList = groups
@@ -1316,7 +1317,7 @@ export class BreakoutRoomStore extends SimpleInterval {
     })
     // teacher room manager
     roomManager.on('room-chat-message', (evt: any) => {
-      console.log('[teacher] room-chat-message ', JSON.stringify(evt))
+      BizLogger.info('[teacher] room-chat-message ', JSON.stringify(evt))
       const {textMessage} = evt;
       const message = textMessage as EduTextMessage
       const payload = JSON.parse(message.message)
@@ -1355,7 +1356,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       'assistant': 'assistant'
     }
 
-    console.log("[rules] current Role", roles[userRole])
+    BizLogger.info("[rules] current Role", roles[userRole])
 
     await roomManager.join({
       userRole: roles[userRole],
@@ -1404,7 +1405,7 @@ export class BreakoutRoomStore extends SimpleInterval {
     }
 
     roomManager.on('seqIdChanged', (evt: any) => {
-      // console.log("[student] seqIdChanged", evt)
+      // BizLogger.info("[student] seqIdChanged", evt)
       if (this.roomInfo.userRole === 'student') {
         this.appStore.uiStore.updateCurSeqId(evt.curSeqId)
         this.appStore.uiStore.updateLastSeqId(evt.latestSeqId)
@@ -1413,12 +1414,12 @@ export class BreakoutRoomStore extends SimpleInterval {
     // 本地用户更新
     roomManager.on('local-user-updated', (evt: any) => {
       this.teacherRoomUserList = roomManager.getFullUserList()
-      console.log('[student] local-user-updated', evt)
+      BizLogger.info('[student] local-user-updated', evt)
     })
     // 本地流加入
     // roomManager.on('local-stream-added', (evt: any) => {
     //   this.teacherRoomStreamList = roomManager.getFullStreamList()
-    //   console.log("local-stream-added", evt)
+    //   BizLogger.info("local-stream-added", evt)
     // })
     // 本地流更新
     roomManager.on('local-stream-updated', async (evt: any) => {
@@ -1430,13 +1431,13 @@ export class BreakoutRoomStore extends SimpleInterval {
           if (this.roomInfo.userRole !== 'student') return
           if (evt.type === 'main') {
             const localStream = roomManager.getLocalStreamData()
-            console.log("[demo] [breakout] [student] local-stream-updated# localStream ", localStream, this.joiningRTC)
+            BizLogger.info("[demo] [breakout] [student] local-stream-updated# localStream ", localStream, this.joiningRTC)
             if (localStream && localStream.state !== 0) {
               this._cameraEduStream = localStream.stream
 
               await this.prepareCamera()
               await this.prepareMicrophone()
-              console.log("[demo] [breakout] [student] this._cameraEduStream", this._cameraEduStream)
+              BizLogger.info("[demo] [breakout] [student] this._cameraEduStream", this._cameraEduStream)
               if (this.joiningRTC) {
                 if (this._hasCamera) {
                   if (this.cameraEduStream.hasVideo) {
@@ -1454,7 +1455,7 @@ export class BreakoutRoomStore extends SimpleInterval {
                 }
               }
             } else {
-              console.log("[demo] [breakout] [student] reset camera edu stream", localStream, localStream && localStream.state)
+              BizLogger.info("[demo] [breakout] [student] reset camera edu stream", localStream, localStream && localStream.state)
               this._cameraEduStream = undefined
             }
           }
@@ -1462,21 +1463,21 @@ export class BreakoutRoomStore extends SimpleInterval {
           if (evt.type === 'screen') {
             // if (this.roomInfo.userRole === 'teacher') {
             const screenStream = roomManager.getLocalScreenData()
-            console.log("[demo] [breakout] [student] getLocalScreenData#screenStream ", screenStream)
+            BizLogger.info("[demo] [breakout] [student] getLocalScreenData#screenStream ", screenStream)
             if (screenStream && screenStream.state !== 0) {
               this._screenEduStream = screenStream.stream
               this.sharing = true
             } else {
-              console.log("[demo] [breakout] [student] reset screen edu stream", screenStream, screenStream && screenStream.state)
+              BizLogger.info("[demo] [breakout] [student] reset screen edu stream", screenStream, screenStream && screenStream.state)
               this._screenEduStream = undefined
               this.sharing = false
             }
             // }
           }
-          console.log("[demo] [breakout] [student] local-stream-updated", evt)
+          BizLogger.info("[demo] [breakout] [student] local-stream-updated", evt)
         } catch (err) {
-          console.error('[demo] [breakout] [student] Classroom# local-stream-updated ', err.msg)
-          console.error(err)
+          BizLogger.error('[demo] [breakout] [student] Classroom# local-stream-updated ', err.msg)
+          BizLogger.error(err)
         }
       })
     })
@@ -1493,10 +1494,10 @@ export class BreakoutRoomStore extends SimpleInterval {
             await this.closeCamera()
             await this.closeMicrophone()
           }
-          console.log("[demo] [breakout] [student] local-stream-removed", evt)
+          BizLogger.info("[demo] [breakout] [student] local-stream-removed", evt)
         } catch (err) {
-          console.error('[demo] [breakout] [student] Classroom# local-stream-removed ', err.msg)
-          console.error(err)
+          BizLogger.error('[demo] [breakout] [student] Classroom# local-stream-removed ', err.msg)
+          BizLogger.error(err)
         }
       })
     })
@@ -1505,46 +1506,46 @@ export class BreakoutRoomStore extends SimpleInterval {
       runInAction(() => {
         this.studentRoomUserList  = roomManager.getFullUserList()
       })
-      console.log('[student] remote-stream-added', evt)
+      BizLogger.info('[student] remote-stream-added', evt)
     })
     // 远端人更新
     roomManager.on('remote-user-updated', (evt: any) => {
       runInAction(() => {
         this.studentRoomUserList  = roomManager.getFullUserList()
       })
-      console.log('[student] remote-stream-updated', evt)
+      BizLogger.info('[student] remote-stream-updated', evt)
     })
     // 远端人移除
     roomManager.on('remote-user-removed', (evt: any) => {
       runInAction(() => {
         this.studentRoomUserList  = roomManager.getFullUserList()
       })
-      console.log('[student] remote-stream-removed', evt)
+      BizLogger.info('[student] remote-stream-removed', evt)
     })
     // 远端流加入
     roomManager.on('remote-stream-added', (evt: any) => {
       runInAction(() => {
         this.studentRoomStreamList = roomManager.getFullStreamList()
       })
-      console.log('[student] remote-stream-added', evt)
+      BizLogger.info('[student] remote-stream-added', evt)
     })
     // 远端流移除
     roomManager.on('remote-stream-removed', (evt: any) => {
       runInAction(() => {
         this.studentRoomStreamList = roomManager.getFullStreamList()
       })
-      console.log('[student] remote-stream-removed', evt)
+      BizLogger.info('[student] remote-stream-removed', evt)
     })
     // 远端流更新
     roomManager.on('remote-stream-updated', (evt: any) => {
       runInAction(() => {
         this.studentRoomStreamList = roomManager.getFullStreamList()
       })
-      console.log('[student] remote-stream-updated', evt)
+      BizLogger.info('[student] remote-stream-updated', evt)
     })
     // student room manager
     roomManager.on('room-chat-message', (evt: any) => {
-      console.log('[student] room-chat-message ', JSON.stringify(evt))
+      BizLogger.info('[student] room-chat-message ', JSON.stringify(evt))
       const {textMessage} = evt;
       const message = textMessage as EduTextMessage
 
@@ -1567,7 +1568,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       userUuid: `${this.userUuid}`,
       autoPublish: true,
     })
-    console.log('EDU-STATE #EduClassroomManager#join ', JSON.stringify(roomManager.getClassroomInfo()))
+    BizLogger.info('EDU-STATE #EduClassroomManager#join ', JSON.stringify(roomManager.getClassroomInfo()))
     return roomManager
   }
 
@@ -1588,17 +1589,17 @@ export class BreakoutRoomStore extends SimpleInterval {
       roomName: `${this.roomInfo.roomName}`,
       roomType: +this.roomInfo.roomType as number,
     })
-    console.log('[breakout] uuid', this.userUuid)
+    BizLogger.info('[breakout] uuid', this.userUuid)
     this.handlePeerMessage()
     await this.eduManager.login(this.userUuid)
-    console.log('[breakout] login succeed', this.userUuid)
+    BizLogger.info('[breakout] login succeed', this.userUuid)
     const roomManager = await this.prepareLargeClassroom(roomUuid, role)
-    console.log('[breakout] prepareLargeClassroom succeed')
+    BizLogger.info('[breakout] prepareLargeClassroom succeed')
     if (['student'].includes(role)) {
       let groupData = await this.prepareGroup(roomUuid, roomManager.userToken)
       const studentRoomManager = await this.prepareStudentClassroom(groupData.roomUuid, groupData.roomName, role)
       this.appStore.groupClassroomManager = studentRoomManager
-      console.log('[breakout] prepareStudentClassroom succeed')
+      BizLogger.info('[breakout] prepareStudentClassroom succeed')
     }
     this.appStore.roomManager = roomManager
     const roomInfo = this.largeClassroomManager.getClassroomInfo()
@@ -1610,21 +1611,21 @@ export class BreakoutRoomStore extends SimpleInterval {
   async joinAsStudent() {
     try {
       await this.prepareClassroom(this.roomInfo.userRole)
-      console.log('[breakout] joinAsStudent')
+      BizLogger.info('[breakout] joinAsStudent')
       const groupManager = this.groupClassroomManager
       const largeRoomManager = this.largeClassroomManager
-      console.log('[breakout] groupManager', groupManager)
+      BizLogger.info('[breakout] groupManager', groupManager)
       this.appStore._boardService = new EduBoardService(largeRoomManager.userToken, largeRoomManager.roomUuid)
-      console.log('[breakout whiteboard] invoke init')
+      BizLogger.info('[breakout whiteboard] invoke init')
       await this.appStore.boardStore.init()
-      console.log('[breakout whiteboard] after invoke init')
+      BizLogger.info('[breakout whiteboard] after invoke init')
       this.appStore._recordService = new EduRecordService(largeRoomManager.userToken)
       const mainStream = groupManager.data.streamMap['main']
       const largeRoomMainStream = largeRoomManager.data.streamMap['main']
       const roomInfo = this.largeClassroomManager.getClassroomInfo()
       const groupRoom = groupManager.getClassroomInfo()
 
-      console.log('[breakout], groupRoom', groupRoom, ' roomInfo ', roomInfo)
+      BizLogger.info('[breakout], groupRoom', groupRoom, ' roomInfo ', roomInfo)
   
       const localStreamData = groupManager.data.localStreamData
       await groupManager.userService.publishStream({
@@ -1676,7 +1677,7 @@ export class BreakoutRoomStore extends SimpleInterval {
         }
       } catch (err) {
         this.appStore.uiStore.addToast(t('toast.media_method_call_failed') + `: ${err.msg}`)
-        console.warn(err)
+        BizLogger.warn(err)
       }
     
       const roomProperties = groupManager.getClassroomInfo().roomProperties
@@ -1691,7 +1692,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       this.studentRoomStreamList = groupManager.getFullStreamList()
       this.teacherRoomStreamList = largeRoomManager.getFullStreamList()
     } catch (err) {
-      console.error(err)
+      BizLogger.error(err)
       throw err
     }
   }
@@ -1699,16 +1700,16 @@ export class BreakoutRoomStore extends SimpleInterval {
   @action
   async joinAsTeacher() {
     await this.prepareClassroom(this.roomInfo.userRole)
-    console.log('[breakout] classroom as teacher')
+    BizLogger.info('[breakout] classroom as teacher')
     const roomManager = this.largeClassroomManager
     this.appStore._boardService = new EduBoardService(roomManager.userToken, roomManager.roomUuid)
-    console.log('[breakout whiteboard] invoke init')
+    BizLogger.info('[breakout whiteboard] invoke init')
     await this.appStore.boardStore.init()
-    console.log('[breakout whiteboard] after invoke init')
+    BizLogger.info('[breakout whiteboard] after invoke init')
     this.appStore._recordService = new EduRecordService(roomManager.userToken)
     const mainStream = roomManager.data.streamMap['main']
     const roomInfo = this.largeClassroomManager.getClassroomInfo()
-    console.log("[breakout] joinAsTeacher ", JSON.stringify({mainStream, roomInfo}))
+    BizLogger.info("[breakout] joinAsTeacher ", JSON.stringify({mainStream, roomInfo}))
     await this.joinRtcAsTeacher({
       uid: +mainStream.streamUuid,
       channel: roomInfo.roomInfo.roomUuid,
@@ -1717,7 +1718,7 @@ export class BreakoutRoomStore extends SimpleInterval {
 
     const localStreamData = roomManager.data.localStreamData
   
-    console.log("localStreamData", localStreamData)
+    BizLogger.info("localStreamData", localStreamData)
     await roomManager.userService.publishStream({
       videoSourceType: EduVideoSourceType.camera,
       audioSourceType: EduAudioSourceType.mic,
@@ -1746,7 +1747,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       }
     } catch (err) {
       this.appStore.uiStore.addToast(t('toast.media_method_call_failed') + `: ${err.msg}`)
-      console.warn(err)
+      BizLogger.warn(err)
     }
 
     const roomProperties = roomManager.getClassroomInfo().roomProperties
@@ -1774,13 +1775,13 @@ export class BreakoutRoomStore extends SimpleInterval {
       roomName: `${this.roomInfo.roomName}`,
       roomType: +this.roomInfo.roomType as number,
     })
-    console.log('[breakout] uuid', this.userUuid)
+    BizLogger.info('[breakout] uuid', this.userUuid)
     this.handlePeerMessage()
     await this.eduManager.login(this.userUuid)
-    console.log('[breakout] login succeed', this.userUuid)
+    BizLogger.info('[breakout] login succeed', this.userUuid)
     const role = this.roomInfo.userRole
     const roomManager = await this.prepareLargeClassroom(roomUuid, role)
-    console.log('[breakout] prepareLargeClassroom succeed')
+    BizLogger.info('[breakout] prepareLargeClassroom succeed')
     this.appStore.roomManager = roomManager
   }
 
@@ -1817,7 +1818,7 @@ export class BreakoutRoomStore extends SimpleInterval {
   @action
   async joinAsAssistant(groupUuid: string, groupName: string) {
     try {
-      console.log("[breakout] joinAsAssistant ", JSON.stringify({groupUuid, groupName}))
+      BizLogger.info("[breakout] joinAsAssistant ", JSON.stringify({groupUuid, groupName}))
       if (!this.largeClassroomManager) {
         await this.assistantJoinLargeClassroom()
       }
@@ -1825,7 +1826,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       this.currentStudentRoomUuid = groupUuid
       this.joinedGroup = true
     } catch (err) {
-      console.warn(err)
+      BizLogger.warn(err)
       throw err
     }
   }
@@ -1906,7 +1907,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       this.appStore.uiStore.updateCurSeqId(0)
       this.appStore.uiStore.updateLastSeqId(0)
     } catch (err) {
-      console.warn(err)
+      BizLogger.warn(err)
       throw err
     }
   }
@@ -1914,14 +1915,14 @@ export class BreakoutRoomStore extends SimpleInterval {
   @action
   async joinGroupAsAssistant(courseName: string, groupName: string) {
     try {
-      console.log('[assistant] ', courseName, groupName)
+      BizLogger.info('[assistant] ', courseName, groupName)
       await this.assistantJoinGroupClassroomByCourse(courseName, groupName)
       const groupManager = this.groupClassroomManager
       const largeRoomManager = this.largeClassroomManager
       this.appStore._boardService = new EduBoardService(largeRoomManager.userToken, largeRoomManager.roomUuid)
-      console.log('[breakout whiteboard] invoke init')
+      BizLogger.info('[breakout whiteboard] invoke init')
       await this.appStore.boardStore.init()
-      console.log('[breakout whiteboard] after invoke init')
+      BizLogger.info('[breakout whiteboard] after invoke init')
       this.appStore._recordService = new EduRecordService(largeRoomManager.userToken)
       const mainStream = groupManager.data.streamMap['main']
       const largeRoomMainStream = largeRoomManager.data.streamMap['main']
@@ -1941,7 +1942,7 @@ export class BreakoutRoomStore extends SimpleInterval {
         }
       }
   
-      console.log("[breakout] joinRtcAsAssistant ", JSON.stringify(config), " largeRoomMainStream ", JSON.stringify(largeRoomMainStream), " groupRoom ", JSON.stringify(groupRoom.roomInfo), " mainStream ", JSON.stringify(mainStream))
+      BizLogger.info("[breakout] joinRtcAsAssistant ", JSON.stringify(config), " largeRoomMainStream ", JSON.stringify(largeRoomMainStream), " groupRoom ", JSON.stringify(groupRoom.roomInfo), " mainStream ", JSON.stringify(mainStream))
       await this.joinRtcAsAssistant(config)
       
       const roomProperties = groupManager.getClassroomInfo().roomProperties
@@ -1962,7 +1963,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       this.studentRoomStreamList = groupManager.getFullStreamList()
       this.teacherRoomStreamList = largeRoomManager.getFullStreamList()
     } catch (err) {
-      console.error(err)
+      BizLogger.error(err)
       throw err
     }
   }
@@ -2142,7 +2143,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       }
     , [])
 
-    console.log('[rtm] streamList', streamList)
+    BizLogger.info('[rtm] streamList', streamList)
 
     const localUser = this.localUser
 
@@ -2183,7 +2184,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       // this.appStore.uiStore.reset()
     } catch (err) {
       this.reset()
-      console.error(err)
+      BizLogger.error(err)
     }
   }
 
@@ -2209,7 +2210,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       // this.appStore.uiStore.reset()
     } catch (err) {
       this.reset()
-      console.error(err)
+      BizLogger.error(err)
     }
   }
 
@@ -2220,7 +2221,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       // this.classState = true
       this.appStore.uiStore.addToast(t('toast.course_started_successfully'))
     } catch (err) {
-      console.log(err)
+      BizLogger.info(err)
       this.appStore.uiStore.addToast(t('toast.setting_start_failed'))
     }
   }
@@ -2232,7 +2233,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       // this.classState = false
       this.appStore.uiStore.addToast(t('toast.the_course_ends_successfully'))
     } catch (err) {
-      console.log(err)
+      BizLogger.info(err)
       this.appStore.uiStore.addToast(t('toast.setting_ended_failed'))
     }
   }
@@ -2416,9 +2417,9 @@ export class BreakoutRoomStore extends SimpleInterval {
   async muteAudio(userUuid: string, isLocal: boolean, userRole: string) {
     if (userRole === 'teacher') {
       if (isLocal) {
-        console.log('before muteLocalAudio', this.microphoneLock)
+        BizLogger.info('before muteLocalAudio', this.microphoneLock)
         await this.muteLocalMicrophone()
-        console.log('after muteLocalAudio', this.microphoneLock)
+        BizLogger.info('after muteLocalAudio', this.microphoneLock)
       } else {
         const targetStream = this.streamList.find((it: EduStream) => it.userInfo.userUuid === userUuid)
         await this.largeClassroomManager?.userService.remoteStopStudentMicrophone(targetStream as EduStream)
@@ -2429,9 +2430,9 @@ export class BreakoutRoomStore extends SimpleInterval {
   async unmuteAudio(userUuid: string, isLocal: boolean, userRole: string) {
     if (userRole === 'teacher') {
       if (isLocal) {
-        console.log('before unmuteLocalMicrophone', this.microphoneLock)
+        BizLogger.info('before unmuteLocalMicrophone', this.microphoneLock)
         await this.unmuteLocalMicrophone()
-        console.log('after unmuteLocalMicrophone', this.microphoneLock)
+        BizLogger.info('after unmuteLocalMicrophone', this.microphoneLock)
       } else {
         const stream = this.getStreamBy(userUuid)
         const targetStream = this.streamList.find((it: EduStream) => it.userInfo.userUuid === userUuid)
@@ -2442,9 +2443,9 @@ export class BreakoutRoomStore extends SimpleInterval {
 
   async muteVideo(userUuid: string, isLocal: boolean, userRole: string) {
     if (isLocal) {
-      console.log('before muteLocalCamera', this.cameraLock)
+      BizLogger.info('before muteLocalCamera', this.cameraLock)
       await this.muteLocalCamera()
-      console.log('after muteLocalCamera', this.cameraLock)
+      BizLogger.info('after muteLocalCamera', this.cameraLock)
     } else {
       const targetStream = this.streamList.find((it: EduStream) => it.userInfo.userUuid === userUuid)
       await this.largeClassroomManager?.userService.remoteStopStudentCamera(targetStream as EduStream)
@@ -2453,9 +2454,9 @@ export class BreakoutRoomStore extends SimpleInterval {
 
   async unmuteVideo(userUuid: string, isLocal: boolean, userRole: string) {
     if (isLocal) {
-      console.log('before unmuteLocalCamera', this.cameraLock)
+      BizLogger.info('before unmuteLocalCamera', this.cameraLock)
       await this.unmuteLocalCamera()
-      console.log('after unmuteLocalCamera', this.cameraLock)
+      BizLogger.info('after unmuteLocalCamera', this.cameraLock)
     } else {
       const stream = this.getStreamBy(userUuid)
       const targetStream = this.streamList.find((it: EduStream) => it.userInfo.userUuid === userUuid)

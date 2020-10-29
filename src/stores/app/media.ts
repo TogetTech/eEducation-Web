@@ -3,6 +3,7 @@ import { debounce } from 'lodash';
 import { t } from '@/i18n';
 import { observable, action, computed } from 'mobx';
 import { LocalUserRenderer } from '@/sdk/education/core/media-service/renderer';
+import { BizLogger } from '@/utils/biz-logger';
 
 const delay = 2000
 
@@ -53,12 +54,12 @@ export class MediaStore {
       this.appStore.updateCpuRate(evt.cpuTotalUsage)
     })
     this.mediaService.on('audio-device-changed', debounce(async (info: any) => {
-      console.log("audio device changed")
+      BizLogger.info("audio device changed")
       this.appStore.uiStore.addToast(t('toast.audio_equipment_has_changed'))
       await this.appStore.deviceStore.init({audio: true})
     }, delay))
     this.mediaService.on('video-device-changed', debounce(async (info: any) => {
-      console.log("video device changed")
+      BizLogger.info("video device changed")
       this.appStore.uiStore.addToast(t('toast.video_equipment_has_changed'))
       await this.appStore.deviceStore.init({video: true})
     }, delay))
@@ -73,7 +74,7 @@ export class MediaStore {
     })
     this.mediaService.on('user-published', (evt: any) => {
       this.remoteUsersRenderer = this.mediaService.remoteUsersRenderer
-      console.log('sdkwrapper update user-pubilshed')
+      BizLogger.info('sdkwrapper update user-pubilshed')
     })
     this.mediaService.on('user-unpublished', (evt: any) => {
       this.remoteUsersRenderer = this.mediaService.remoteUsersRenderer
@@ -86,17 +87,17 @@ export class MediaStore {
       let qualityStr = defaultQuality
       let value = Math.max(downlinkNetworkQuality, uplinkNetworkQuality)
       qualityStr = networkQualityLevel[value]
-      // console.log('[web] network-quality value', value, qualityStr)
+      // BizLogger.info('[web] network-quality value', value, qualityStr)
       // if (downlinkNetworkQuality <= uplinkNetworkQuality) {
       //   qualityStr = networkQualityLevel[downlinkNetworkQuality]
       // } else {
       //   qualityStr = networkQualityLevel[uplinkNetworkQuality]
       // }
       this.updateNetworkQuality(qualityStr || defaultQuality)
-      // console.log('network-quality', evt, qualityStr)
+      // BizLogger.info('network-quality', evt, qualityStr)
     })
     this.mediaService.on('connection-state-change', (evt: any) => {
-      console.log('connection-state-change', JSON.stringify(evt))
+      BizLogger.info('connection-state-change', JSON.stringify(evt))
     })
   }
 

@@ -4,6 +4,7 @@ import { AppStore } from '@/stores/app';
 import { observable, action, computed } from "mobx";
 import { t } from '@/i18n';
 import { PlayerPhase } from 'white-web-sdk';
+import { BizLogger } from '@/utils/biz-logger';
 
 const cdnPrefix = 'https://agora-adc-artifacts.oss-accelerate.aliyuncs.com'
 
@@ -88,30 +89,30 @@ export class ReplayStore {
 
   @action
   async replay($el: HTMLDivElement) {
-    console.log("[replay] replayed", $el);
+    BizLogger.info("[replay] replayed", $el);
     this.boardClient.on('onCatchErrorWhenRender', error => {
-      console.warn('onCatchErrorWhenRender', error)
+      BizLogger.warn('onCatchErrorWhenRender', error)
     })
     this.boardClient.on('onCatchErrorWhenAppendFrame', error => {
-      console.warn('onCatchErrorWhenAppendFrame', error)
+      BizLogger.warn('onCatchErrorWhenAppendFrame', error)
     })
     this.boardClient.on('onPhaseChanged', state => {
       this.updatePhaseState(state)
     })
     this.boardClient.on('onLoadFirstFrame', state => {
       this.loadFirstFrame()
-      console.log('onLoadFirstFrame', state)
+      BizLogger.info('onLoadFirstFrame', state)
     })
     this.boardClient.on('onSliceChanged', () => {
-      console.log('onSliceChanged')
+      BizLogger.info('onSliceChanged')
     })
     this.boardClient.on('onPlayerStateChanged', state => {
-      console.log('onPlayerStateChanged', state)
+      BizLogger.info('onPlayerStateChanged', state)
     })
     this.boardClient.on('onStoppedWithError', error => {
       this.appStore.uiStore.addToast(t('toast.replay_failed'))
       this.setReplayFail(true)
-      console.warn('onStoppedWithError', JSON.stringify(error))
+      BizLogger.warn('onStoppedWithError', JSON.stringify(error))
     })
     this.boardClient.on('onProgressTimeChanged', scheduleTime => {
       this.setCurrentTime(scheduleTime)
@@ -225,7 +226,7 @@ export class ReplayStore {
   @action
   async getCourseRecordBy(roomUuid: string) {
     if (this.recordStatus === 2 && this.mediaUrl) {
-      // console.log("recordStatus changed", roomUuid)
+      // BizLogger.info("recordStatus changed", roomUuid)
       return
     }
     try {
@@ -245,7 +246,7 @@ export class ReplayStore {
         this.endTime = record.endTime
         this.mediaUrl = record.url
         this.currentTime = 0
-        console.log("record", record)
+        BizLogger.info("record", record)
       }
     } catch (err) {
       this.appStore.uiStore.addToast(t('toast.failed_to_query_playback_list') + `${err.msg}`)

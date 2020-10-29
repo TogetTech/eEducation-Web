@@ -1,4 +1,5 @@
 import { getIntlError } from '../services/intl-error-helper';
+import { BizLogger } from './biz-logger';
 
 const FETCH_TIMEOUT = 10000
 
@@ -17,7 +18,7 @@ export async function Fetch (input: RequestInfo, init?: RequestInit, retryCount:
     }
 
     const rescueError = (error: any) => {
-      console.warn(error)
+      BizLogger.warn(error)
       throw error;
     }
 

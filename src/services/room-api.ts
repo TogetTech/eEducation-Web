@@ -2,6 +2,7 @@ import { AgoraFetchParams } from "@/sdk/education/interfaces";
 import { EduRoomType } from "@/sdk/education/core/services/interface.d";
 import { APP_ID, AUTHORIZATION } from "@/utils/config";
 import { HttpClient } from "@/sdk/education/core/utils/http-client";
+import { BizLogger } from "@/utils/biz-logger";
 
 export interface QueryRoomResponseData {
   roomName: string
@@ -89,7 +90,7 @@ export class RoomApi {
       let data = await this.createGroup(roomUuid, memberLimit, userToken)
       return data
     } catch (err) {
-      console.warn('[breakout] ', err)
+      BizLogger.warn('[breakout] ', err)
     }
   }
 
