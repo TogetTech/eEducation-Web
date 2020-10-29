@@ -37,7 +37,7 @@ async function createWindow() {
         submitURL: process.env.REACT_APP_CRASH_REPORT_URL,
         uploadToServer: true,
         extra: {
-          version: '5.3.2'
+          version: '6.0.0'
         }
       });
     }
