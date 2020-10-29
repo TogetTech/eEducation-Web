@@ -3,6 +3,11 @@
 
 declare const REACT_APP_AGORA_APP_SDK_DOMAIN: string;
 declare const REACT_APP_AGORA_APP_SDK_LOG_SECRET: string;
+
+declare interface Window {
+  isElectron: boolean;
+}
+
 interface RtmTextMessage {
   text: string;
   messageType?: 'TEXT';

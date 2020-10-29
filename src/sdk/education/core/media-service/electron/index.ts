@@ -54,6 +54,8 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
 
   subscribedList: number[] = []
 
+  superChannel: any
+
   cameraList: any[] = []
   microphoneList: any[] = []
 
@@ -73,6 +75,7 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
     this.localUid = 0
     this.appId = options.appId
     this.subscribedList = []
+    this.superChannel = {}
     //@ts-ignore
     this.client = options.AgoraRtcEngine
     let ret = this.client.initialize(this.appId)
@@ -296,7 +299,29 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
       this.fire('rtcStats', evt)
     })
   }
-
+  
+  async joinChannel(option: any): Promise<any> {
+    try {
+      this.superChannel = this.client.createChannel(option.channel)
+       
+      this.superChannel.on('joinChannelSuccess', (uid: number, elapsed: number) => {
+        EduLogger.info("joinChannelSuccess", uid)
+      })
+      this.superChannel.on('userJoined', (uid: number, elapsed: number) => {
+        EduLogger.info("userJoined", uid)
+        this.fire('user-published', {
+          user: {
+            uid,
+            channel: option.channel
+          }
+        })
+      })
+      this.superChannel.joinChannel(option.token, option.info, option.uid)
+    } catch(err) {
+      throw err
+    }
+  }
+  
   async join(option: any): Promise<any> {
     try {
       let ret = this.client.joinChannel(option.token, option.channel, option.info, option.uid)

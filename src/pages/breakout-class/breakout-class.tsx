@@ -167,7 +167,7 @@ export const BreakoutRoomController = observer(({ children }: any) => {
 
   const history = useHistory()
 
-  const {course_name} = useParams()
+  const {course_name} = useParams<{course_name: string}>()
 
   BizLogger.info('params', course_name)
 

@@ -51,9 +51,7 @@ export const ReplayController: React.FC<any> = observer(() => {
 
   const location = useLocation()
 
-  const {roomUuid} = useParams()
-
-  const searchParams = new URLSearchParams(location.search);
+  const {roomUuid} = useParams<{roomUuid: string}>()
 
   const replayStore = useReplayStore()
 

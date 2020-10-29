@@ -15,6 +15,8 @@ const platform = process.platform
 
 const rtcEngine = new AgoraRtcEngine();
 
+window.isElectron = true
+
 window.rtcEngine = rtcEngine;
 window.ipc = ipc;
 window.path = path;

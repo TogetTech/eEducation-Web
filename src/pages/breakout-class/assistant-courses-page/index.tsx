@@ -59,7 +59,7 @@ const CoursesPage = observer(() => {
     })
   }
 
-  const {course_name} = useParams<any>()
+  const {course_name} = useParams<{course_name: string}>()
   useEffect(() => {
 
     window.history.pushState(null, document.title, window.location.href);

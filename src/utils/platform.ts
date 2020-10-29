@@ -1,7 +1,7 @@
 import { BizLogger } from "./biz-logger";
 
-BizLogger.info(`CURRENT RUNTIME: ${process.env.REACT_APP_RUNTIME_PLATFORM}`);
+export const isElectron = window.isElectron ? true : false
 
-export const isElectron = process.env.REACT_APP_RUNTIME_PLATFORM === 'electron'
+export const platform = window.isElectron ? 'electron' : 'web'
 
-export const platform = process.env.REACT_APP_RUNTIME_PLATFORM as string;
+BizLogger.info(`CURRENT RUNTIME: ${platform}`);

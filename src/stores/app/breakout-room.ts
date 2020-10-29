@@ -942,7 +942,7 @@ export class BreakoutRoomStore extends SimpleInterval {
   @action
   async joinRtcAsTeacher(args: any) {
     try {
-      if (!this.mediaService.isWeb) throw 'electron not support'
+      // if (!this.mediaService.isWeb) throw 'electron not support'
       await this.mediaService.join(args)
       this.joiningRTC = true
     } catch (err) {
@@ -956,9 +956,8 @@ export class BreakoutRoomStore extends SimpleInterval {
   async joinRtcAsStudent(args: any) {
     try {
       BizLogger.info('[breakout] ', args)
-      if (!this.mediaService.isWeb) throw 'electron not supported'
       await this.mediaService.join(args.studentChannel)
-      this.mediaGroup = await this.mediaService.web.joinChannel(args.teacherChannel)
+      this.mediaGroup = await this.mediaService.joinChannel(args.teacherChannel)
       this.joiningRTC = true
     } catch (err) {
       this.appStore.uiStore.addToast(t('toast.failed_to_join_rtc_please_refresh_and_try_again'))

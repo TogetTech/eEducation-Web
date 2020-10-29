@@ -97,6 +97,7 @@ export class MediaService extends EventEmitter implements IMediaService {
         })
       }
     })
+
     this.sdkWrapper.on('user-published', (evt: any) => {
       const user = evt.user
       EduLogger.debug("sdkwrapper user-published", user)
@@ -105,6 +106,7 @@ export class MediaService extends EventEmitter implements IMediaService {
         this.remoteUsersRenderer.push(new RemoteUserRenderer({
           context: this,
           uid: +user.uid,
+          channel: user.channel,
           videoTrack: user.videoTrack,
           sourceType: 'default',
         }))
@@ -341,7 +343,8 @@ export class MediaService extends EventEmitter implements IMediaService {
     if (this.isWeb) {
       await this.sdkWrapper.joinChannel(option)
     } else {
-      throw 'electron no implement'
+      await this.sdkWrapper.joinChannel(option)
+      // throw 'electron no implement'
     }
   }
 
@@ -396,6 +399,7 @@ export class MediaService extends EventEmitter implements IMediaService {
         this.cameraRenderer = new LocalUserRenderer({
           context: this,
           uid: 0,
+          channel: 0,
           sourceType: 'default',
           videoTrack: this.web.cameraTrack
         })
@@ -410,6 +414,7 @@ export class MediaService extends EventEmitter implements IMediaService {
         this.cameraRenderer = new LocalUserRenderer({
           context: this,
           uid: 0,
+          channel: 0,
           sourceType: 'default',
         })
       }
@@ -473,6 +478,7 @@ export class MediaService extends EventEmitter implements IMediaService {
         this.cameraTestRenderer = new LocalUserRenderer({
           context: this,
           uid: 0,
+          channel: 0,
           sourceType: 'default',
           videoTrack: this.web.cameraTestTrack
         })
@@ -487,6 +493,7 @@ export class MediaService extends EventEmitter implements IMediaService {
         this.cameraTestRenderer = new LocalUserRenderer({
           context: this,
           uid: 0,
+          channel: 0,
           sourceType: 'default',
         })
       }
@@ -557,6 +564,7 @@ export class MediaService extends EventEmitter implements IMediaService {
       this.screenRenderer = new LocalUserRenderer({
         context: this,
         uid: 0,
+        channel: 0,
         videoTrack: this.web.screenVideoTrack as ITrack,
         sourceType: 'screen',
       })
@@ -576,6 +584,7 @@ export class MediaService extends EventEmitter implements IMediaService {
       this.screenRenderer = new LocalUserRenderer({
         context: this,
         uid: 0,
+        channel: 0,
         videoTrack: undefined,
         sourceType: 'screen',
       })

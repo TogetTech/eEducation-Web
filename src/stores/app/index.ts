@@ -17,21 +17,18 @@ import { autorun, toJS, observable, action, computed, runInAction } from 'mobx';
 import { MediaStore } from './media';
 import { EduClassroomManager } from '@/sdk/education/room/edu-classroom-manager';
 import { t } from '@/i18n';
-import { EduCourseState, EduStream } from '@/sdk/education/interfaces';
+import { EduStream } from '@/sdk/education/interfaces';
 import { LocalUserRenderer } from '@/sdk/education/core/media-service/renderer';
 import { PrepareScreenShareParams } from '@/sdk/education/core/media-service/interfaces';
 import { AgoraWebRtcWrapper } from '@/sdk/education/core/media-service/web';
 import { AgoraElectronRTCWrapper } from '@/sdk/education/core/media-service/electron';
 import { BizLogger } from '@/utils/biz-logger';
-
-// AgoraRTC.setLogLevel(4)
+import { platform } from '@/utils/platform';
 
 const APP_ID: string = process.env.REACT_APP_AGORA_APP_ID as string;
 BizLogger.info("APP_ID ", APP_ID)
 const CUSTOMER_ID: string = process.env.REACT_APP_AGORA_CUSTOMER_ID as string;
 const CUSTOMER_CERTIFICATE: string = process.env.REACT_APP_AGORA_CUSTOMER_CERTIFICATE as string;
-const platform = process.env.REACT_APP_RUNTIME_PLATFORM as string;
-
 export class AppStore {
 
   uiStore!: UIStore;

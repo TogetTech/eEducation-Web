@@ -13,6 +13,7 @@ export interface IMediaRenderer {
   local: boolean;
   sourceType: SourceType;
   uid: any;
+  channel: any;
   videoTrack?: ITrack;
 
   play(dom: HTMLElement, fit?: boolean): void;
@@ -22,6 +23,7 @@ export interface IMediaRenderer {
 export interface UserRendererInit {
   context: MediaService
   uid: any
+  channel: any
   videoTrack?: ITrack
   sourceType: SourceType;
 }
@@ -32,6 +34,7 @@ export abstract class UserRenderer implements IMediaRenderer {
   local: boolean = false;
   sourceType: SourceType = 'screen';
   uid: any = 0;
+  channel: any = 0;
   videoTrack?: ITrack;
   uuid: string;
 
@@ -126,6 +129,7 @@ export class RemoteUserRenderer extends UserRenderer {
     super(config)
     this.local = false
     this.uid = config.uid
+    this.channel = config.channel
   }
 
   play(dom: HTMLElement, fit?: boolean) {
@@ -135,13 +139,14 @@ export class RemoteUserRenderer extends UserRenderer {
       }
     }
     if (this.isElectron) {
-      this.electron.client.subscribe(+this.uid, dom)
+      // this.electron.client.subscribe(+this.uid, dom,)
+      this.electron.client.setupRemoteVideo(+this.uid, dom, this.channel)
       if (!fit) {
         //@ts-ignore
-        this.electron.client.setupViewContentMode(+this.uid, 0);
+        this.electron.client.setupViewContentMode(+this.uid, 0, this.channel);
       } else {
         //@ts-ignore
-        this.electron.client.setupViewContentMode(+this.uid, 1);
+        this.electron.client.setupViewContentMode(+this.uid, 1, this.channel);
       }
     }
     this._playing = true
