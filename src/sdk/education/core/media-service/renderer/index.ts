@@ -107,7 +107,6 @@ export class LocalUserRenderer extends UserRenderer {
       if (this.videoTrack) {
         this.videoTrack.stop()
       }
-      (this.videoTrack as ILocalVideoTrack)
     }
     if (this.isElectron && this.sourceType === 'default') {
       this.electron.client.stopPreview()
