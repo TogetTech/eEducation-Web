@@ -629,7 +629,6 @@ export class RoomStore extends SimpleInterval {
   @action
   async resetWebPrepareScreen() {
     if (this.mediaService.screenRenderer) {
-      this.mediaService.screenRenderer
       this._screenVideoRenderer = undefined
     }
   }

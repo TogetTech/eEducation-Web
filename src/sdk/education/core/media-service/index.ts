@@ -89,7 +89,7 @@ export class MediaService extends EventEmitter implements IMediaService {
       const user = evt.user
       if (evt.mediaType === 'audio') return
       EduLogger.debug("sdkwrapper user-unpublished", user)
-      const userIndex = this.remoteUsersRenderer.findIndex((it: any) => it.uid === user.uid)
+      const userIndex = this.remoteUsersRenderer.findIndex((it: any) => it.uid === user.uid && it.channel === user.channel)
       if (userIndex !== -1) {
         const userRenderer = this.remoteUsersRenderer[userIndex]
         this.remoteUsersRenderer.splice(userIndex, 1)
@@ -107,7 +107,7 @@ export class MediaService extends EventEmitter implements IMediaService {
         this.remoteUsersRenderer.push(new RemoteUserRenderer({
           context: this,
           uid: +user.uid,
-          channel: user.channel,
+          channel: evt.channel,
           videoTrack: user.videoTrack,
           sourceType: 'default',
         }))

@@ -50,6 +50,7 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
   audioMuted: boolean
 
   localUid?: number
+  channel?: number
   appId: string
 
   subscribedList: number[] = []
@@ -73,6 +74,7 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
     this.videoMuted = false
     this.audioMuted = false
     this.localUid = 0
+    this.channel = 0
     this.appId = options.appId
     this.subscribedList = []
     this.superChannel = {}
@@ -147,6 +149,7 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
     this.videoMuted = false
     this.audioMuted = false
     this.localUid = undefined
+    this.channel = undefined
     this.subscribedList = []
   }
 
@@ -184,7 +187,8 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
       this.fire('user-published', {
         user: {
           uid,
-        }
+        },
+        channel: this.channel
       })
     })
     //or event removeStream
@@ -192,8 +196,9 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
       EduLogger.info("removestream", uid)
       this.fire('user-unpublished', {
         user: {
-          uid
+          uid,
         },
+        channel: this.channel
       })
     })
     this.client.on('connectionStateChanged', (state: any, reason: any) => {
@@ -312,8 +317,17 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
         this.fire('user-published', {
           user: {
             uid,
-            channel: option.channel
-          }
+          },
+          channel: option.channel
+        })
+      })
+      this.superChannel.on('userOffline', (uid: number, elapsed: number) => {
+        EduLogger.info("userOffline", uid)
+        this.fire('user-unpublished', {
+          user: {
+            uid,
+          },
+          channel: option.channel
         })
       })
       this.superChannel.joinChannel(option.token, option.info, option.uid)
