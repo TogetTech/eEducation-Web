@@ -340,6 +340,8 @@ export class MediaService extends EventEmitter implements IMediaService {
     }
   }
 
+
+
   async joinChannel(option: JoinOption): Promise<any> {
     if (this.isWeb) {
       await this.sdkWrapper.joinChannel(option)
@@ -349,11 +351,12 @@ export class MediaService extends EventEmitter implements IMediaService {
     }
   }
 
-  async leaveChannel(option: JoinOption): Promise<any> {
+  async leaveChannel(): Promise<any> {
     if (this.isWeb) {
-      await this.sdkWrapper.leaveChannel(option)
+      await this.sdkWrapper.leaveChannel()
     } else {
-      throw 'electron no implement'
+      // throw 'electron no implement'
+      await this.sdkWrapper.leaveChannel()
     }
   }
 

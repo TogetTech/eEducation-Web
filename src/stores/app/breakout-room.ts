@@ -992,6 +992,7 @@ export class BreakoutRoomStore extends SimpleInterval {
         await this.closeCamera()
         await this.closeMicrophone()
         await this.mediaService.leave()
+        await this.mediaService.leaveChannel()
         this.appStore.uiStore.addToast(t('toast.leave_rtc_channel'))
       }
       this.appStore.reset()
@@ -1410,7 +1411,7 @@ export class BreakoutRoomStore extends SimpleInterval {
     })
     // 本地用户更新
     roomManager.on('local-user-updated', (evt: any) => {
-      this.teacherRoomUserList = roomManager.getFullUserList()
+      // this.teacherRoomUserList = roomManager.getFullUserList()
       console.log('[student] local-user-updated', evt)
     })
     // 本地流加入
@@ -2014,6 +2015,7 @@ export class BreakoutRoomStore extends SimpleInterval {
     }
   }
 
+  @computed
   get teacherUuid(): string {
     const teacher = this.userList.find((it: EduUser) => it.role === EduRoleType.teacher)
     if (teacher) {

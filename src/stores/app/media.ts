@@ -73,10 +73,11 @@ export class MediaStore {
     })
     this.mediaService.on('user-published', (evt: any) => {
       this.remoteUsersRenderer = this.mediaService.remoteUsersRenderer
-      console.log('sdkwrapper update user-pubilshed')
+      console.log('sdkwrapper update user-pubilshed', evt)
     })
     this.mediaService.on('user-unpublished', (evt: any) => {
       this.remoteUsersRenderer = this.mediaService.remoteUsersRenderer
+      console.log('sdkwrapper update user-unpublished', evt)
     })
     this.mediaService.on('network-quality', (evt: any) => {
       let defaultQuality = 'unknown'

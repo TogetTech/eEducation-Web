@@ -56,6 +56,8 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
   subscribedList: number[] = []
 
   superChannel: any
+  userJoinedEvent: any
+  userOfflineEvent: any
 
   cameraList: any[] = []
   microphoneList: any[] = []
@@ -78,6 +80,8 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
     this.appId = options.appId
     this.subscribedList = []
     this.superChannel = {}
+    this.userJoinedEvent = ''
+    this.userOfflineEvent = ''
     //@ts-ignore
     this.client = options.AgoraRtcEngine
     let ret = this.client.initialize(this.appId)
@@ -308,11 +312,7 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
   async joinChannel(option: any): Promise<any> {
     try {
       this.superChannel = this.client.createChannel(option.channel)
-       
-      this.superChannel.on('joinChannelSuccess', (uid: number, elapsed: number) => {
-        EduLogger.info("joinChannelSuccess", uid)
-      })
-      this.superChannel.on('userJoined', (uid: number, elapsed: number) => {
+      this.userJoinedEvent = (uid: number, elapsed: number) => {
         EduLogger.info("userJoined", uid)
         this.fire('user-published', {
           user: {
@@ -320,8 +320,8 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
           },
           channel: option.channel
         })
-      })
-      this.superChannel.on('userOffline', (uid: number, elapsed: number) => {
+      }
+      this.userOfflineEvent = (uid: number, elapsed: number) => {
         EduLogger.info("userOffline", uid)
         this.fire('user-unpublished', {
           user: {
@@ -329,7 +329,12 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
           },
           channel: option.channel
         })
+      }
+      this.superChannel.on('joinChannelSuccess', (uid: number, elapsed: number) => {
+        EduLogger.info("joinChannelSuccess", uid)
       })
+      this.superChannel.on('userJoined', this.userJoinedEvent)
+      this.superChannel.on('userOffline', this.userOfflineEvent)
       this.superChannel.joinChannel(option.token, option.info, option.uid)
     } catch(err) {
       throw err
@@ -349,6 +354,19 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
       this.joined = true;
       return
     } catch(err) {
+      throw err
+    }
+  }
+
+  async leaveChannel(): Promise<any> {
+    try {
+      console.log('*** leave-sus')
+      this.superChannel.leaveChannel()
+      this.superChannel.off('userJoined', this.userJoinedEvent)
+      this.superChannel.off('userOffline', this.userOfflineEvent)
+      return
+    } catch(err) {
+      console.log('*** leave-err')
       throw err
     }
   }
