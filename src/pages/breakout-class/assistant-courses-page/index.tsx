@@ -4,11 +4,12 @@ import './index.scss';
 import * as moment from 'moment';
 import { observer } from 'mobx-react';
 import { NavController } from '@/components/nav';
-import { Link, Route, useLocation, useParams, useHistory } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom';
 import { Loading } from '@/components/loading';
 import { AutoplayToast } from '@/components/autoplay-toast';
 import { makeStyles, Theme, createStyles, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Button } from '@material-ui/core';
 import { useUIStore, useBreakoutRoomStore } from '@/hooks';
+import { BizLogger } from '@/utils/biz-logger';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -75,12 +76,12 @@ const CoursesPage = observer(() => {
     })
   }
 
-  const {course_name} = useParams<any>()
+  const {course_name} = useParams<{course_name: string}>()
   useEffect(() => {
 
     window.history.pushState(null, document.title, window.location.href);
     const handlePopState = (evt: any) => {
-      console.log('[pop] course_name', course_name)
+      BizLogger.info('[pop] course_name', course_name)
       window.history.pushState(null, document.title, null);
       if (breakoutRoomStore.roomInfo.userRole === 'assistant') {
         if (breakoutRoomStore.joined && !uiStore.hasDialog('exitRoom')) {

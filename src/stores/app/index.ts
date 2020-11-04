@@ -17,20 +17,18 @@ import { autorun, toJS, observable, action, computed, runInAction } from 'mobx';
 import { MediaStore } from './media';
 import { EduClassroomManager } from '@/sdk/education/room/edu-classroom-manager';
 import { t } from '@/i18n';
-import { EduCourseState, EduStream } from '@/sdk/education/interfaces';
+import { EduStream } from '@/sdk/education/interfaces';
 import { LocalUserRenderer } from '@/sdk/education/core/media-service/renderer';
 import { PrepareScreenShareParams } from '@/sdk/education/core/media-service/interfaces';
 import { AgoraWebRtcWrapper } from '@/sdk/education/core/media-service/web';
 import { AgoraElectronRTCWrapper } from '@/sdk/education/core/media-service/electron';
-
-// AgoraRTC.setLogLevel(4)
+import { BizLogger } from '@/utils/biz-logger';
+import { platform } from '@/utils/platform';
 
 const APP_ID: string = process.env.REACT_APP_AGORA_APP_ID as string;
-console.log("APP_ID ", APP_ID)
+BizLogger.info("APP_ID ", APP_ID)
 const CUSTOMER_ID: string = process.env.REACT_APP_AGORA_CUSTOMER_ID as string;
 const CUSTOMER_CERTIFICATE: string = process.env.REACT_APP_AGORA_CUSTOMER_CERTIFICATE as string;
-const platform = process.env.REACT_APP_RUNTIME_PLATFORM as string;
-
 export class AppStore {
 
   uiStore!: UIStore;
@@ -183,7 +181,7 @@ export class AppStore {
   //     // this.classState = true
   //     this.uiStore.addToast(t('toast.course_started_successfully'))
   //   } catch (err) {
-  //     console.log(err)
+  //     BizLogger.info(err)
   //     this.uiStore.addToast(t('toast.setting_start_failed'))
   //   }
   // }
@@ -195,7 +193,7 @@ export class AppStore {
   //     // this.classState = false
   //     this.uiStore.addToast(t('toast.the_course_ends_successfully'))
   //   } catch (err) {
-  //     console.log(err)
+  //     BizLogger.info(err)
   //     this.uiStore.addToast(t('toast.setting_ended_failed'))
   //   }
   // }
@@ -265,8 +263,8 @@ export class AppStore {
         uid: +streamUuid,
         token: this.roomManager?.userService.screenStream.token,
       }
-      console.log("screenStreamData params >>>>>> ", JSON.stringify(params))
-      console.log("screenStreamData >>>>>> ", JSON.stringify(this.roomManager?.userService.screenStream))
+      BizLogger.info("screenStreamData params ", JSON.stringify(params))
+      BizLogger.info("screenStreamData ", JSON.stringify(this.roomManager?.userService.screenStream))
 
       await this.mediaService.startScreenShare({
         params
@@ -283,7 +281,8 @@ export class AppStore {
       } else {
         this.uiStore.addToast(t('toast.failed_to_enable_screen_sharing') + `${err.msg}`)
       }
-      console.warn(err)
+      BizLogger.info('SCREEN-SHARE ERROR ', err)
+      BizLogger.error(err)
     } finally {
       this.waitingShare = false
     }
@@ -316,7 +315,7 @@ export class AppStore {
           this.customScreenShareItems = items
         })
       }).catch(err => {
-        console.warn('show screen share window with items', err)
+        BizLogger.warn('show screen share window with items', err)
       })
     }
   }
@@ -385,7 +384,7 @@ export class AppStore {
       this.removeScreenShareWindow()
       this.sharing = true
     } catch (err) {
-      console.warn(err)
+      BizLogger.warn(err)
       // if (!this.mediaService.screenRenderer) {
       //   await this.mediaService.stopScreenShare()
       // }

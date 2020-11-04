@@ -1,3 +1,4 @@
+import { BizLogger } from '@/utils/biz-logger';
 import {GlobalStorage} from '../utils/custom-storage';
 
 const key = 'demo-i18n-error'
@@ -15,7 +16,7 @@ function _getIntlError (error: string) {
     const json = rawData || {}
     return json[locale][error]
   } catch(err) {
-    console.warn(err)
+    BizLogger.warn(err)
     return null
   }
 }

@@ -1,6 +1,4 @@
 import { logApi } from "../services/log-upload";
-import { get } from "http";
-import { isElectron } from "@/utils/platform";
 import db from "./db";
 import Dexie from "dexie";
 // eslint-disable
@@ -27,10 +25,6 @@ export class EduLogger {
     this.logLevel = v
   }
 
-  // static enableUpload() {
-
-  // }
-
   static warn(...args: any[]) {
     this.log(`WARN`, ...args)
   }
@@ -41,6 +35,10 @@ export class EduLogger {
 
   static info(...args: any[]) {
     this.log(`INFO`, ...args)
+  }
+
+  static error(...args: any[]) {
+    this.log(`ERROR`, ...args)
   }
 
   private static log(type: string, ...args: any[]) {
@@ -67,6 +65,12 @@ export class EduLogger {
       'INFO': {
         call: () => {
           loggerArgs = [prefix, "color: #99CC99; font-weight: bold;"].concat(args) as any
+          (console as any).log.apply(console, loggerArgs)
+        }
+      },
+      'ERROR': {
+        call: () => {
+          loggerArgs = [prefix, "color: #B22222; font-weight: bold;"].concat(args) as any
           (console as any).log.apply(console, loggerArgs)
         }
       }
@@ -126,7 +130,7 @@ export class EduLogger {
     return res;
   }
 
-  static async enableUpload(roomUuid: string) {
+  static async enableUpload(roomUuid: string, isElectron: boolean) {
     const ids = [];
     // Upload Electron log
     if (isElectron) {
@@ -138,12 +142,12 @@ export class EduLogger {
   }
 
   static async uploadLog(roomId: string) {
-    console.log('[upload] roomId: ', roomId)
-    // let ua = getUserAgent();
+    console.log('[LOG] [upload] roomId: ', roomId)
+    let logs: any[] = []
     //@ts-ignore
-    let logs = await db.logs.toArray();
+    db.logs.each((e: any) => logs.push(e))
+    //@ts-ignore
     const logsStr = logs
-      .reverse()
       .map((e: any) => JSON.parse(e.content))
       .map((e: any) => (Array.isArray(e) ? e[0] : e))
       .join('\n');
@@ -167,7 +171,7 @@ export class EduLogger {
       });
     }
     await db.open();
-    console.log(">>>>> res", res)
+    console.log("[LOG] upload res: ", res)
     return res;
   }
 }

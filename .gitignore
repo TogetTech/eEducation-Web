@@ -10,3 +10,6 @@ build
 src/assets/.DS_Store
 !src/assets/
 node_modules
+*.sh
+.env.back
+native_module

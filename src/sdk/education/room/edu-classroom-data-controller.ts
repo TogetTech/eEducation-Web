@@ -175,7 +175,7 @@ export class EduClassroomDataController {
           delete this._bufferMap[`${seqId}`]
         }
       } else {
-        EduLogger.info("gap>>>>>> !!!")
+        EduLogger.info(`[${this._id} [seqId] gaping !!!`)
         break;
       }
     }
@@ -463,7 +463,7 @@ export class EduClassroomDataController {
     }
     EduLogger.info('Raw ChannelMessage, buffer >>> ', JSON.stringify(this._bufferMap[buffer.seqId]))
     if (!buffer.hasOwnProperty('seqId')) {
-      console.error("buffer", buffer)
+      EduLogger.error("buffer", buffer)
       throw 'seqId not exists'
     }
 
@@ -1189,7 +1189,6 @@ export class EduClassroomDataController {
     this._roomProperties = {}
     this._roomStatus = {}
     this._localUserData = undefined
-    this._localStreams = []
     this._minSeqId = 0
     this._latestSeqId = 0
     if (this.retryTimer !== null) {
@@ -1344,19 +1343,7 @@ export class EduClassroomDataController {
         this.upsertLocalStream(key, tmpStreamData)
       }
     }
-
-    // const tmpLocalStreams = []
-
-    // for (let key of Object.keys(this._cachedLocalStreams)) {
-    //   tmpLocalStreams.push(this._cachedLocalStreams[key])
-    // }
-    // this.setLocalStreams(tmpLocalStreams)
-    // EduLogger.info("userToken ", this.userToken)
-    // EduLogger.info("localUser ", this._localUser)
-    // EduLogger.info("localStreamsMap ", this._cachedLocalStreams)
   }
-
-  private _localStreams: EduStreamData[] = []
 
   setLocalUser(user: EduUserData) {
     const prevState = this.localUserData
@@ -1371,49 +1358,6 @@ export class EduClassroomDataController {
       })
     }
   }
-
-  // setLocalStreams(streams: EduStreamData[]) {
-  //   if (!streams.length) {
-  //     return
-  //   }
-  //   const prevState = this._localStreams
-  //   EduLogger.info(">>>>>>>>>>. setLocalStreams", streams, prevState)
-  //   if (!prevState.length) {
-  //     this._localStreams = streams
-  //     if (this._localStreams.length) {
-  //       for (let item of streams) {
-  //         this.fire('local-stream-updated', {
-  //           stream: item,
-  //           type: item.stream.videoSourceType === EduVideoSourceType.screen ? 'screen' : 'main'
-  //         })
-  //       }
-  //     }
-  //     return
-  //   }
-  //   if (diff(prevState, streams)) {
-  //     const updatedStreams: EduStreamData[] = []
-  //     const newState = prevState.reduce((acc: EduStreamData[], it: EduStreamData) => {
-  //       const newStreamValue = streams.find((t: any) => t.stream.streamUuid === it.stream.streamUuid)
-  //       if (newStreamValue) {
-  //         it.update(newStreamValue as any)
-  //         updatedStreams.push(it)
-  //         acc.push(it)
-  //       } else {
-  //         acc.push(it)
-  //       }
-  //       return acc
-  //     }, [])
-  //     this._localStreams = newState
-  //     if (this._localStreams.length) {
-  //       for (let item of updatedStreams) {
-  //         this.fire('local-stream-updated', {
-  //           stream: item,
-  //           type: item.stream.videoSourceType === EduVideoSourceType.screen ? 'screen' : 'main'
-  //         })
-  //       }
-  //     }
-  //   }
-  // }
 
   setRawUsers(rawUsers: any[]) {
     const localUuid = this.localUserUuid

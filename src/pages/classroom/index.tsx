@@ -10,6 +10,7 @@ import { observer } from 'mobx-react';
 import { t } from '@/i18n';
 
 import './room.scss';
+import { BizLogger } from '@/utils/biz-logger';
 
 export const roomTypes = [
   {value: 0, path: 'one-to-one'},
@@ -73,7 +74,7 @@ const RoomController = observer(({children}: any) => {
     roomStore.join().then(() => {
       uiStore.addToast(t('toast.successfully_joined_the_room'))
     }).catch((err) => {
-      console.warn(err.msg)
+      BizLogger.warn(err.msg)
       uiStore.addToast(t('toast.failed_to_join_the_room') + `${JSON.stringify(err.msg)}`)
     })
 

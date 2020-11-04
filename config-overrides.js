@@ -84,7 +84,7 @@ const useOptimizeBabelConfig = () => config => {
 
 module.exports = override(
     //useBabelRc(),
-  isElectron && addWebpackTarget('electron-renderer'),
+  // isElectron && addWebpackTarget('electron-renderer'),
   disableEsLint(),
   webWorkerConfig(),
   sourceMap(),
@@ -92,7 +92,7 @@ module.exports = override(
     test: /\.worker\.js$/,
     use: { loader: 'worker-loader' },
   }),
-  isElectron && addWebpackExternals(setElectronDeps),
+  addWebpackExternals(setElectronDeps),
   fixBabelImports("import", [
     {
       libraryName: "@material-ui/core",

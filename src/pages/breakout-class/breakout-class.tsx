@@ -16,6 +16,7 @@ import { t } from '@/i18n';
 import { BreakoutRoomBoard } from './components/breakout-chat-board';
 
 import './breakout-class.scss';
+import { BizLogger } from '@/utils/biz-logger';
 
 const BackButton = () => {
 
@@ -169,7 +170,7 @@ export const BreakoutRoomController = observer(({ children }: any) => {
   //@ts-ignore
   const {course_name} = useParams()
 
-  console.log('params', course_name)
+  BizLogger.info('params', course_name)
 
   useEffect(() => {
     if (!appStore.userRole) {
@@ -179,7 +180,7 @@ export const BreakoutRoomController = observer(({ children }: any) => {
 
     window.history.pushState(null, document.title, window.location.href);
     const handlePopState = (evt: any) => {
-      console.log('popstate', evt)
+      BizLogger.info('popstate', evt)
       window.history.pushState(null, document.title, null);
       if (breakoutRoomStore.roomInfo.userRole === 'assistant') {
         if (breakoutRoomStore.joinedGroup && !uiStore.hasDialog('exitRoom')) {
@@ -203,7 +204,7 @@ export const BreakoutRoomController = observer(({ children }: any) => {
       breakoutRoomStore.join().then(() => {
         uiStore.addToast(t('toast.successfully_joined_the_room'))
       }).catch((err) => {
-        console.warn(err.msg)
+        BizLogger.warn(err.msg)
         uiStore.addToast(t('toast.failed_to_join_the_room') + `${JSON.stringify(err.msg)}`)
       })
     }
@@ -211,7 +212,7 @@ export const BreakoutRoomController = observer(({ children }: any) => {
       breakoutRoomStore.assistantJoinRoom(course_name).then(() => {
         uiStore.addToast(t('toast.successfully_joined_the_room'))
       }).catch((err) => {
-        console.warn(err.msg)
+        BizLogger.warn(err.msg)
         uiStore.addToast(t('toast.failed_to_join_the_room') + `${JSON.stringify(err.msg)}`)
       })
     }

@@ -2,8 +2,7 @@ import { GlobalStorage } from '../../utils/custom-storage';
 import { observable, action, computed } from 'mobx';
 import { AppStore } from '.';
 import { DialogMessage, DialogType } from '@/components/dialog';
-
-const platform = process.env.REACT_APP_RUNTIME_PLATFORM as string;
+import { platform } from '@/utils/platform';
 
 interface NoticeMessage {
   type: string

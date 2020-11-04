@@ -1,12 +1,17 @@
-import { MediaService } from './../core/media-service/index';
 import { EduClassroomDataController } from './edu-classroom-data-controller';
 import { EduUserService } from '../user/edu-user-service';
 import { EduLogger } from '../core/logger';
 import { AgoraEduApi } from '../core/services/edu-api';
 import { EventEmitter } from 'events';
 import { EduManager } from "../manager";
-import { EduStreamData, EduUserData, EduUser, EduStream, EduRoleType, EduClassroom, EduVideoSourceType, EduChannelMessageCmdType, EduClassroomStateType, EduTextMessage, EduStreamAction, EduCustomMessage } from '../interfaces';
-import { get } from 'lodash';
+import { 
+  EduStreamData,
+  EduUserData,
+  EduUser,
+  EduStream,
+  EduRoleType,
+  EduClassroom
+} from '../interfaces';
 import { RTMWrapper } from '../core/rtm';
 import { MessageSerializer } from '../core/rtm/message-serializer';
 
@@ -77,7 +82,7 @@ export class EduClassroomManager extends EventEmitter {
   }
 
   private async prepareRoomJoin(args: any) {
-    console.log('[breakout] params ', args.userRole)
+    EduLogger.info('[EDU-STATE] [ClassRoom Manager] [breakout] params ', args.userRole)
     let joinRoomData = await this.apiService.joinRoom({
       roomUuid: args.roomUuid,
       userRole: args.userRole,
@@ -96,27 +101,27 @@ export class EduClassroomManager extends EventEmitter {
   }
 
   async join(params: any) {
-    EduLogger.debug(`join classroom ${this.roomUuid}`)
+    EduLogger.debug(`[EDU-STATE] [ClassRoom Manager] join classroom ${this.roomUuid}`)
     const roomParams = {
       ...params,
       roomUuid: this.roomUuid,
       roomName: this.roomName,
     }
     let joinRoomData = await this.prepareRoomJoin(roomParams)
-    EduLogger.debug(`join classroom [prepareRoomJoin] ${this.roomUuid} success`)
+    EduLogger.debug(`[EDU-STATE] [ClassRoom Manager] join classroom [prepareRoomJoin] ${this.roomUuid} success`)
     if (this.rtmWrapper) {
       const [channel, observer] = this.rtmWrapper.createObserverChannel({
         channelName: this.roomUuid,
       })
-      observer.on('ChannelMessage', (evt: any) => {
-        console.log("[rtm] ChannelMessage channelName", evt.channelName)
+      const onChannelMessageHandler = (evt: any) => {
+        EduLogger.debug("[EDU-STATE] [ClassRoom Manager] [rtm] ChannelMessage channelName", evt.channelName)
         if (evt.channelName !== this.roomUuid) {
           return
         }
         try {
           const res = MessageSerializer.readMessage(evt.message.text)
           if (res === null) {
-            return console.warn('[room] ChannelMessage is invalid', res)
+            return EduLogger.warn('[room] ChannelMessage is invalid', res)
           }
           const { sequence, cmd, version, data } = res
           EduLogger.info('[EDU-STATE] Raw ChannelMessage', JSON.stringify(res))
@@ -124,19 +129,13 @@ export class EduClassroomManager extends EventEmitter {
             return EduLogger.warn('using old version')
           }
 
-          // if (cmd === EduChannelMessageCmdType.roomChatState) {
-          //   const textMessage: EduTextMessage = MessageSerializer.getEduTextMessage(data)
-          //   this.data.isLocalUser(textMessage.fromUser.userUuid)
-          //   return
-          // }
-
           const obj = {
             seqId: sequence,
             cmd,
             data
           }
 
-          console.log("appendBuffer in Raw Message ",obj)
+          EduLogger.debug("[EDU-STATE] [ClassRoom Manager] appendBuffer in Raw Message ",obj)
           
           this.data.appendBuffer({
             seqId: sequence,
@@ -145,16 +144,24 @@ export class EduClassroomManager extends EventEmitter {
           })
           this.data.asyncBatchUpdateData(500)
         } catch (err) {
-          console.error(err)
+          EduLogger.error('[EDU-STATE] onChannelMessageHandler: === :begin')
+          EduLogger.error('[EDU-STATE] onChannelMessageHandler, code: ', err.code, ' message: ', err.message)
+          EduLogger.error(err)
+          EduLogger.error('[EDU-STATE] onChannelMessageHandler: === :end')
         }
-      })
+      }
+      EduLogger.debug('[EDU-STATE] add ChannelMessage onChannelMessageHandler')
+      observer.on('ChannelMessage', onChannelMessageHandler)
 
+      EduLogger.debug('[EDU-STATE] join')
       await this.rtmWrapper.join(
         channel, observer,
         {
           channelName: this.roomUuid,
         }
       )
+
+      EduLogger.debug('[EDU-STATE] join success')
 
       this._rtmObserver = observer
       this.data.setLocalData(joinRoomData)
@@ -186,19 +193,11 @@ export class EduClassroomManager extends EventEmitter {
   }
 
   async joinRTC(params: any) {
-    // EduLogger.debug(`joinRTC ${this.roomUuid}`)
-    // if (this._mediaService) {
-    //   await this._mediaService.join(params)
-    //   EduLogger.debug(`joinRTC ${this.roomUuid} success`)
-    // }
+    throw 'joinRTC not implement'
   }
 
   async leaveRTC() {
-    // EduLogger.debug(`leaveRTC ${this.roomUuid}`)
-    // if (this._mediaService) {
-    //   await this._mediaService.leave()
-    //   EduLogger.debug(`leaveRTC ${this.roomUuid} success`)
-    // }
+    throw 'leaveRTC not implement'
   }
 
   getLocalStreamData(): EduStreamData {

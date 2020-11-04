@@ -78,11 +78,11 @@ export class RTMWrapper extends EventEmitter {
     this.channels = {}
     if (this.client) {
       this.client.removeAllListeners()
-      console.log('[rtmWrapper] removeAllListeners')
+      EduLogger.info('[rtmWrapper] removeAllListeners')
     }
     this._client = undefined
     this.removeAllListeners()
-    console.log('[rtmWrapper] self removeAllListeners')
+    EduLogger.info('[rtmWrapper] self removeAllListeners')
     this._streamList = []
     this._userList = []
   }
@@ -106,7 +106,7 @@ export class RTMWrapper extends EventEmitter {
 
   release(eventClient: any) {
     eventClient.removeAllListeners()
-    console.log('[rtmWrapper]  eventClient removeAllListeners ')
+    EduLogger.info('[rtmWrapper]  eventClient removeAllListeners ')
   }
 
   async login(config: any) {
@@ -131,16 +131,16 @@ export class RTMWrapper extends EventEmitter {
   ) {
     const client = this.agoraRtm.createInstance(config.appId, { enableLogUpload: config.uploadLog, logFilter: logFilter})
     let channel = null;
-    console.log('[rtm]  wrapper init')
+    EduLogger.info('[rtm]  wrapper init')
     try {
       client.on('ConnectionStateChanged', (newState: string, reason: string) => {
-        console.log("[rtm] [Wrapper] ConnectionStateChanged")
+        EduLogger.info("[rtm] [Wrapper] ConnectionStateChanged")
         this.prevConnectionState = this.connectionState
         this.connectionState = newState
         this.emit("ConnectionStateChanged", {newState, reason});
       });
       client.on("MessageFromPeer", (message: any, peerId: string, props: any) => {
-        console.log("[rtm] [Wrapper] MessageFromPeer")
+        EduLogger.info("[rtm] [Wrapper] MessageFromPeer")
         this.emit("MessageFromPeer", {message, peerId, props});
       });
       await client.login({uid: config.uid, token: config.token})
@@ -166,7 +166,7 @@ export class RTMWrapper extends EventEmitter {
   public async join(channel: any, bus: any, config: any) {
     try {
       channel.on('ChannelMessage', (message: any, memberId: string, messagePros: any) => {
-        console.log("[rtm] ChannelMessage", message)
+        EduLogger.info("[rtm] ChannelMessage", message)
         bus
         .emit('ChannelMessage', {
           channelName: config.channelName,
@@ -227,7 +227,7 @@ export class RTMWrapper extends EventEmitter {
     for (let channelName of Object.keys(this.channels)) {
       if (this.channels[channelName]) {
         this.channels[channelName].removeAllListeners()
-        console.log('[rtmWrapper]  removeAllListeners ', channelName)
+        EduLogger.info('[rtmWrapper]  removeAllListeners ', channelName)
         this.channels[channelName] = undefined
       }
     }

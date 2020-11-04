@@ -3,6 +3,7 @@ import { Room, WhiteWebSdk, DeviceType, createPlugins, Plugins, JoinRoomParams, 
 import { videoPlugin } from '@netless/white-video-plugin';
 import { audioPlugin } from '@netless/white-audio-plugin';
 import { get } from 'lodash';
+import { BizLogger } from '@/utils/biz-logger';
 
 const appIdentifier = process.env.REACT_APP_NETLESS_APP_ID as string
 
@@ -45,7 +46,7 @@ export class BoardClient extends EventEmitter {
   }
 
   async join(params: JoinRoomParams) {
-    console.log('[breakout board] before board client join', params)
+    BizLogger.info('[breakout board] before board client join', params)
     this.room = await this.client.joinRoom(params, {
       onPhaseChanged: phase => {
         this.emit('onPhaseChanged', phase);
@@ -72,7 +73,7 @@ export class BoardClient extends EventEmitter {
         this.emit('onPPTLoadProgress', {uuid, progress})
       },
     })
-    console.log('[breakout board] board client join')
+    BizLogger.info('[breakout board] board client join')
     this.disconnected = false
   }
 
@@ -82,11 +83,11 @@ export class BoardClient extends EventEmitter {
         this.emit('onPhaseChanged', phase)
       },
       onLoadFirstFrame: () => {
-        console.log('onLoadFirstFrame')
+        BizLogger.info('onLoadFirstFrame')
         this.emit('onLoadFirstFrame')
       },
       onSliceChanged: () => {
-        console.log('onSliceChanged')
+        BizLogger.info('onSliceChanged')
         this.emit('onSliceChanged')
       },
       onPlayerStateChanged: (error) => {
@@ -112,7 +113,7 @@ export class BoardClient extends EventEmitter {
       this.room.setGlobalState({
         follow: 1
       })
-      console.log('[board] set start follow')
+      BizLogger.info('[board] set start follow')
     }
   }
 
@@ -121,7 +122,7 @@ export class BoardClient extends EventEmitter {
       this.room.setGlobalState({
         follow: 0
       })
-      console.log('[board] set cancel follow')
+      BizLogger.info('[board] set cancel follow')
     }
   }
 
@@ -133,7 +134,7 @@ export class BoardClient extends EventEmitter {
         this.room.setGlobalState({
           grantUsers: grantUsers
         })
-        console.log('[board] grantUsers ', JSON.stringify(grantUsers))
+        BizLogger.info('[board] grantUsers ', JSON.stringify(grantUsers))
       }
     }
   }
@@ -147,7 +148,7 @@ export class BoardClient extends EventEmitter {
         this.room.setGlobalState({
           grantUsers: grantUsers
         })
-        console.log('[board] grantUsers ', JSON.stringify(grantUsers))
+        BizLogger.info('[board] grantUsers ', JSON.stringify(grantUsers))
       }
     }
   }

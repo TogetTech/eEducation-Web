@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import './toast.scss';
 import { observer } from 'mobx-react';
 import { useUIStore } from '@/hooks';
+import { BizLogger } from '@/utils/biz-logger';
 
 export interface SnackbarMessage {
   message: string;
@@ -69,7 +70,7 @@ export const Toast = observer(() => {
           key={`${idx}${message}${Date.now()}`}
           closeToast={() => {
             uiStore.removeToast(message)
-            console.log("close Toast", message)
+            BizLogger.info("close Toast", message)
           }}
         />
       )}

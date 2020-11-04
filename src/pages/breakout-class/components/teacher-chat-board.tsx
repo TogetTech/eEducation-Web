@@ -5,6 +5,7 @@ import { EduMediaStream } from '@/stores/app/room'
 import { t } from '@/i18n'
 import { ChatPanel } from '@/components/chat/panel'
 import { GroupList } from '@/components/group-list'
+import { BizLogger } from '@/utils/biz-logger'
 
 export const TeacherChatBoard = observer(() => {
   const breakoutRoomStore = useBreakoutRoomStore()
@@ -12,7 +13,7 @@ export const TeacherChatBoard = observer(() => {
   const [value, setValue] = useState<string>('')
 
   const sendToCurrentRoom = async (message: any) => {
-    console.log('[breakout] userRole', breakoutRoomStore.roomInfo.userRole)
+    BizLogger.info('[breakout] userRole', breakoutRoomStore.roomInfo.userRole)
     await breakoutRoomStore.sendMessageToCurrentRoom(message)
     setValue('')
   }

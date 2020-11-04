@@ -6,7 +6,7 @@ import { RTMWrapper } from './../core/rtm/index';
 import { MediaService } from '../core/media-service';
 import { EduClassroomManager } from '../room/edu-classroom-manager';
 import { AgoraEduApi } from '../core/services/edu-api';
-import { EduConfiguration, EduUser, EduStream } from '../interfaces';
+import { EduConfiguration } from '../interfaces';
 import { EduClassroomDataController } from '../room/edu-classroom-data-controller';
 
 export type ClassroomInitParams = {
@@ -74,9 +74,15 @@ export class EduManager extends EventEmitter {
       EduLogger.init()
     }
   }
+
+  static isElectron: boolean = false
+
+  static useElectron() {
+    this.isElectron = true
+  }
   
   static async uploadLog(roomUuid: string): Promise<any> {
-    return await EduLogger.enableUpload(roomUuid)
+    return await EduLogger.enableUpload(roomUuid, this.isElectron)
   }
 
   get authorization(): string {
@@ -105,13 +111,13 @@ export class EduManager extends EventEmitter {
       EduLogger.debug(`prepareLogin login userUuid: ${userUuid} success`)
       const rtmWrapper = new RTMWrapper(this.config.agoraRtm)
       rtmWrapper.on('ConnectionStateChanged', async (evt: any) => {
-        console.log("[rtm] ConnectionStateChanged", evt)
+        EduLogger.info("[rtm] ConnectionStateChanged", evt)
         if (rtmWrapper.prevConnectionState === 'RECONNECTING'
           && rtmWrapper.connectionState === 'CONNECTED') {
           for (let channel of Object.keys(this._dataBuffer)) {
             const classroom = this._dataBuffer[channel]
             if (classroom) {
-              console.log("[syncing] classroom", channel)
+              EduLogger.info("[syncing] classroom", channel)
               await classroom.syncData(true, 300)
             }
           }
@@ -119,10 +125,10 @@ export class EduManager extends EventEmitter {
         this.fire('ConnectionStateChanged', evt)
       })
       rtmWrapper.on('MessageFromPeer', (evt: any) => {
-        console.log("[rtm] MessageFromPeer", evt)
+        EduLogger.info("[rtm] MessageFromPeer", evt)
         const res = MessageSerializer.readMessage(evt.message.text)
         if (res === null) {
-          return console.warn('[room] edu-manager is invalid', res)
+          return EduLogger.warn('[room] edu-manager is invalid', res)
         }
         const { cmd, version, requestId, data } = res
         EduLogger.info('Raw MessageFromPeer peer cmd', cmd)

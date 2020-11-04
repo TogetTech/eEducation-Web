@@ -5,6 +5,7 @@ import Videojs, {VideoJsPlayer} from 'video.js'
 import './index.css';
 
 import '@videojs/http-streaming'
+import { BizLogger } from '../biz-logger';
 
 export { TimelineScheduler } from './timeline-scheduler';
 
@@ -80,7 +81,7 @@ export class AgoraPlayer extends EventEmitter {
 
     this.mediaType = mediaTypes[this.type] || 'video/mp4'
     if (!this.url) {
-      console.error(`URL: invalid ${this.url}`)
+      BizLogger.error(`URL: invalid ${this.url}`)
     }
     this.phaseState = 'init'
     this.on('phaseChanged', (phaseState: any) => {
@@ -123,7 +124,7 @@ export class AgoraPlayer extends EventEmitter {
     })
 
     this.player.on('error', (evt: any) => {
-      console.error('error', this.phaseState)
+      BizLogger.error('error', this.phaseState)
     })
 
     this.player.load();
