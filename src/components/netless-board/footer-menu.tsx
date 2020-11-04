@@ -29,6 +29,9 @@ const BasicSceneFooterMenu = observer(() => {
   const handleRecording = async () => {
     await roomStore.startOrStopRecording()
   } 
+
+  
+
   const handleSharing = async () => {
     await roomStore.startOrStopSharing()
   }

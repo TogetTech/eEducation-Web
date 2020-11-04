@@ -313,7 +313,6 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
     try {
       this.superChannel = this.client.createChannel(option.channel)
       this.userJoinedEvent = (uid: number, elapsed: number) => {
-        EduLogger.info("userJoined", uid)
         this.fire('user-published', {
           user: {
             uid,
@@ -322,7 +321,6 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
         })
       }
       this.userOfflineEvent = (uid: number, elapsed: number) => {
-        EduLogger.info("userOffline", uid)
         this.fire('user-unpublished', {
           user: {
             uid,
@@ -360,13 +358,12 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
 
   async leaveChannel(): Promise<any> {
     try {
-      console.log('*** leave-sus')
+      EduLogger.info("leave-channel-success")
       this.superChannel.leaveChannel()
       this.superChannel.off('userJoined', this.userJoinedEvent)
       this.superChannel.off('userOffline', this.userOfflineEvent)
       return
     } catch(err) {
-      console.log('*** leave-err')
       throw err
     }
   }

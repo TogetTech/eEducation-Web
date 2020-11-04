@@ -283,14 +283,16 @@ export class MediaService extends EventEmitter implements IMediaService {
     if (this.isWeb) {
       await this.sdkWrapper.muteRemoteVideoByClient(client, uid, val)
     } else {
-      throw 'electron not implemented'
+      // throw 'electron not implemented'
+      await this.sdkWrapper.muteRemoteVideoByClient(client, uid, val)
     }
   }
   async muteRemoteAudioByClient(client: any, uid: any, val: boolean): Promise<any> {
     if (this.isWeb) {
       await this.sdkWrapper.muteRemoteAudioByClient(client, uid, val)
     } else {
-      throw 'electron not implemented'
+      // throw 'electron not implemented'
+      await this.sdkWrapper.muteRemoteAudioByClient(client, uid, val)
     }
   }
 

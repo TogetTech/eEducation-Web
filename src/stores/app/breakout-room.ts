@@ -992,7 +992,10 @@ export class BreakoutRoomStore extends SimpleInterval {
         await this.closeCamera()
         await this.closeMicrophone()
         await this.mediaService.leave()
-        await this.mediaService.leaveChannel()
+        let role = this.roomInfo.userRole
+        if(role === 'student' || role === 'assistant') {
+          await this.mediaService.leaveChannel()
+        }
         this.appStore.uiStore.addToast(t('toast.leave_rtc_channel'))
       }
       this.appStore.reset()

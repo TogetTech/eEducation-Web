@@ -166,6 +166,7 @@ export const BreakoutRoomController = observer(({ children }: any) => {
 
   const history = useHistory()
 
+  //@ts-ignore
   const {course_name} = useParams()
 
   console.log('params', course_name)

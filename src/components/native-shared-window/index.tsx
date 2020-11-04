@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import './native-shared-window.scss';
 import {CustomButton} from '@/components/custom-button';
-import { useRoomStore } from '@/hooks'
+import { useRoomStore, useBreakoutRoomStore } from '@/hooks'
 import { observer } from 'mobx-react';
 
 export const WindowItem: React.FC<any> = ({
@@ -79,17 +79,26 @@ export const WindowList: React.FC<WindowListProps> = ({
 
 const NativeSharedWindowController = observer(() => {
   const roomStore = useRoomStore()
+  const breakoutRoomStore = useBreakoutRoomStore()
+
+  var roomStatus = roomStore.customScreenShareWindowVisible
+  var breakoutRoomStatus = breakoutRoomStore.customScreenShareWindowVisible
 
   const [windowId, setWindowId] = useState<number>(0)
 
   return (
-    roomStore.customScreenShareWindowVisible ? 
+    (roomStatus || breakoutRoomStatus) ? 
     <WindowList
       windowId={windowId}
       title={'Please select and click window for share'}
       items={roomStore.customScreenShareItems}
       cancel={() => {
-        roomStore.removeScreenShareWindow()
+        if(roomStatus) {
+          roomStore.removeScreenShareWindow()
+        }
+        if(breakoutRoomStatus) {
+          breakoutRoomStore.removeScreenShareWindow()
+        }
       }}
       selectWindow={(windowId: any) => {
         console.log('windowId', windowId)
@@ -101,7 +110,12 @@ const NativeSharedWindowController = observer(() => {
           return;
         }
         console.log('windowId confirm', windowId)
-        await roomStore.startNativeScreenShareBy(windowId)
+        if(roomStatus) {
+          await roomStore.startNativeScreenShareBy(windowId)
+        }
+        if(breakoutRoomStatus) {
+          await breakoutRoomStore.startNativeScreenShareBy(windowId)
+        }
       }}
     />
     : null
