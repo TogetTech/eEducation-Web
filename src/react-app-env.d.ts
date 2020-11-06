@@ -1,5 +1,4 @@
 /// <reference types="react-scripts" />
-/// <reference types="./sdk/education/interfaces" />
 
 declare const REACT_APP_AGORA_APP_SDK_DOMAIN: string;
 declare const REACT_APP_AGORA_APP_SDK_LOG_SECRET: string;

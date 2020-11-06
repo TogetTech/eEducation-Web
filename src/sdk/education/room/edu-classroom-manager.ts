@@ -11,7 +11,7 @@ import {
   EduStream,
   EduRoleType,
   EduClassroom
-} from '../interfaces';
+} from '../interfaces/index.d';
 import { RTMWrapper } from '../core/rtm';
 import { MessageSerializer } from '../core/rtm/message-serializer';
 

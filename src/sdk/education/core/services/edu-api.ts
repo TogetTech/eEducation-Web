@@ -1,9 +1,8 @@
-import { EduUserData, EduStreamData, InitEduRoomParams, EduUser, EduCourseState, EduShareScreenConfig } from './../../interfaces/index';
-import { EduStream, ClassroomStateParams, UserQueryParams, StreamQueryParams, PeerMessageParams, ChannelMessageParams, AgoraFetchParams, EduStreamParams } from "../../interfaces";
-import { EntryRequestParams, EntryRoomParams, UserStreamResponseData, EduJoinRoomParams, JoinRoomResponseData, UserStreamList, BoardInfoResponse } from "./interface";
 import { get } from "lodash";
+import { EduUser, AgoraFetchParams, ClassroomStateParams, UserQueryParams, StreamQueryParams, EduStreamParams, EduStream, ChannelMessageParams, PeerMessageParams, EduUserData, EduStreamData, EduCourseState } from "../../interfaces/index.d";
 import { EduLogger } from '../logger';
 import { HttpClient } from '../utils/http-client';
+import { EntryRequestParams, UserStreamResponseData, UserStreamList, EduJoinRoomParams, JoinRoomResponseData } from "./interface.d";
 
 export interface ILocalUserInfo {
   userUuid: string

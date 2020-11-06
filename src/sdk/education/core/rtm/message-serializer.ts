@@ -1,5 +1,5 @@
 import { get } from "lodash"
-import { EduStreamData, EduCustomMessage, EduTextMessage, EduUserData } from "../../interfaces"
+import { EduStreamData, EduCustomMessage, EduTextMessage, EduUserData } from "../../interfaces/index.d"
 import { EduLogger } from "../logger"
 
 export class MessageSerializer {

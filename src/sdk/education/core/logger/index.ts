@@ -3,11 +3,7 @@ import db from "./db";
 import Dexie from "dexie";
 // eslint-disable
 import LogWorker from 'worker-loader!./log.worker';
-
-export enum EduLogLevel {
-  Debug = 'Debug',
-  None = 'None'
-}
+import { EduLogLevel } from "./interfaces/index.d";
 
 const flat = (arr: any[]) => {
   return arr.reduce((arr, elem) => arr.concat(elem), []);
@@ -21,8 +17,8 @@ export class EduLogger {
     return `${date.toTimeString().split(" ")[0] + ":" + date.getMilliseconds()}`;
   }
 
-  static setLogLevel(v: EduLogLevel) {
-    this.logLevel = v
+  static setLogLevel(level: EduLogLevel) {
+    this.logLevel = level
   }
 
   static warn(...args: any[]) {
@@ -96,7 +92,7 @@ export class EduLogger {
     }
   }
 
-  static debugLog() {
+  private static debugLog() {
     const thread = this.thread as any;
     function proxy(context: any, method: any) {
       return function() {

@@ -1,13 +1,9 @@
 import {IAgoraRtcEngine} from './types/agora_sdk'
 import { EventEmitter } from 'events';
 import { wait } from '../utils';
-import { IAgoraRTCModule, CameraOption, StartScreenShareParams, MicrophoneOption } from '../interfaces';
+import { CameraOption, StartScreenShareParams, MicrophoneOption, ElectronWrapperInitOption, IElectronRTCWrapper } from '../interfaces/index';
 import { CustomBtoa } from '@/utils/helper';
 import { EduLogger } from '../../logger';
-
-interface IElectronRTCWrapper extends IAgoraRTCModule {
-  client: IAgoraRtcEngine
-}
 
 interface ScreenShareOption {
   profile: number,
@@ -31,13 +27,11 @@ interface ScreenShareOption {
   }
 }
 
-export interface ElectronWrapperInitOption {
-  logPath: string
-  videoSourceLogPath: string
-  AgoraRtcEngine: any
-  appId: string
+interface SubChannelClient {
+  client: any
+  handleUserOnline: Function
+  handleUserOffline: Function
 }
-
 export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRTCWrapper {
   client!: IAgoraRtcEngine;
   logPath: string;
@@ -62,6 +56,8 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
   cameraList: any[] = []
   microphoneList: any[] = []
 
+  _subClient: Record<string, SubChannelClient>;
+
   get deviceList(): any[] {
     return this.cameraList.concat(this.microphoneList)
   }
@@ -79,9 +75,7 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
     this.channel = 0
     this.appId = options.appId
     this.subscribedList = []
-    this.superChannel = {}
-    this.userJoinedEvent = ''
-    this.userOfflineEvent = ''
+    this._subClient = {}
     //@ts-ignore
     this.client = options.AgoraRtcEngine
     let ret = this.client.initialize(this.appId)
@@ -103,6 +97,12 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
       this.client.setLogFile(this.logPath)
     }
     this.init()
+  }
+  muteRemoteVideoByClient(client: any, uid: string, val: boolean): Promise<any> {
+    throw new Error('Method not implemented.');
+  }
+  muteRemoteAudioByClient(client: any, uid: string, val: boolean): Promise<any> {
+    throw new Error('Method not implemented.');
   }
 
   public setAddonLogPath(payload: {logPath: string, videoSourceLogPath: string}) {
@@ -147,6 +147,23 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
     EduLogger.info("muteRemoteAudioStream ret", ret)
   }
 
+  releaseAllClient() {
+    if (this.client) {
+      this.client.removeAllListeners()
+      // this._client = undefined
+    }
+
+    if (this._subClient) {
+      for (let key of Object.keys(this._subClient)) {
+        if (this._subClient[key]) {
+          this._subClient[key].client.removeAllListeners()
+          delete this._subClient[key]
+        }
+      }
+      this._subClient = {}
+    }
+  } 
+
   reset () {
     this.role = 2
     this.joined = false
@@ -155,6 +172,7 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
     this.localUid = undefined
     this.channel = undefined
     this.subscribedList = []
+    this.releaseAllClient()
   }
 
   private fire(...eventArgs: any[]) {
@@ -309,10 +327,10 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
     })
   }
   
-  async joinChannel(option: any): Promise<any> {
+  async joinSubChannel(option: any): Promise<any> {
     try {
-      this.superChannel = this.client.createChannel(option.channel)
-      this.userJoinedEvent = (uid: number, elapsed: number) => {
+      const subChannel = this.client.createChannel(option.channel)
+      const handleUserOnline = (uid: number, elapsed: number) => {
         this.fire('user-published', {
           user: {
             uid,
@@ -320,7 +338,7 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
           channel: option.channel
         })
       }
-      this.userOfflineEvent = (uid: number, elapsed: number) => {
+      const handleUserOffline = (uid: number, elapsed: number) => {
         this.fire('user-unpublished', {
           user: {
             uid,
@@ -328,12 +346,18 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
           channel: option.channel
         })
       }
-      this.superChannel.on('joinChannelSuccess', (uid: number, elapsed: number) => {
+      const handleJoinSuccess = (uid: number, elapsed: number) => {
         EduLogger.info("joinChannelSuccess", uid)
-      })
-      this.superChannel.on('userJoined', this.userJoinedEvent)
-      this.superChannel.on('userOffline', this.userOfflineEvent)
-      this.superChannel.joinChannel(option.token, option.info, option.uid)
+      }
+      subChannel.on('joinChannelSuccess', handleJoinSuccess)
+      subChannel.on('userJoined', handleUserOnline)
+      subChannel.on('userOffline', handleUserOffline)
+      subChannel.joinChannel(option.token, option.info, option.uid)
+      this._subClient[option.channel] = {
+        client: subChannel,
+        handleUserOnline,
+        handleUserOffline,
+      }
     } catch(err) {
       throw err
     }
@@ -342,10 +366,10 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
   async join(option: any): Promise<any> {
     try {
       let ret = this.client.joinChannel(option.token, option.channel, option.info, option.uid)
-      EduLogger.info("electron joinChannel ", ret)
+      EduLogger.info("electron joinSubChannel ", ret)
       if (ret < 0) {
         throw {
-          message: `joinChannel failure`,
+          message: `joinSubChannel failure`,
           code: ret
         }
       }
@@ -356,12 +380,15 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
     }
   }
 
-  async leaveChannel(): Promise<any> {
+  async leaveSubChannel(channelName: string): Promise<any> {
     try {
-      EduLogger.info("leave-channel-success")
-      this.superChannel.leaveChannel()
-      this.superChannel.off('userJoined', this.userJoinedEvent)
-      this.superChannel.off('userOffline', this.userOfflineEvent)
+      const subChannel = this._subClient[channelName]
+      if (subChannel) {
+        subChannel.client.leaveChannel()
+        subChannel.client.off('userJoined', subChannel.handleUserOnline)
+        subChannel.client.off('userOffline', subChannel.handleUserOffline)
+        delete this._subClient[channelName]
+      }
       return
     } catch(err) {
       throw err
@@ -380,7 +407,7 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
       ret = this.client.leaveChannel()
       if (ret < 0) {
         throw {
-          message: `leaveChannel failure`,
+          message: `leaveSubChannel failure`,
           code: ret
         }
       }
@@ -641,7 +668,7 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
       try {
         this.client.on('videoSourceLeaveChannel', handleVideoSourceLeaveChannel)
         let ret = this.client.videoSourceLeave()
-        EduLogger.info("stopScreenShare leaveChannel", ret)
+        EduLogger.info("stopScreenShare leaveSubChannel", ret)
         wait(8000).catch((err: any) => {
           this.client.off('videoSourceLeaveChannel', handleVideoSourceLeaveChannel)
           reject(err)

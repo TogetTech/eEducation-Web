@@ -1,22 +1,10 @@
 import { EduLogger } from './../logger';
 import { LocalUserRenderer, RemoteUserRenderer } from './renderer/index';
 import { EventEmitter } from 'events';
-import { IMediaService, RTCWrapperProvider, RTCProviderInitParams, CameraOption, MicrophoneOption, PrepareScreenShareParams, StartScreenShareParams } from './interfaces';
+import { IMediaService, RTCWrapperProvider, RTCProviderInitParams, CameraOption, MicrophoneOption, PrepareScreenShareParams, StartScreenShareParams, JoinOption } from './interfaces';
 import { AgoraElectronRTCWrapper } from './electron';
 import { AgoraWebRtcWrapper } from './web';
 import AgoraRTC, { ITrack, ILocalTrack } from 'agora-rtc-sdk-ng';
-
-enum ElectronFillMode {
-  fillContentMode = 0,
-  fitContentMode = 1
-}
-
-type JoinOption = {
-  channel: string
-  token?: string | null
-  uid: number
-  info?: string
-}
 
 export class MediaService extends EventEmitter implements IMediaService {
   sdkWrapper!: RTCWrapperProvider;
@@ -278,22 +266,20 @@ export class MediaService extends EventEmitter implements IMediaService {
     }
   }
 
-  async muteRemoteVideoByClient(client: any, uid: any, val: boolean): Promise<any> {
-    if (this.isWeb) {
-      await this.sdkWrapper.muteRemoteVideoByClient(client, uid, val)
-    } else {
-      // throw 'electron not implemented'
-      await this.sdkWrapper.muteRemoteVideoByClient(client, uid, val)
-    }
-  }
-  async muteRemoteAudioByClient(client: any, uid: any, val: boolean): Promise<any> {
-    if (this.isWeb) {
-      await this.sdkWrapper.muteRemoteAudioByClient(client, uid, val)
-    } else {
-      // throw 'electron not implemented'
-      await this.sdkWrapper.muteRemoteAudioByClient(client, uid, val)
-    }
-  }
+  // async muteRemoteVideoByClient(client: any, uid: any, val: boolean): Promise<any> {
+  //   if (this.isWeb) {
+  //     await this.web.muteRemoteVideoByClient(client, uid, val)
+  //   } else {
+  //     throw 'no Implemented'
+  //   }
+  // }
+  // async muteRemoteAudioByClient(client: any, uid: any, val: boolean): Promise<any> {
+  //   if (this.isWeb) {
+  //     await this.web.muteRemoteAudioByClient(client, uid, val)
+  //   } else {
+  //     throw 'no Implemented'
+  //   }
+  // }
 
   get web (): AgoraWebRtcWrapper {
     return (this.sdkWrapper as AgoraWebRtcWrapper)
@@ -341,41 +327,23 @@ export class MediaService extends EventEmitter implements IMediaService {
     }
   }
 
-
-
-  async joinChannel(option: JoinOption): Promise<any> {
+  async joinSubChannel(option: JoinOption): Promise<any> {
+    if (!option.channel) throw 'channelName is invalid'
     if (this.isWeb) {
-      await this.sdkWrapper.joinChannel(option)
+      await this.sdkWrapper.joinSubChannel(option)
     } else {
-      await this.sdkWrapper.joinChannel(option)
-      // throw 'electron no implement'
+      await this.sdkWrapper.joinSubChannel(option)
     }
   }
 
-  async leaveChannel(): Promise<any> {
+  async leaveSubChannel(channelName: string): Promise<any> {
+    if (!channelName) throw 'channelName is invalid'
     if (this.isWeb) {
-      await this.sdkWrapper.leaveChannel()
+      await this.sdkWrapper.leaveSubChannel(channelName)
     } else {
-      // throw 'electron no implement'
-      await this.sdkWrapper.leaveChannel()
+      await this.sdkWrapper.leaveSubChannel(channelName)
     }
   }
-
-  // async publishChannel(): Promise<any> {
-  //   if (this.isWeb) {
-  //     await this.sdkWrapper.publishChannel()
-  //   } else {
-  //     throw 'electron no implement'
-  //   }
-  // }
-
-  // async unpublishChannel(): Promise<any> {
-  //   if (this.isWeb) {
-  //     await this.sdkWrapper.unpublishChannel()
-  //   } else {
-  //     throw 'electron no implement'
-  //   }
-  // }
 
   async publish(): Promise<any> {
     if (this.isWeb) {
@@ -565,7 +533,7 @@ export class MediaService extends EventEmitter implements IMediaService {
 
   async prepareScreenShare(params: PrepareScreenShareParams = {}): Promise<any> {
     if (this.isWeb) {
-      await this.sdkWrapper.prepareScreenShare(params)
+      await this.web.prepareScreenShare(params)
       this.screenRenderer = new LocalUserRenderer({
         context: this,
         uid: 0,
@@ -575,7 +543,7 @@ export class MediaService extends EventEmitter implements IMediaService {
       })
     }
     if (this.isElectron) {
-      let items = await this.sdkWrapper.prepareScreenShare()
+      let items = await this.electron.prepareScreenShare()
       return items
     }
   }

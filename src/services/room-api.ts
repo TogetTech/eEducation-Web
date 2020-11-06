@@ -1,4 +1,4 @@
-import { AgoraFetchParams } from "@/sdk/education/interfaces";
+import { AgoraFetchParams } from "@/sdk/education/interfaces/index.d";
 import { EduRoomType } from "@/sdk/education/core/services/interface.d";
 import { APP_ID, AUTHORIZATION } from "@/utils/config";
 import { HttpClient } from "@/sdk/education/core/utils/http-client";

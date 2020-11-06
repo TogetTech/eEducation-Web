@@ -13,18 +13,18 @@ export class WhiteBoardManager<T> {
   }
 
   async join() {
-
+    throw new Error('Not Implemented')
   }
 
   async grantPermission(): Promise<boolean> {
-    return true
+    throw new Error('Not Implemented')
   }
 
   async revokePermission(): Promise<boolean> {
-    return true
+    throw new Error('Not Implemented')
   }
 
   async leave() {
-
+    throw new Error('Not Implemented')
   }
 }

@@ -1,4 +1,4 @@
-import { EduPeerMessageCmdType, EduTextMessage, EduCustomMessage } from './../interfaces/index';
+import { EduPeerMessageCmdType, EduTextMessage, EduCustomMessage } from './../interfaces/index.d';
 import { MessageSerializer } from './../core/rtm/message-serializer';
 import { EduLogger } from './../core/logger';
 import { EventEmitter } from 'events';

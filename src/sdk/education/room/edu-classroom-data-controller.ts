@@ -1,8 +1,22 @@
 import { MessageSerializer } from './../core/rtm/message-serializer';
 import uuidv4 from 'uuid/v4';
-import { EduVideoSourceType, EduUserAttrs, EduAudioSourceType, EduUser, EduChannelMessageCmdType, EduClassroomStateType, EduTextMessage, EduStreamAction, EduCustomMessage, EduStream } from './../interfaces/index';
+import {
+  EduStreamData,
+  EduUserData,
+  EduClassroomAttrs,
+  EduRoomAttrs,
+  EduVideoSourceType,
+  EduUserAttrs,
+  EduAudioSourceType,
+  EduUser,
+  EduChannelMessageCmdType,
+  EduClassroomStateType,
+  EduTextMessage,
+  EduStreamAction,
+  EduCustomMessage,
+  EduStream 
+} from '../interfaces/index.d';
 import { EduClassroomManager } from '../room/edu-classroom-manager';
-import { EduStreamData, EduUserData, EduClassroomAttrs, EduRoomAttrs } from '../interfaces/index';
 import { EduLogger } from '../core/logger';
 import { get } from 'lodash';
 import { diff } from 'deep-diff';

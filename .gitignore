@@ -13,3 +13,4 @@ node_modules
 *.sh
 .env.back
 native_module
+docs

@@ -1,7 +1,6 @@
-import { EduRoleTypeEnum } from './../../sdk/education/interfaces/index';
 import { EduBoardService } from '../../sdk/board/edu-board-service';
 import { EduRecordService } from '../../sdk/record/edu-record-service';
-import { EduAudioSourceType, EduTextMessage, EduClassroomStateType, EduSceneType } from '../../sdk/education/interfaces/index';
+import { EduRoleTypeEnum, EduAudioSourceType, EduTextMessage, EduClassroomStateType, EduSceneType } from '../../sdk/education/interfaces/index.d';
 import { RemoteUserRenderer } from '../../sdk/education/core/media-service/renderer/index';
 import { RoomApi } from '../../services/room-api';
 import { EduClassroomManager } from '@/sdk/education/room/edu-classroom-manager';
@@ -16,7 +15,7 @@ import { AgoraElectronRTCWrapper } from '@/sdk/education/core/media-service/elec
 import { StartScreenShareParams, PrepareScreenShareParams } from '@/sdk/education/core/media-service/interfaces';
 import { MediaService } from '@/sdk/education/core/media-service';
 import { debounce, get } from 'lodash';
-import { EduCourseState, EduUser, EduStream, EduVideoSourceType, EduRoleType } from '@/sdk/education/interfaces';
+import { EduCourseState, EduUser, EduStream, EduVideoSourceType, EduRoleType } from '@/sdk/education/interfaces/index.d';
 import { ChatMessage } from '@/utils/types';
 import { t } from '@/i18n';
 import { SimpleInterval } from '../mixin/simple-interval';
@@ -356,6 +355,9 @@ export class BreakoutRoomStore extends SimpleInterval {
   get microphoneList() {
     return this.deviceList.filter((it: any) => it.kind === 'audioinput')
   }
+
+  @observable
+  teacherChannel: string = ''
 
   init(option: {video?: boolean, audio?: boolean} = {video: true, audio: true}) {
     if (option.video) {
@@ -956,7 +958,8 @@ export class BreakoutRoomStore extends SimpleInterval {
     try {
       BizLogger.info('[breakout] ', args)
       await this.mediaService.join(args.studentChannel)
-      this.mediaGroup = await this.mediaService.joinChannel(args.teacherChannel)
+      await this.mediaService.joinSubChannel(args.teacherChannel)
+      this.teacherChannel = args.teacherChannel
       this.joiningRTC = true
     } catch (err) {
       this.appStore.uiStore.addToast(t('toast.failed_to_join_rtc_please_refresh_and_try_again'))
@@ -970,7 +973,8 @@ export class BreakoutRoomStore extends SimpleInterval {
     try {
       // if (!this.mediaService.isWeb) throw 'electron not supported'
       await this.mediaService.join(args.studentChannel)
-      this.mediaGroup = await this.mediaService.joinChannel(args.teacherChannel)
+      await this.mediaService.joinSubChannel(args.teacherChannel)
+      this.teacherChannel = args.teacherChannel
       this.joiningRTC = true
     } catch (err) {
       this.appStore.uiStore.addToast(t('toast.failed_to_join_rtc_please_refresh_and_try_again'))
@@ -983,19 +987,20 @@ export class BreakoutRoomStore extends SimpleInterval {
     try {
       if (!this.joiningRTC) return
       this.joiningRTC = false
-      if (this.mediaGroup) {
-        await this.mediaGroup?.leave()
-        this.mediaGroup.removeAllListeners()
-        this.mediaGroup = null as any
-        BizLogger.info("[rtc] mediaGroup success")
-      }
+      // if (this.mediaGroup) {
+      //   await this.mediaGroup?.leave()
+      //   this.mediaGroup.removeAllListeners()
+      //   this.mediaGroup = null as any
+      //   BizLogger.info("[rtc] mediaGroup success")
+      // }
       if (this.mediaService) {
         // await this.closeCamera()
         // await this.closeMicrophone()
         await this.mediaService.leave()
         let role = this.roomInfo.userRole
         if(role === 'student' || role === 'assistant') {
-          await this.mediaService.leaveChannel()
+          await this.mediaService.leaveSubChannel(this.teacherChannel)
+          this.teacherChannel = ''
         }
         this.appStore.uiStore.addToast(t('toast.leave_rtc_channel'))
       }
@@ -2371,7 +2376,7 @@ export class BreakoutRoomStore extends SimpleInterval {
       const stream = this.getStreamBy(userUuid)
       if (stream) {
         // await this.mediaGroup.muteRemoteVideo(+stream.streamUuid, true)
-        await this.mediaService.muteRemoteVideoByClient(this.mediaGroup, +stream.streamUuid, true)
+        // await this.mediaService.muteRemoteVideoByClient(this.mediaGroup, +stream.streamUuid, true)
       }
       const targetStream = this.streamList.find((it: EduStream) => it.userInfo.userUuid === userUuid)
       await this.groupClassroomManager?.userService.remoteStopStudentCamera(targetStream as EduStream)
@@ -2398,7 +2403,7 @@ export class BreakoutRoomStore extends SimpleInterval {
     } else {
       const stream = this.getStreamBy(userUuid)
       if (stream) {
-        await this.mediaService.muteRemoteAudioByClient(this.mediaGroup, +stream.streamUuid, true)
+        // await this.mediaService.muteRemoteAudioByClient(this.mediaGroup, +stream.streamUuid, true)
       }
       const targetStream = this.streamList.find((it: EduStream) => it.userInfo.userUuid === userUuid)
       await this.groupClassroomManager?.userService.remoteStopStudentMicrophone(targetStream as EduStream)

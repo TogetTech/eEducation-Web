@@ -4,22 +4,40 @@ import { EnumOnlineState } from '../core/services/interface';
 import { isEmpty } from 'lodash';
 import { EduLogger } from '../core/logger';
 
+/**
+ * 教室状态类型
+ * EduClassroomStateTypeAllStudentsChat = 0,
+ * EduClassroomStateTypeCourseState = 1,
+ * EduClassroomStateTypeRoomAttrs = 2,
+ */
 export enum EduClassroomStateType {
   EduClassroomStateTypeAllStudentsChat = 0,
   EduClassroomStateTypeCourseState = 1,
   EduClassroomStateTypeRoomAttrs = 2,
 };
 
+/**
+ * 教室流动作
+ * add = 0,
+ * modify = 1,
+ * remove = 2,
+ */
 export enum EduStreamAction {
   add = 1,
   modify = 2,
   remove = 3
 }
 
+/**
+ * 房间属性
+ */
 export interface EduRoomAttrs {
   [key: string]: any
 }
 
+/**
+ * 教育SDK频道命令类型
+ */
 export enum EduChannelMessageCmdType {
   courseState = 1,
   roomMediaState = 2,
@@ -33,6 +51,9 @@ export enum EduChannelMessageCmdType {
   customMessage = 99,
 }
 
+/**
+ * 教育SDK点对点命令类型
+ */
 export enum EduPeerMessageCmdType {
   peer = 1,
   roomInfo = 2,
@@ -40,23 +61,46 @@ export enum EduPeerMessageCmdType {
   customMessage = 99
 }
 
+/**
+ * 教育SDK角色枚举
+ * teacher = 1，为老师
+ * student = 2，为学生
+ * assistant = 3，为助教
+ */
 export enum EduRoleTypeEnum {
   teacher = 1,
   student = 2,
   assistant = 3,
 }
 
+/**
+ * 教育SDK角色枚举，消息体类型
+ * teacher = 1，为老师
+ * student = 2，为学生
+ * assistant = 3，为助教
+ */
 export enum EduRoleType {
   teacher = 'host',
   audience = 'audience',
   student = 'broadcaster'
 }
 
+/**
+ * 音频类型
+ * none = 0, 为无
+ * mic = 1, 麦克风
+ */
 export enum EduAudioSourceType {
   none = 0,
   mic = 1,
 }
 
+/**
+ * 视频类型
+ * none = 0, 为无
+ * camera = 1, 摄像头
+ * screen = 2, 屏幕分享
+ */
 export enum EduVideoSourceType {
   none = 0,
   camera = 1,

@@ -21,23 +21,23 @@ export class ReplayBoardManager<T> {
   }
 
   async init() {
-
+    throw new Error('Not Implemented')
   }
 
   // releaseCombineReplay
   async destroy() {
-
+    throw new Error('Not Implemented')
   }
 
   play() {
-
+    throw new Error('Not Implemented')
   }
 
   pause() {
-
+    throw new Error('Not Implemented')
   }
   
   seekToTime() {
-
+    throw new Error('Not Implemented')
   }
 }

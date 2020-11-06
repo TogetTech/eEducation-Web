@@ -11,7 +11,7 @@ import { BizLogger } from '@/utils/biz-logger';
 import OSS from 'ali-oss';
 import uuidv4 from 'uuid/v4';
 import { t } from '@/i18n';
-import { EduUser, EduRoleType } from '@/sdk/education/interfaces';
+import { EduUser, EduRoleType } from '@/sdk/education/interfaces/index.d';
 
 export const resolveFileInfo = (file: any) => {
   const fileName = encodeURI(file.name);

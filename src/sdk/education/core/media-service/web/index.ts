@@ -1,33 +1,8 @@
 import { IAgoraRTCRemoteUser } from 'agora-rtc-sdk-ng';
-import { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack, ILocalVideoTrack, ILocalAudioTrack, IAgoraRTC, ILocalTrack, ITrack } from 'agora-rtc-sdk-ng';
+import { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack, ILocalVideoTrack, ILocalAudioTrack, IAgoraRTC, ILocalTrack } from 'agora-rtc-sdk-ng';
 import { EventEmitter } from "events";
-import { IAgoraRTCModule, CameraOption, MicrophoneOption, PrepareScreenShareParams, StartScreenShareParams } from '../interfaces';
 import { EduLogger } from '../../logger';
-
-interface IWebRTCWrapper extends IAgoraRTCModule {
-
-  cameraTrack?: ICameraVideoTrack
-  audioTrack?: IMicrophoneAudioTrack
-
-  screenVideoTrack?: ILocalVideoTrack
-  screenAudioTrack?: ILocalAudioTrack
-  screenClient?: IAgoraRTCClient
-
-  client: IAgoraRTCClient
-}
-
-
-
-interface RtcWrapperInitOption {
-  appId: string
-  uploadLog: boolean
-  agoraWebSdk: IAgoraRTC
-  webConfig: {
-    mode: string,
-    codec: string,
-    role: string
-  }
-}
+import { IWebRTCWrapper, WebRtcWrapperInitOption, CameraOption, MicrophoneOption, PrepareScreenShareParams, StartScreenShareParams } from '../interfaces';
 
 export class AgoraWebRtcWrapper extends EventEmitter implements IWebRTCWrapper {
 
@@ -72,7 +47,7 @@ export class AgoraWebRtcWrapper extends EventEmitter implements IWebRTCWrapper {
   public publishedAudio: boolean = false
   public publishedVideo: boolean = false
 
-  constructor(options: RtcWrapperInitOption) {
+  constructor(options: WebRtcWrapperInitOption) {
     super();
     this.agoraWebSdk = options.agoraWebSdk
     this.clientConfig = options.webConfig
@@ -329,7 +304,7 @@ export class AgoraWebRtcWrapper extends EventEmitter implements IWebRTCWrapper {
     return client
   }
 
-  async joinChannel(option: any): Promise<any> {
+  async joinSubChannel(option: any): Promise<any> {
     const subChannel = this._subClient[option.channel]
     if (!subChannel) {
       let childChannel = this.registerClientByChannelName(option.channel)
@@ -345,11 +320,11 @@ export class AgoraWebRtcWrapper extends EventEmitter implements IWebRTCWrapper {
     delete this._subClient[key]
   }
 
-  async leaveChannel(option: any): Promise<any> {
-    const subChannel = this._subClient[option.channel]
+  async leaveSubChannel(channelName: string): Promise<any> {
+    const subChannel = this._subClient[channelName]
     if (subChannel) {
       await subChannel.leave()
-      this.releaseChannel(option.channel)
+      this.releaseChannel(channelName)
     }
   }
   
@@ -527,26 +502,26 @@ export class AgoraWebRtcWrapper extends EventEmitter implements IWebRTCWrapper {
     }
   }
 
-  async muteRemoteVideoByClient(client: IAgoraRTCClient, uid: any, val: boolean): Promise<any> {
-    const targetUser = client.remoteUsers.find(user => user.uid === +uid)
-    if (!targetUser) return
-    if (val) {
-      await client.unsubscribe(targetUser, 'video')
-    } else {
-      EduLogger.info("call subscribeVideo")
-    }
-  }
+  // async muteRemoteVideoByClient(client: IAgoraRTCClient, uid: any, val: boolean): Promise<any> {
+  //   const targetUser = client.remoteUsers.find(user => user.uid === +uid)
+  //   if (!targetUser) return
+  //   if (val) {
+  //     await client.unsubscribe(targetUser, 'video')
+  //   } else {
+  //     EduLogger.info("call subscribeVideo")
+  //   }
+  // }
 
-  async muteRemoteAudioByClient(client: IAgoraRTCClient, uid: any, val: boolean): Promise<any> {
-    const targetUser = client.remoteUsers.find(user => user.uid === +uid)
-    if (!targetUser) return
-    if (val) {
-      await client.unsubscribe(targetUser, 'audio')
-      this.fire('user-unpublished')
-    } else {
-      EduLogger.info("call subscribeVideo")
-    }
-  }
+  // async muteRemoteAudioByClient(client: IAgoraRTCClient, uid: any, val: boolean): Promise<any> {
+  //   const targetUser = client.remoteUsers.find(user => user.uid === +uid)
+  //   if (!targetUser) return
+  //   if (val) {
+  //     await client.unsubscribe(targetUser, 'audio')
+  //     this.fire('user-unpublished')
+  //   } else {
+  //     EduLogger.info("call subscribeVideo")
+  //   }
+  // }
 
   async muteRemoteAudio(uid: any, val: boolean): Promise<any> {
     const targetUser = this.client.remoteUsers.find(user => user.uid === +uid)
