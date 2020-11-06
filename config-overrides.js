@@ -83,7 +83,7 @@ const useOptimizeBabelConfig = () => config => {
 }
 
 module.exports = override(
-    //useBabelRc(),
+  // useBabelRc(),
   // isElectron && addWebpackTarget('electron-renderer'),
   disableEsLint(),
   webWorkerConfig(),
