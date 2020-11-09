@@ -522,7 +522,7 @@ export class BoardStore {
       if (percent < 1) {
         runInAction(() => {
           if (this.uploadingPhase !== 'uploading'){
-            this.uploadingPhase == 'uploading'
+            this.uploadingPhase = 'uploading'
           }
         })
       } else {
