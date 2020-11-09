@@ -27,10 +27,22 @@ interface ScreenShareOption {
   }
 }
 
+interface IAgoraRtcChannel {
+  on(event: 'userJoined', listener: (uid: number) => void): void
+  on(event: 'userOffline', listener: (uid: number) => void): void
+  on(event: 'channelError', listener: (error: number, message: string) => void): void
+  on(event: 'channelWarning', listener: (warn: number, message: string) => void): void
+  off(event: string, listener: Function): void
+  removeAllListeners(): void
+  joinChannel(...args: any[]): number
+  leaveChannel(): number
+}
+
 interface SubChannelClient {
-  client: any
+  client: IAgoraRtcChannel
   handleUserOnline: Function
   handleUserOffline: Function
+  handleJoinSuccess: Function
 }
 export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRTCWrapper {
   client!: IAgoraRtcEngine;
@@ -329,8 +341,10 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
   
   async joinSubChannel(option: any): Promise<any> {
     try {
+      EduLogger.info(`ELECTRON ### ${JSON.stringify({...option})} subChannel: ${Object.keys(this._subClient)}`)
       const subChannel = this.client.createChannel(option.channel)
       const handleUserOnline = (uid: number, elapsed: number) => {
+        EduLogger.info('ELECTRON user-published channel ', uid, option.channel)
         this.fire('user-published', {
           user: {
             uid,
@@ -339,6 +353,7 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
         })
       }
       const handleUserOffline = (uid: number, elapsed: number) => {
+        EduLogger.info('ELECTRON user-unpublished channel ', uid, option.channel)
         this.fire('user-unpublished', {
           user: {
             uid,
@@ -347,17 +362,23 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
         })
       }
       const handleJoinSuccess = (uid: number, elapsed: number) => {
-        EduLogger.info("joinChannelSuccess", uid)
+        EduLogger.info("ELECTRON joinChannelSuccess", uid)
       }
-      subChannel.on('joinChannelSuccess', handleJoinSuccess)
-      subChannel.on('userJoined', handleUserOnline)
-      subChannel.on('userOffline', handleUserOffline)
-      subChannel.joinChannel(option.token, option.info, option.uid)
       this._subClient[option.channel] = {
         client: subChannel,
         handleUserOnline,
         handleUserOffline,
+        handleJoinSuccess
       }
+      EduLogger.info(`ELECTRON subChannel joinChannelSuccess: ${subChannel.id}`)
+      subChannel.on('joinChannelSuccess', this._subClient[option.channel].handleJoinSuccess)
+      EduLogger.info(`ELECTRON subChannel userJoined: ${subChannel.id}`)
+      subChannel.on('userJoined', this._subClient[option.channel].handleUserOnline)
+      EduLogger.info(`ELECTRON subChannel userOffline: ${subChannel.id}`)
+      subChannel.on('userOffline', this._subClient[option.channel].handleUserOffline)
+      subChannel.setClientRole(1)
+      let ret = subChannel.joinChannel(option.token, option.info, option.uid)
+      EduLogger.info(`ELECTRON joinChannel: ret: ${ret}`)
     } catch(err) {
       throw err
     }
@@ -381,10 +402,12 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
   }
 
   async leaveSubChannel(channelName: string): Promise<any> {
+    EduLogger.info(`[ELECTRON] call leaveSubChannel: ${channelName}`)
     try {
       const subChannel = this._subClient[channelName]
       if (subChannel) {
-        subChannel.client.leaveChannel()
+        let ret = subChannel.client.leaveChannel()
+        EduLogger.info("ELECTRON leaveSubChannel ", ret, " channelName ", channelName)
         subChannel.client.off('userJoined', subChannel.handleUserOnline)
         subChannel.client.off('userOffline', subChannel.handleUserOffline)
         delete this._subClient[channelName]
