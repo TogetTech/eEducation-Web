@@ -52,7 +52,7 @@ export class EduClassroomManager extends EventEmitter {
     if (states.includes(this.eduManager.rtmConnectionState)) {
       return false
     } else {
-      this.data
+      // this.data
     }    
     return true
   }
