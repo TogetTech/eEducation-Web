@@ -78,25 +78,25 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
     this._subClient = {}
     //@ts-ignore
     this.client = options.AgoraRtcEngine
-    let ret = this.client.initialize(this.appId)
-    if (ret < 0) {
-      throw {
-        message: `AgoraRtcEngine initialize with APPID: ${this.appId} failured`,
-        code: ret
-      }
-    }
-    this.client.setChannelProfile(1)
-    this.client.enableVideo()
-    this.client.enableAudio()
-    this.client.enableWebSdkInteroperability(true)
-    this.client.enableAudioVolumeIndication(1000, 3, true)
-    this.client.setVideoProfile(43, false);
-    this.client.setClientRole(2)
-    if (this.logPath) {
-      EduLogger.info(`[electron-log-path] set logPath: ${this.logPath}`)
-      this.client.setLogFile(this.logPath)
-    }
-    this.init()
+    // let ret = this.client.initialize(this.appId)
+    // if (ret < 0) {
+    //   throw {
+    //     message: `AgoraRtcEngine initialize with APPID: ${this.appId} failured`,
+    //     code: ret
+    //   }
+    // }
+    // this.client.setChannelProfile(1)
+    // this.client.enableVideo()
+    // this.client.enableAudio()
+    // this.client.enableWebSdkInteroperability(true)
+    // this.client.enableAudioVolumeIndication(1000, 3, true)
+    // this.client.setVideoProfile(43, false);
+    // this.client.setClientRole(2)
+    // if (this.logPath) {
+    //   EduLogger.info(`[electron-log-path] set logPath: ${this.logPath}`)
+    //   this.client.setLogFile(this.logPath)
+    // }
+    // this.init()
   }
   muteRemoteVideoByClient(client: any, uid: string, val: boolean): Promise<any> {
     throw new Error('Method not implemented.');

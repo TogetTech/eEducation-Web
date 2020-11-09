@@ -24,6 +24,7 @@ import { AgoraWebRtcWrapper } from '@/sdk/education/core/media-service/web';
 import { AgoraElectronRTCWrapper } from '@/sdk/education/core/media-service/electron';
 import { BizLogger } from '@/utils/biz-logger';
 import { platform } from '@/utils/platform';
+import { RteRoomStore } from './rte-room';
 
 const APP_ID: string = process.env.REACT_APP_AGORA_APP_ID as string;
 BizLogger.info("APP_ID ", APP_ID)
@@ -46,6 +47,7 @@ export class AppStore {
 
   _boardService?: EduBoardService;
   _recordService?: EduRecordService;
+  rteRoomStore: RteRoomStore;
 
   get boardService() {
     return this._boardService as EduBoardService;
@@ -120,6 +122,8 @@ export class AppStore {
     this.deviceStore = new DeviceStore(this)
     this.replayStore = new ReplayStore(this)
     this.breakoutRoomStore = new BreakoutRoomStore(this)
+
+    this.rteRoomStore = new RteRoomStore(this)
 
     this._screenVideoRenderer = undefined
   }

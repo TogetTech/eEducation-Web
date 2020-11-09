@@ -1,4 +1,5 @@
 const {ipcRenderer: ipc, app} = require('electron');
+window.isElectron = true
 
 const AgoraRtcEngine = require('agora-electron-sdk').default;
 
@@ -14,8 +15,6 @@ const fs = require('fs');
 const platform = process.platform
 
 const rtcEngine = new AgoraRtcEngine();
-
-window.isElectron = true
 
 window.rtcEngine = rtcEngine;
 window.ipc = ipc;

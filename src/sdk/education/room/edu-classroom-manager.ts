@@ -10,7 +10,9 @@ import {
   EduUser,
   EduStream,
   EduRoleType,
-  EduClassroom
+  EduClassroom,
+  IEduClassroomManager,
+  EduClassroomJoinOptions
 } from '../interfaces/index.d';
 import { RTMWrapper } from '../core/rtm';
 import { MessageSerializer } from '../core/rtm/message-serializer';
@@ -23,7 +25,7 @@ export type EduClassroomInitParams = {
   // rtcProvider: any
 }
 
-export class EduClassroomManager extends EventEmitter {
+export class EduClassroomManager extends EventEmitter implements IEduClassroomManager {
 
   private _roomUuid: string
 
@@ -45,6 +47,16 @@ export class EduClassroomManager extends EventEmitter {
     this._userService = undefined
     this._rtmObserver = undefined
     // this._mediaService = new MediaService(payload.rtcProvider)
+  }
+  
+  joinClassroomAsTeacher(option: EduClassroomJoinOptions): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+  joinClassroomAsStudent(option: EduClassroomJoinOptions): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+  leaveClassroom(): Promise<any> {
+    throw new Error('Method not implemented.');
   }
 
   public get syncingData(): boolean {

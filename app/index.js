@@ -51,11 +51,11 @@ async function createWindow() {
 
 
     mainWindow = new BrowserWindow({
-      frame: false,
+      frame: true,
       width: 700,
       height: 500,
       center: true,
-      resizable: false,
+      // resizable: false,
       show: false,
       webPreferences: {
         autoplayPolicy: 'no-user-gesture-required',
@@ -74,6 +74,8 @@ async function createWindow() {
 
     // and load the index.html of the app.
     mainWindow.loadURL(startUrl);
+
+    app.setAppLogsPath('D:\\work\\agora\\eEducation-Web\\logs')
 
     const appLogPath = app.getPath('logs')
 
