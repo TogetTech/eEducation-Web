@@ -96,26 +96,26 @@ export class RteRoomStore {
   @action
   async openCamera() {
     // TODO: fix
-    await this.eduRteClassroomManager.openLocalCamera({} as any)
+    await this.eduRteClassroomManager.openLocalCamera()
   }
 
   @action
   async openMicrophone() {
     // TODO: fix
-    await this.eduRteClassroomManager.openLocalMicrophone({} as any)
+    await this.eduRteClassroomManager.openLocalMicrophone()
   }
 
 
   @action
   async closeCamera() {
     // TODO: fix
-    await this.eduRteClassroomManager.closeLocalCamera({} as any)
+    await this.eduRteClassroomManager.closeLocalCamera()
   }
 
   @action
   async closeMicrophone() {
     // TODO: fix
-    await this.eduRteClassroomManager.closeLocalMicrophone({} as any)
+    await this.eduRteClassroomManager.closeLocalMicrophone()
   }
 
 }

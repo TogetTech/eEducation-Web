@@ -841,14 +841,16 @@ export class RoomStore extends SimpleInterval {
         user_id: MD5(`${this.roomInfo.userName}${this.roomInfo.userRole}`)
       }
       if (this.roomInfo.userRole === 'teacher') {
-        let res = await this.rteClassroomManager.init({
+        await this.rteClassroomManager.init({
           initializeParams: {
             appid_or_token: APP_ID,
             ...config
           },
           sceneUuid: roomUuid
         })
-        console.log(">>> teacher res", res, roomUuid)
+        // debugger
+        // this.rteClassroomManager.openLocalCamera()
+        // this.rteClassroomManager.openLocalMicrophone()
       } else {
         const sceneType = +this.roomInfo.roomType === 2 ? EduSceneType.SceneLarge : +this.roomInfo.roomType
         const userRole = sceneType === EduSceneType.SceneLarge ? 'audience' : 'broadcaster'
@@ -865,6 +867,7 @@ export class RoomStore extends SimpleInterval {
 
       this.appStore.uiStore.stopLoading()
     } catch (err) {
+      console.error(err)
       this.appStore.uiStore.stopLoading()
     }
   }
