@@ -188,6 +188,6 @@
   "dependencies": {
     "adm-zip": "^0.4.14",
     "agora-electron-sdk": "education290",
-    "rte-electron-sdk": "D:\\work\\agora\\rte-electron-sdk"
+    "rte-electron-sdk": "C:\\Users\\ADMIN\\Desktop\\rte-electron-sdk"
   }
 }

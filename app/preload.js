@@ -1,8 +1,9 @@
 const {ipcRenderer: ipc, app} = require('electron');
 window.isElectron = true
 
-const AgoraRtcEngine = require('agora-electron-sdk').default;
+// const AgoraRtcEngine = require('agora-electron-sdk').default;
 
+const AgoraRtcEngine = {} 
 const child_process = require('child_process')
 
 const {promisify} = require('util')

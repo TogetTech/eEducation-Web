@@ -75,7 +75,7 @@ async function createWindow() {
     // and load the index.html of the app.
     mainWindow.loadURL(startUrl);
 
-    app.setAppLogsPath('D:\\work\\agora\\eEducation-Web\\logs')
+    app.setAppLogsPath('C:\\Users\\ADMIN\\Desktop\\eEducation-Web\\logs')
 
     const appLogPath = app.getPath('logs')
 

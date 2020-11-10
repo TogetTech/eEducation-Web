@@ -54,9 +54,11 @@ const sourceMap = () => config => {
 
 const setElectronDeps = isProd ? {
   ...devDependencies,
-  "agora-electron-sdk": "commonjs2 agora-electron-sdk"
+  "agora-electron-sdk": "commonjs2 agora-electron-sdk",
+  "rte-electron-sdk": "commonjs2 rte-electron-sdk"
 } : {
-  "agora-electron-sdk": "commonjs2 agora-electron-sdk"
+  "agora-electron-sdk": "commonjs2 agora-electron-sdk",
+  "rte-electron-sdk": "commonjs2 rte-electron-sdk"
 }
 
 const useOptimizeBabelConfig = () => config => {
