@@ -847,6 +847,10 @@ export class RoomStore extends SimpleInterval {
         user_name: this.roomInfo.userName,
         user_id: MD5(`${this.roomInfo.userName}${this.roomInfo.userRole}`)
       }
+      this.rteClassroomManager.on('connectionstatechanged', (evt: any) => {
+        console.log('rteClassroomManager#connectionstatechanged', evt)
+        this.appStore.uiStore.addToast( `connectionstatechanged: ${evt[0]}, ok?: ${evt[1].ok()}`)
+      })
       if (this.roomInfo.userRole === 'teacher') {
         await this.rteClassroomManager.init({
           initializeParams: {
@@ -884,6 +888,8 @@ export class RoomStore extends SimpleInterval {
         })
         console.log(">>> teacher res", res, roomUuid)
       }
+
+      await this.appStore.boardStore.init()
 
       this.appStore.uiStore.stopLoading()
     } catch (err) {

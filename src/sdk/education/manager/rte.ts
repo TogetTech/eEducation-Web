@@ -30,40 +30,40 @@ export class EduRteClassroomManager extends EventEmitter implements IEduClassroo
         this.createScene(payload.sceneUuid)
         this.createMediaControl()
         this.userUuid = payload.initializeParams.user_id
-        this.scene.localUser.on('connectionstatechanged', (evt: any) => {
-            console.log(evt)
+        this.scene.on('connectionstatechanged', (evt: any) => {
+            this.emit('connectionstatechanged', evt)
             BizLogger.info('event connectionstatechanged', JSON.stringify(evt))
         })
-        this.scene.localUser.on('remoteuserupdated', (evt: any) => {
-            console.log(evt)
+        this.scene.on('remoteuserupdated', (evt: any) => {
+            this.emit('remoteuserupdated', evt)
             BizLogger.info('event remoteuserupdated', JSON.stringify(evt))
         })
-        this.scene.localUser.on('remoteuserjoined', (evt: any) => {
-            console.log(evt)
+        this.scene.on('remoteuserjoined', (evt: any) => {
+            this.emit('remoteuserjoined', evt)
             BizLogger.info('event remoteuserjoined', JSON.stringify(evt))
         })
-        this.scene.localUser.on('remoteuserleft', (evt: any) => {
-            console.log(evt)
+        this.scene.on('remoteuserleft', (evt: any) => {
+            this.emit('remoteuserleft', evt)
             BizLogger.info('event remoteuserleft', JSON.stringify(evt))
         })
-        this.scene.localUser.on('remotestreamupdated', (evt: any) => {
-            console.log(evt)
+        this.scene.on('remotestreamupdated', (evt: any) => {
+            this.emit('remotestreamupdated', evt)
             BizLogger.info('event remotestreamupdated', JSON.stringify(evt))
         })
-        this.scene.localUser.on('remotestreamadded', (evt: any) => {
-            console.log(evt)
+        this.scene.on('remotestreamadded', (evt: any) => {
+            this.emit('remotestreamadded', evt)
             BizLogger.info('event remotestreamadded', JSON.stringify(evt))
         })
-        this.scene.localUser.on('remotestreamremoved', (evt: any) => {
-            console.log(evt)
+        this.scene.on('remotestreamremoved', (evt: any) => {
+            this.emit('remotestreamremoved', evt)
             BizLogger.info('event remotestreamremoved', JSON.stringify(evt))
         })
-        this.scene.localUser.on('remoteuserjoined', (evt: any) => {
-            console.log(evt)
+        this.scene.on('remoteuserjoined', (evt: any) => {
+            this.emit('remoteuserjoined', evt)
             BizLogger.info('event remoteuserjoined', JSON.stringify(evt))
         })
-        this.scene.localUser.on('scenemessagereceived', (evt: any) => {
-            console.log(evt)
+        this.scene.on('scenemessagereceived', (evt: any) => {
+            this.emit('scenemessagereceived', evt)
             BizLogger.info('event scenemessagereceived', JSON.stringify(evt))
         })
         this.scene.join({client_role: payload.client_role, user_name: payload.user_name})
