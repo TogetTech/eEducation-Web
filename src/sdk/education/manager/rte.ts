@@ -6,9 +6,6 @@ import { IAgoraRteVideoTrack, IAgoraRteAudioTrack } from "rte-electron-sdk/types
 import { AgoraRteScene } from "rte-electron-sdk/types/api2/agora_rte_scene";
 import { EduClassroomJoinOptions, EduStream, EduUser, EduUserData, IEduClassroomManager } from "../interfaces";
 
-
-// type PickFunctionArgsType<T> = T extends (...args: infer R) => any ? R : never
-
 export class EduRteClassroomManager extends EventEmitter implements IEduClassroomManager {
     
     rteEngine: AgoraRteEngine
@@ -34,30 +31,39 @@ export class EduRteClassroomManager extends EventEmitter implements IEduClassroo
         this.createMediaControl()
         this.userUuid = payload.initializeParams.user_id
         this.scene.localUser.on('connectionstatechanged', (evt: any) => {
+            console.log(evt)
             BizLogger.info('event connectionstatechanged', JSON.stringify(evt))
         })
         this.scene.localUser.on('remoteuserupdated', (evt: any) => {
+            console.log(evt)
             BizLogger.info('event remoteuserupdated', JSON.stringify(evt))
         })
         this.scene.localUser.on('remoteuserjoined', (evt: any) => {
+            console.log(evt)
             BizLogger.info('event remoteuserjoined', JSON.stringify(evt))
         })
         this.scene.localUser.on('remoteuserleft', (evt: any) => {
+            console.log(evt)
             BizLogger.info('event remoteuserleft', JSON.stringify(evt))
         })
         this.scene.localUser.on('remotestreamupdated', (evt: any) => {
+            console.log(evt)
             BizLogger.info('event remotestreamupdated', JSON.stringify(evt))
         })
         this.scene.localUser.on('remotestreamadded', (evt: any) => {
+            console.log(evt)
             BizLogger.info('event remotestreamadded', JSON.stringify(evt))
         })
         this.scene.localUser.on('remotestreamremoved', (evt: any) => {
+            console.log(evt)
             BizLogger.info('event remotestreamremoved', JSON.stringify(evt))
         })
         this.scene.localUser.on('remoteuserjoined', (evt: any) => {
+            console.log(evt)
             BizLogger.info('event remoteuserjoined', JSON.stringify(evt))
         })
         this.scene.localUser.on('scenemessagereceived', (evt: any) => {
+            console.log(evt)
             BizLogger.info('event scenemessagereceived', JSON.stringify(evt))
         })
         this.scene.join({client_role: payload.client_role, user_name: payload.user_name})
@@ -77,6 +83,12 @@ export class EduRteClassroomManager extends EventEmitter implements IEduClassroo
             log_file_size: payload.log_file_size
         })
         console.log('initialize')
+        return res
+    }
+
+    async release() {
+        let res = await this.rteEngine.release()
+        BizLogger.info(`release`)
         return res
     }
 

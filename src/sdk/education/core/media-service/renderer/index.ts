@@ -4,6 +4,7 @@ import { AgoraWebRtcWrapper } from "../web";
 import { AgoraElectronRTCWrapper } from "../electron";
 import { MediaService } from '../index';
 import uuidv4 from 'uuid/v4';
+import { IAgoraRteVideoTrack } from 'rte-electron-sdk/types/api2/agora_rte_media_control';
 
 type SourceType = 'default' | 'screen';
 
@@ -14,7 +15,7 @@ export interface IMediaRenderer {
   sourceType: SourceType;
   uid: any;
   channel: any;
-  videoTrack?: ITrack;
+  videoTrack?: ITrack | IAgoraRteVideoTrack;
 
   play(dom: HTMLElement, fit?: boolean): void;
   stop(isPreview?: boolean): void;
@@ -24,7 +25,7 @@ export interface UserRendererInit {
   context: MediaService
   uid: any
   channel: any
-  videoTrack?: ITrack
+  videoTrack?: ITrack | IAgoraRteVideoTrack
   sourceType: SourceType;
 }
 
@@ -35,7 +36,7 @@ export abstract class UserRenderer implements IMediaRenderer {
   sourceType: SourceType = 'screen';
   uid: any = 0;
   channel: any = 0;
-  videoTrack?: ITrack;
+  videoTrack?: ITrack | IAgoraRteVideoTrack;
   uuid: string;
 
   constructor(config: UserRendererInit) {
@@ -81,23 +82,28 @@ export class LocalUserRenderer extends UserRenderer {
   play(dom: HTMLElement, fit?: boolean): void {
     if (this.isWeb) {
       if (this.videoTrack) {
-        this.videoTrack.play(dom)
+        (this.videoTrack as ITrack).play(dom)
       }
     }
     if (this.isElectron) {
       // @ts-ignore
       if (this.sourceType === 'default') {
-        this.electron.client.setupLocalVideo(dom)
-        //@ts-ignore
-        this.electron.client.setupViewContentMode(+this.uid, 0);
+        this.videoTrack?.play(dom, 1)
       } else {
-        this.electron.client.setupLocalVideoSource(dom)
-        //@ts-ignore
-        this.electron.client.setupViewContentMode('videosource', 1);
+
       }
-      this.electron.client.setClientRole(1)
-      EduLogger.info('Raw Message: setClientRole(1) in LocalUserRenderer')
-      this.electron.client.startPreview();
+      // if (this.sourceType === 'default') {
+      //   this.electron.client.setupLocalVideo(dom)
+      //   //@ts-ignore
+      //   this.electron.client.setupViewContentMode(+this.uid, 0);
+      // } else {
+      //   this.electron.client.setupLocalVideoSource(dom)
+      //   //@ts-ignore
+      //   this.electron.client.setupViewContentMode('videosource', 1);
+      // }
+      // this.electron.client.setClientRole(1)
+      // EduLogger.info('Raw Message: setClientRole(1) in LocalUserRenderer')
+      // this.electron.client.startPreview();
     }
     this._playing = true
   }
@@ -134,7 +140,7 @@ export class RemoteUserRenderer extends UserRenderer {
   play(dom: HTMLElement, fit?: boolean) {
     if (this.isWeb) {
       if (this.videoTrack) {
-        this.videoTrack.play(dom)
+        (this.videoTrack as ITrack).play(dom)
       }
     }
     if (this.isElectron) {

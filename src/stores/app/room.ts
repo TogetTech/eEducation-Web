@@ -856,11 +856,20 @@ export class RoomStore extends SimpleInterval {
           },
           sceneUuid: roomUuid
         })
-        // debugger
         this.rteClassroomManager.openLocalCamera()
-        this.rteClassroomManager.cameraVideoTrack?.play(document.querySelector("#teacher") as any, 1)
+        // const view = document.createElement("div")
+        // view.id = "local_teacher_view"
+        // document.querySelector("#teacher")?.append(view)
+        // this.rteClassroomManager.cameraVideoTrack?.play(document.querySelector("#local_teacher_view") as any, 1)
         // this.rteClassroomManager.cameraVideoTrack?.play($(""))
         this.rteClassroomManager.openLocalMicrophone()
+        this._cameraRenderer = new LocalUserRenderer({
+          context: {} as any,
+          uid: 0,
+          channel: 0,
+          sourceType: 'default',
+          videoTrack: this.rteClassroomManager.cameraVideoTrack
+        })
       } else {
         const sceneType = +this.roomInfo.roomType === 2 ? EduSceneType.SceneLarge : +this.roomInfo.roomType
         const userRole = sceneType === EduSceneType.SceneLarge ? 'audience' : 'broadcaster'
@@ -1032,8 +1041,9 @@ export class RoomStore extends SimpleInterval {
   async leave() {
     try {
       this.joiningRTC = true
-      this.rteClassroomManager.cameraVideoTrack?.stop()
-      await this.leaveRtc()
+      // this.rteClassroomManager.cameraVideoTrack?.stop()
+      await this.rteClassroomManager.release()
+      // await this.leaveRtc()
       await this.appStore.boardStore.leave()
       // await this.eduManager.logout()
       // await this.roomManager?.leave()

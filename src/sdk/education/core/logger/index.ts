@@ -85,11 +85,11 @@ export class EduLogger {
   static thread = null;
 
   static init() {
-    if (!this.thread) {
-      //@ts-ignore
-      this.thread = new LogWorker()
-      this.debugLog();
-    }
+    // if (!this.thread) {
+    //   //@ts-ignore
+    //   this.thread = new LogWorker()
+    //   this.debugLog();
+    // }
   }
 
   private static debugLog() {

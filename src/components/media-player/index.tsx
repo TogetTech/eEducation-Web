@@ -22,7 +22,7 @@ export const RendererPlayer = (props: RendererPlayerProps) => {
 
 
   return (
-    <div key={props.track && props.track.videoTrack ? props.track.videoTrack.getTrackId() : ''} id={props.id ? props.id : ''} className={props.className} ref={ref}>
+    <div key={props.track && props.track.videoTrack ? `${props.track.videoTrack}` : ''} id={props.id ? props.id : ''} className={props.className} ref={ref}>
     </div>
   )
 }

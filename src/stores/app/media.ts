@@ -50,56 +50,56 @@ export class MediaStore {
 
   constructor(appStore: any) {
     this.appStore = appStore
-    this.mediaService.on('rtcStats', (evt: any) => {
-      this.appStore.updateCpuRate(evt.cpuTotalUsage)
-    })
-    this.mediaService.on('audio-device-changed', debounce(async (info: any) => {
-      BizLogger.info("audio device changed")
-      this.appStore.uiStore.addToast(t('toast.audio_equipment_has_changed'))
-      await this.appStore.deviceStore.init({audio: true})
-    }, delay))
-    this.mediaService.on('video-device-changed', debounce(async (info: any) => {
-      BizLogger.info("video device changed")
-      this.appStore.uiStore.addToast(t('toast.video_equipment_has_changed'))
-      await this.appStore.deviceStore.init({video: true})
-    }, delay))
-    this.mediaService.on('audio-autoplay-failed', () => {
-      if (!this.autoplay) {
-        this.autoplay = true
-        this.appStore.uiStore.showAutoplayNotification()
-      }
-    })
-    this.mediaService.on('watch-rtt', (evt: any) => {
-      this._delay = evt.RTT
-    })
-    this.mediaService.on('user-published', (evt: any) => {
-      this.remoteUsersRenderer = this.mediaService.remoteUsersRenderer
-      console.log('sdkwrapper update user-pubilshed', evt)
-    })
-    this.mediaService.on('user-unpublished', (evt: any) => {
-      this.remoteUsersRenderer = this.mediaService.remoteUsersRenderer
-      console.log('sdkwrapper update user-unpublished', evt)
-    })
-    this.mediaService.on('network-quality', (evt: any) => {
-      let defaultQuality = 'unknown'
+    // this.mediaService.on('rtcStats', (evt: any) => {
+    //   this.appStore.updateCpuRate(evt.cpuTotalUsage)
+    // })
+    // this.mediaService.on('audio-device-changed', debounce(async (info: any) => {
+    //   BizLogger.info("audio device changed")
+    //   this.appStore.uiStore.addToast(t('toast.audio_equipment_has_changed'))
+    //   await this.appStore.deviceStore.init({audio: true})
+    // }, delay))
+    // this.mediaService.on('video-device-changed', debounce(async (info: any) => {
+    //   BizLogger.info("video device changed")
+    //   this.appStore.uiStore.addToast(t('toast.video_equipment_has_changed'))
+    //   await this.appStore.deviceStore.init({video: true})
+    // }, delay))
+    // this.mediaService.on('audio-autoplay-failed', () => {
+    //   if (!this.autoplay) {
+    //     this.autoplay = true
+    //     this.appStore.uiStore.showAutoplayNotification()
+    //   }
+    // })
+    // this.mediaService.on('watch-rtt', (evt: any) => {
+    //   this._delay = evt.RTT
+    // })
+    // this.mediaService.on('user-published', (evt: any) => {
+    //   this.remoteUsersRenderer = this.mediaService.remoteUsersRenderer
+    //   console.log('sdkwrapper update user-pubilshed', evt)
+    // })
+    // this.mediaService.on('user-unpublished', (evt: any) => {
+    //   this.remoteUsersRenderer = this.mediaService.remoteUsersRenderer
+    //   console.log('sdkwrapper update user-unpublished', evt)
+    // })
+    // this.mediaService.on('network-quality', (evt: any) => {
+    //   let defaultQuality = 'unknown'
 
-      let downlinkNetworkQuality = +evt.downlinkNetworkQuality;
-      let uplinkNetworkQuality = +evt.uplinkNetworkQuality;
-      let qualityStr = defaultQuality
-      let value = Math.max(downlinkNetworkQuality, uplinkNetworkQuality)
-      qualityStr = networkQualityLevel[value]
-      // BizLogger.info('[web] network-quality value', value, qualityStr)
-      // if (downlinkNetworkQuality <= uplinkNetworkQuality) {
-      //   qualityStr = networkQualityLevel[downlinkNetworkQuality]
-      // } else {
-      //   qualityStr = networkQualityLevel[uplinkNetworkQuality]
-      // }
-      this.updateNetworkQuality(qualityStr || defaultQuality)
-      // BizLogger.info('network-quality', evt, qualityStr)
-    })
-    this.mediaService.on('connection-state-change', (evt: any) => {
-      BizLogger.info('connection-state-change', JSON.stringify(evt))
-    })
+    //   let downlinkNetworkQuality = +evt.downlinkNetworkQuality;
+    //   let uplinkNetworkQuality = +evt.uplinkNetworkQuality;
+    //   let qualityStr = defaultQuality
+    //   let value = Math.max(downlinkNetworkQuality, uplinkNetworkQuality)
+    //   qualityStr = networkQualityLevel[value]
+    //   // BizLogger.info('[web] network-quality value', value, qualityStr)
+    //   // if (downlinkNetworkQuality <= uplinkNetworkQuality) {
+    //   //   qualityStr = networkQualityLevel[downlinkNetworkQuality]
+    //   // } else {
+    //   //   qualityStr = networkQualityLevel[uplinkNetworkQuality]
+    //   // }
+    //   this.updateNetworkQuality(qualityStr || defaultQuality)
+    //   // BizLogger.info('network-quality', evt, qualityStr)
+    // })
+    // this.mediaService.on('connection-state-change', (evt: any) => {
+    //   BizLogger.info('connection-state-change', JSON.stringify(evt))
+    // })
   }
 
   @observable
