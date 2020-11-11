@@ -60,7 +60,7 @@ export class EduRteClassroomManager extends EventEmitter implements IEduClassroo
         this.scene.localUser.on('scenemessagereceived', (evt: any) => {
             BizLogger.info('event scenemessagereceived', JSON.stringify(evt))
         })
-        this.scene.join({client_role: 'host', user_name: payload.user_name})
+        this.scene.join({client_role: payload.client_role, user_name: payload.user_name})
         console.log('init success', payload)
 
     }

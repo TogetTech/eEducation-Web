@@ -851,7 +851,8 @@ export class RoomStore extends SimpleInterval {
         await this.rteClassroomManager.init({
           initializeParams: {
             appid_or_token: APP_ID,
-            ...config
+            ...config,
+            client_role: 'broadcaster',
           },
           sceneUuid: roomUuid
         })
@@ -867,7 +868,8 @@ export class RoomStore extends SimpleInterval {
         let res = await this.rteClassroomManager.init({
           initializeParams: {
             appid_or_token: APP_ID,
-            ...config
+            ...config,
+            client_role: 'host',
           },
           sceneUuid: roomUuid
         })
@@ -1033,8 +1035,8 @@ export class RoomStore extends SimpleInterval {
       this.rteClassroomManager.cameraVideoTrack?.stop()
       await this.leaveRtc()
       await this.appStore.boardStore.leave()
-      await this.eduManager.logout()
-      await this.roomManager?.leave()
+      // await this.eduManager.logout()
+      // await this.roomManager?.leave()
       this.appStore.uiStore.addToast(t('toast.successfully_left_the_business_channel'))
       this.delInterval('timer')
       this.reset()
