@@ -660,16 +660,23 @@ export class RoomStore extends SimpleInterval {
   messages: any[] = []
 
   @action
-  async sendMessage(message: any) {
+  async sendMessage(text: any) {
     try {
-      await this.roomManager?.userService.sendRoomChatMessage(message)
-      this.addChatMessage({
-        id: this.userUuid,
-        ts: +Date.now(),
-        text: message,
-        account: this.roomInfo.userName,
-        sender: true,
-      })
+      await this.rteClassroomManager.sendChannelMessage(text)
+      // const message = this.rteClassroomManager.mediaControl.mediaControl.createMessage()
+      // message.setMessageInfo(text)
+      // this.rteClassroomManager.userService.localUser.sendSceneMessageToAllRemoteUsers({
+      //   message: message,
+      //   operate_id: this.rteClassroomManager.userUuid
+      // })
+      // await this.roomManager?.userService.sendRoomChatMessage(message)
+      // this.addChatMessage({
+      //   id: this.userUuid,
+      //   ts: +Date.now(),
+      //   text: message,
+      //   account: this.roomInfo.userName,
+      //   sender: true,
+      // })
     } catch (err) {
       this.appStore.uiStore.addToast(t('toast.failed_to_send_chat'))
       BizLogger.warn(err)
@@ -849,8 +856,10 @@ export class RoomStore extends SimpleInterval {
           sceneUuid: roomUuid
         })
         // debugger
-        // this.rteClassroomManager.openLocalCamera()
-        // this.rteClassroomManager.openLocalMicrophone()
+        this.rteClassroomManager.openLocalCamera()
+        this.rteClassroomManager.cameraVideoTrack?.play(document.querySelector("#teacher") as any, 1)
+        // this.rteClassroomManager.cameraVideoTrack?.play($(""))
+        this.rteClassroomManager.openLocalMicrophone()
       } else {
         const sceneType = +this.roomInfo.roomType === 2 ? EduSceneType.SceneLarge : +this.roomInfo.roomType
         const userRole = sceneType === EduSceneType.SceneLarge ? 'audience' : 'broadcaster'
@@ -1021,6 +1030,7 @@ export class RoomStore extends SimpleInterval {
   async leave() {
     try {
       this.joiningRTC = true
+      this.rteClassroomManager.cameraVideoTrack?.stop()
       await this.leaveRtc()
       await this.appStore.boardStore.leave()
       await this.eduManager.logout()

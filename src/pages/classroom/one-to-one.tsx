@@ -42,6 +42,7 @@ export const OneToOne = observer(() => {
       <div className="live-board">
         <div className="video-board">
             <VideoPlayer
+              id="teacher"
               showClose={false}
               role="teacher"
               {...teacherStream}
@@ -67,7 +68,7 @@ export const OneToOne = observer(() => {
             }
         </div>
         <ChatBoard
-          canChat={roomStore.roomInfo.userRole === 'teacher'}
+          canChat={true}
           messages={roomStore.roomChatMessages}
           value={chat}
           sendMessage={sendMessage}

@@ -6,6 +6,7 @@ import { RendererPlayer } from '../media-player'
 
 type VideoPlayerProps = {
   className?: string
+  id?: string
   userUuid: string
   streamUuid: string
   showClose: boolean
@@ -35,7 +36,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   showControls,
   share = false,
   handleClickVideo,
-  handleClickAudio
+  handleClickAudio,
+  id
 }) => {
 
   const roomStore = useRoomStore()
@@ -67,7 +69,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   }
 
   return (
-    <div className={`${className ? className : 'agora-video-view'}`}>
+    <div id={ id ? id : undefined} className={`${className ? className : 'agora-video-view'}`}>
       {showClose ? <div className="icon-close" onClick={handleClose}></div> : null}
       {
         share === true ? null : 

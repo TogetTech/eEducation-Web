@@ -33,7 +33,34 @@ export class EduRteClassroomManager extends EventEmitter implements IEduClassroo
         this.createScene(payload.sceneUuid)
         this.createMediaControl()
         this.userUuid = payload.initializeParams.user_id
-        this.scene.join({client_role: '0', user_name: payload.user_name})
+        this.scene.localUser.on('connectionstatechanged', (evt: any) => {
+            BizLogger.info('event connectionstatechanged', JSON.stringify(evt))
+        })
+        this.scene.localUser.on('remoteuserupdated', (evt: any) => {
+            BizLogger.info('event remoteuserupdated', JSON.stringify(evt))
+        })
+        this.scene.localUser.on('remoteuserjoined', (evt: any) => {
+            BizLogger.info('event remoteuserjoined', JSON.stringify(evt))
+        })
+        this.scene.localUser.on('remoteuserleft', (evt: any) => {
+            BizLogger.info('event remoteuserleft', JSON.stringify(evt))
+        })
+        this.scene.localUser.on('remotestreamupdated', (evt: any) => {
+            BizLogger.info('event remotestreamupdated', JSON.stringify(evt))
+        })
+        this.scene.localUser.on('remotestreamadded', (evt: any) => {
+            BizLogger.info('event remotestreamadded', JSON.stringify(evt))
+        })
+        this.scene.localUser.on('remotestreamremoved', (evt: any) => {
+            BizLogger.info('event remotestreamremoved', JSON.stringify(evt))
+        })
+        this.scene.localUser.on('remoteuserjoined', (evt: any) => {
+            BizLogger.info('event remoteuserjoined', JSON.stringify(evt))
+        })
+        this.scene.localUser.on('scenemessagereceived', (evt: any) => {
+            BizLogger.info('event scenemessagereceived', JSON.stringify(evt))
+        })
+        this.scene.join({client_role: 'host', user_name: payload.user_name})
         console.log('init success', payload)
 
     }
@@ -78,21 +105,19 @@ export class EduRteClassroomManager extends EventEmitter implements IEduClassroo
     sendChannelMessage(message: string) {
         return new Promise((resolve, reject) => {
             const onCompleted = (evt: any[]) => {
-                BizLogger.error('invoke sendSceneMessageToAllRemoteUsers send completed')
+                BizLogger.info('invoke sendSceneMessageToAllRemoteUsers send completed')
                 resolve()
-                this.mediaControl.off("sendroommessagetoallremoteuserscompleted", onCompleted)
+                this.userService.off("sendroommessagetoallremoteuserscompleted", onCompleted)
             }
-            this.mediaControl.on("sendroommessagetoallremoteuserscompleted", onCompleted)
+            this.userService.on("sendroommessagetoallremoteuserscompleted", onCompleted)
             const agoraMessage = this.mediaControl.createMessage()
             agoraMessage.setMessageInfo(message)
-            let ret = this.userService.sendSceneMessageToAllRemoteUsers({
-                message: agoraMessage,
-                operate_id: this.userUuid
-            })
+            //@ts-ignore
+            let ret = this.userService.sendSceneMessageToAllRemoteUsers(agoraMessage.agoraMessage, this.userUuid)
 
-            if (ret !== 0) {
+            if (ret && !ret.ok()) {
                 BizLogger.error('invoke sendSceneMessageToAllRemoteUsers failure')
-                this.mediaControl.off("sendroommessagetoallremoteuserscompleted", onCompleted)
+                this.userService.off("sendroommessagetoallremoteuserscompleted", onCompleted)
                 reject('invoke sendSceneMessageToAllRemoteUsers failure ')
             }
             
@@ -104,7 +129,8 @@ export class EduRteClassroomManager extends EventEmitter implements IEduClassroo
             BizLogger.warn(' cameraTrack already exists!')
             return
         } else {
-            const videoTrack = this.mediaControl.createCameraVideoTrack({} as any)
+            const key = Date.now()
+            const videoTrack = this.mediaControl.createCameraVideoTrack({streamId: `video${key}`, streamName: `video${key}`} as any)
             this.cameraVideoTrack = videoTrack;
             this.userService.publishLocalCameraVideoTrack({
                 track: this.cameraVideoTrack,
@@ -119,7 +145,8 @@ export class EduRteClassroomManager extends EventEmitter implements IEduClassroo
             BizLogger.warn(' microphoneAudioTrack already exists!')
             return
         } else {
-            const microphoneAudioTrack = this.mediaControl.createMicrophoneAudioTrack({} as any)
+            const key = Date.now()
+            const microphoneAudioTrack = this.mediaControl.createMicrophoneAudioTrack({streamId: `audio${key}`, streamName: `audio${key}`} as any)
             this.microphoneAudioTrack = microphoneAudioTrack;
             this.userService.publishMicrophoneAudioTrack({
                 track: this.microphoneAudioTrack,
