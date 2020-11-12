@@ -80,7 +80,7 @@ export class EduRteClassroomManager extends EventEmitter implements IEduClassroo
             appid_or_token: payload.appid_or_token,
             user_id: payload.user_id,
             user_name: payload.user_name,
-            scene_preset: 0,
+            scene_preset: 1,
             log_file_path: payload.log_file_path,
             log_level: payload.log_level,
             log_file_size: payload.log_file_size
