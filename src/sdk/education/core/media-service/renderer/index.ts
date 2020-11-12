@@ -5,6 +5,7 @@ import { AgoraElectronRTCWrapper } from "../electron";
 import { MediaService } from '../index';
 import uuidv4 from 'uuid/v4';
 import { IAgoraRteVideoTrack } from 'rte-electron-sdk/types/api2/agora_rte_media_control';
+import { AgoraRteLocalUser } from 'rte-electron-sdk/types/api2/agora_rte_local_user';
 
 type SourceType = 'default' | 'screen';
 
@@ -148,16 +149,9 @@ export class RemoteUserRenderer extends UserRenderer {
       }
     }
     if (this.isElectron) {
-      this.videoTrack?.play(dom, 1)
-      // this.electron.client.subscribe(+this.uid, dom,)
-      // this.electron.client.setupRemoteVideo(+this.uid, dom, this.channel)
-      // if (!fit) {
-      //   //@ts-ignore
-      //   this.electron.client.setupViewContentMode(+this.uid, 0, this.channel);
-      // } else {
-      //   //@ts-ignore
-      //   this.electron.client.setupViewContentMode(+this.uid, 1, this.channel);
-      // }
+      //@ts-ignore
+      let ret = (this.context as AgoraRteLocalUser).subscribeRemoteStream({stream_id: this.uid, type: 2}, dom)
+      console.log(` subscribeRemoteStream: ${ret}, streamUuid: ${this.uid}`)
     }
     this._playing = true
   }
@@ -169,9 +163,9 @@ export class RemoteUserRenderer extends UserRenderer {
       }
     }
     if (this.isElectron) {
-      if (this.videoTrack) {
-        this.videoTrack.stop()
-      }
+      //@ts-ignore
+      let ret = (this.context as AgoraRteLocalUser).unsubscribeRemoteStream(this.uid)
+      console.log(` unsubscribeRemoteStream: ${ret}, streamUuid: ${this.uid}`)
     }
     this._playing = false
   }

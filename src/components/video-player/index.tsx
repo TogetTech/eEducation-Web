@@ -77,9 +77,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         </div>
       }
       { share ? 
-        <RendererPlayer key={renderer && renderer.videoTrack ? renderer.videoTrack : ''} track={renderer} id={streamUuid} fitMode={true} className="rtc-video" /> :
+        <RendererPlayer key={renderer} track={renderer} id={streamUuid} fitMode={true} className="rtc-video" /> :
         <>
-          { renderer && video ? <RendererPlayer key={renderer && renderer.videoTrack ? renderer.videoTrack : ''} track={renderer} id={streamUuid} className="rtc-video" /> : null}
+          { renderer && video ? <RendererPlayer key={renderer} track={renderer} id={streamUuid} className="rtc-video" /> : null}
         </>
       }
       { 

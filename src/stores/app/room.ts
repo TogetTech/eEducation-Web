@@ -3,7 +3,7 @@ import uuidv4 from 'uuid/v4';
 import { SimpleInterval } from './../mixin/simple-interval';
 import { EduBoardService } from './../../sdk/board/edu-board-service';
 import { EduRecordService } from './../../sdk/record/edu-record-service';
-import { EduAudioSourceType, EduTextMessage, EduSceneType } from './../../sdk/education/interfaces/index.d';
+import { EduAudioSourceType, EduTextMessage, EduSceneType, EduUserData } from './../../sdk/education/interfaces/index.d';
 import { RemoteUserRenderer } from './../../sdk/education/core/media-service/renderer/index';
 import { RoomApi } from './../../services/room-api';
 import { EduClassroomManager } from '@/sdk/education/room/edu-classroom-manager';
@@ -48,6 +48,36 @@ export type EduMediaStream = {
   audio: boolean
   video: boolean
   showControls: boolean
+}
+
+export interface RteRemoteStream {
+  stream_info: {
+    stream_id: string
+    stream_name: string
+    owner_user: {
+      user_id: string
+      user_name: string
+      user_role: string
+    }
+  }
+  operator_user: {
+    user_id: string
+    user_name: string
+    user_role: string
+  }
+}
+
+export interface RteRemoteUser {
+  user_info: {
+    user_id: string
+    user_name: string
+    user_role: string
+  }
+  operator_user: {
+    user_id: string
+    user_name: string
+    user_role: string
+  }
 }
 
 export class RoomStore extends SimpleInterval {
@@ -663,6 +693,7 @@ export class RoomStore extends SimpleInterval {
   async sendMessage(text: any) {
     try {
       await this.rteClassroomManager.sendChannelMessage(JSON.stringify({type: 1, message: text}))
+      // this.
       // const message = this.rteClassroomManager.mediaControl.mediaControl.createMessage()
       // message.setMessageInfo(text)
       // this.rteClassroomManager.userService.localUser.sendSceneMessageToAllRemoteUsers({
@@ -670,13 +701,13 @@ export class RoomStore extends SimpleInterval {
       //   operate_id: this.rteClassroomManager.userUuid
       // })
       // await this.roomManager?.userService.sendRoomChatMessage(message)
-      // this.addChatMessage({
-      //   id: this.userUuid,
-      //   ts: +Date.now(),
-      //   text: message,
-      //   account: this.roomInfo.userName,
-      //   sender: true,
-      // })
+      this.addChatMessage({
+        id: this.userUuid,
+        ts: +Date.now(),
+        text: text,
+        account: this.roomInfo.userName,
+        sender: true,
+      })
     } catch (err) {
       this.appStore.uiStore.addToast(t('toast.failed_to_send_chat'))
       BizLogger.warn(err)
@@ -828,6 +859,13 @@ export class RoomStore extends SimpleInterval {
     };
   }
 
+  getEduRole(user_role: string) {
+    if (user_role === "host") {
+      return EduRoleType.teacher
+    }
+    return EduRoleType.student
+  }
+
   @action
   async join() {
     try {
@@ -847,14 +885,125 @@ export class RoomStore extends SimpleInterval {
         user_name: this.roomInfo.userName,
         user_id: MD5(`${this.roomInfo.userName}${this.roomInfo.userRole}`)
       }
+      this.rteClassroomManager.on('remoteuserjoined', (evt: any) => {
+        const users: RteRemoteUser[] = evt[0]
+        for (let user of users) {
+          const userExists = this.userList.find((it: EduUser) => it.userUuid === user.user_info.user_id)
+          if (!userExists) {
+            this.userList.push({
+              userUuid: user.user_info.user_id,
+              userName: user.user_info.user_name,
+              role: this.getEduRole(user.user_info.user_role)
+            } as EduUser)
+          }
+        }
+      })
+      this.rteClassroomManager.on('remoteuserupdated', (evt: any) => {
+        const users: RteRemoteUser[] = evt[0]
+        for (let newUser of users) {
+          const idx = this.userList.findIndex((it: EduUser) => it.userUuid === newUser.user_info.user_id)
+          const user = this.userList[idx]
+          if (!user) {
+            this.userList.push({
+              userUuid: newUser.user_info.user_id,
+              userName: newUser.user_info.user_name,
+              role: this.getEduRole(newUser.user_info.user_role)
+            } as EduUser)
+          } else {
+            user.userName = newUser.user_info.user_name
+            user.userUuid = newUser.user_info.user_name
+            //@ts-ignore
+            user.role = newUser.user_info.user_role
+          }
+        }
+        console.log(`remoteuserupdated: action ${evt[1]}`)
+      })
+      this.rteClassroomManager.on('remoteuserleft', (evt: any) => {
+        const users: RteRemoteUser[] = evt[0]
+        for (let user of users) {
+          const idx = this.userList.findIndex((it: EduUser) => it.userUuid === user.user_info.user_id)
+          this.userList.splice(idx, 1)
+        }
+      })
       this.rteClassroomManager.on('remotestreamadded', (evt: any) => {
-        // this.remoteUsersRenderer.push(new RemoteUserRenderer({
-        //   context: {} as any,
-        //   uid: 0,
-        //   channel: 0,
-        //   sourceType: 'default',
-        //   videoTrack: 
-        // }))
+        const streams: RteRemoteStream[] = evt[0]
+        for (let stream of streams) {
+          this.streamList.push({
+            streamUuid: stream.stream_info.stream_id,
+            streamName: stream.stream_info.stream_name,
+            videoSourceType: 1,
+            audioSourceType: 1,
+            hasVideo: true,
+            hasAudio: true,
+            userInfo: {
+              userUuid: stream.stream_info.owner_user.user_id,
+              userName: stream.stream_info.owner_user.user_name,
+              role: this.getEduRole(stream.stream_info.owner_user.user_role)
+            }
+          })
+          this.remoteUsersRenderer.push(new RemoteUserRenderer({
+            context: this.rteClassroomManager.scene.localUser as any,
+            uid: stream.stream_info.stream_id,
+            channel: 0,
+            sourceType: 'default',
+            videoTrack: {} as any
+          }))
+        }
+      })
+      this.rteClassroomManager.on('remotestreamupdated', (evt: any) => {
+        const streams: RteRemoteStream[] = evt[0]
+        for (let stream of streams) {
+          const streamIdx = this.streamList.findIndex((eduStream: EduStream) => eduStream.streamUuid === stream.stream_info.stream_id)
+          const targetStream = this.streamList[streamIdx]
+          if (targetStream) {
+            this.streamList[streamIdx] = {
+              streamUuid: stream.stream_info.stream_id,
+              streamName: stream.stream_info.stream_name,
+              videoSourceType: 1,
+              audioSourceType: 1,
+              hasVideo: true,
+              hasAudio: true,
+              userInfo: {
+                userUuid: stream.stream_info.owner_user.user_id,
+                userName: stream.stream_info.owner_user.user_name,
+                role: this.getEduRole(stream.stream_info.owner_user.user_role)
+              }
+            }
+          } else {
+            this.streamList.push({
+              streamUuid: stream.stream_info.stream_id,
+              streamName: stream.stream_info.stream_name,
+              videoSourceType: 1,
+              audioSourceType: 1,
+              hasVideo: true,
+              hasAudio: true,
+              userInfo: {
+                userUuid: stream.stream_info.owner_user.user_id,
+                userName: stream.stream_info.owner_user.user_name,
+                role: this.getEduRole(stream.stream_info.owner_user.user_role)
+              }
+            })
+          }
+
+          this.remoteUsersRenderer.push(new RemoteUserRenderer({
+            context: this.rteClassroomManager.scene.localUser as any,
+            uid: stream.stream_info.stream_id,
+            channel: 0,
+            sourceType: 'default',
+            videoTrack: {} as any
+          }))
+        }
+      })
+      this.rteClassroomManager.on('remotestreamremoved', (evt: any) => {
+        const streams: RteRemoteStream[] = evt[0]
+        for (let stream of streams) {
+          const streamIdx = this.streamList
+            .findIndex((it: EduStream) => it.streamUuid === stream.stream_info.stream_id)
+          this.streamList.splice(streamIdx, 1);
+          const idx = this.remoteUsersRenderer
+            .findIndex((it: RemoteUserRenderer) => it.uid === stream.stream_info.stream_id)
+          this.remoteUsersRenderer.splice(idx, 1);
+        }
       })
       this.rteClassroomManager.on('scenemessagereceived', (evt: any) => {
         console.log('scenemessagereceived# evt', evt[0].getMessageInfo(), evt[1])
@@ -892,7 +1041,7 @@ export class RoomStore extends SimpleInterval {
           initializeParams: {
             appid_or_token: APP_ID,
             ...config,
-            client_role: 'broadcaster',
+            client_role: 'host',
           },
           sceneUuid: roomUuid
         })
@@ -920,7 +1069,7 @@ export class RoomStore extends SimpleInterval {
           initializeParams: {
             appid_or_token: APP_ID,
             ...config,
-            client_role: 'host',
+            client_role: 'broadcaster',
           },
           sceneUuid: roomUuid
         })
@@ -1061,7 +1210,7 @@ export class RoomStore extends SimpleInterval {
           streamUuid: stream.streamUuid,
           video: stream.hasVideo,
           audio: stream.hasAudio,
-          renderer: this.remoteUsersRenderer.find((it: RemoteUserRenderer) => +it.uid === +stream.streamUuid) as RemoteUserRenderer,
+          renderer: this.remoteUsersRenderer.find((it: RemoteUserRenderer) => it.uid === stream.streamUuid) as RemoteUserRenderer,
           showControls: this.canControl(user.userUuid)
         })
         return acc;
