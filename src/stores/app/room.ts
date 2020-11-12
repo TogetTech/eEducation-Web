@@ -178,7 +178,7 @@ export class RoomStore extends SimpleInterval {
   constructor(appStore: AppStore) {
     super()
     this.appStore = appStore
-    this.rteClassroomManager = new EduRteClassroomManager
+    this.rteClassroomManager = new EduRteClassroomManager()
   }
 
   get boardService(): EduBoardService {
@@ -848,6 +848,22 @@ export class RoomStore extends SimpleInterval {
         user_id: MD5(`${this.roomInfo.userName}${this.roomInfo.userRole}`)
       }
       this.rteClassroomManager.on('connectionstatechanged', (evt: any) => {
+        if (!this.cameraRenderer && evt[0] === 2) {
+          this.rteClassroomManager.openLocalCamera()
+          // const view = document.createElement("div")
+          // view.id = "local_teacher_view"
+          // document.querySelector("#teacher")?.append(view)
+          // this.rteClassroomManager.cameraVideoTrack?.play(document.querySelector("#local_teacher_view") as any, 1)
+          // this.rteClassroomManager.cameraVideoTrack?.play($(""))
+          this.rteClassroomManager.openLocalMicrophone()
+          this._cameraRenderer = new LocalUserRenderer({
+            context: {} as any,
+            uid: 0,
+            channel: 0,
+            sourceType: 'default',
+            videoTrack: this.rteClassroomManager.cameraVideoTrack as any
+          })
+        }
         console.log('rteClassroomManager#connectionstatechanged', evt)
         this.appStore.uiStore.addToast( `connectionstatechanged: ${evt[0]}, ok?: ${evt[1].ok()}`)
       })
@@ -860,20 +876,22 @@ export class RoomStore extends SimpleInterval {
           },
           sceneUuid: roomUuid
         })
-        this.rteClassroomManager.openLocalCamera()
-        // const view = document.createElement("div")
-        // view.id = "local_teacher_view"
-        // document.querySelector("#teacher")?.append(view)
-        // this.rteClassroomManager.cameraVideoTrack?.play(document.querySelector("#local_teacher_view") as any, 1)
-        // this.rteClassroomManager.cameraVideoTrack?.play($(""))
-        this.rteClassroomManager.openLocalMicrophone()
-        this._cameraRenderer = new LocalUserRenderer({
-          context: {} as any,
-          uid: 0,
-          channel: 0,
-          sourceType: 'default',
-          videoTrack: this.rteClassroomManager.cameraVideoTrack as any
-        })
+        // setTimeout(() => {
+        //   this.rteClassroomManager.openLocalCamera()
+        //   const view = document.createElement("div")
+        //   view.id = "local_teacher_view"
+        //   document.querySelector("#teacher")?.append(view)
+        //   this.rteClassroomManager.cameraVideoTrack?.play(document.querySelector("#local_teacher_view") as any, 1)
+        //   // this.rteClassroomManager.cameraVideoTrack?.play($(""))
+        //   this.rteClassroomManager.openLocalMicrophone()
+        //   this._cameraRenderer = new LocalUserRenderer({
+        //     context: {} as any,
+        //     uid: 0,
+        //     channel: 0,
+        //     sourceType: 'default',
+        //     videoTrack: this.rteClassroomManager.cameraVideoTrack as any
+        //   })
+        // }, 3000)
       } else {
         const sceneType = +this.roomInfo.roomType === 2 ? EduSceneType.SceneLarge : +this.roomInfo.roomType
         const userRole = sceneType === EduSceneType.SceneLarge ? 'audience' : 'broadcaster'
@@ -888,6 +906,9 @@ export class RoomStore extends SimpleInterval {
         })
         console.log(">>> teacher res", res, roomUuid)
       }
+
+      this.appStore._boardService = new EduBoardService(this.rteClassroomManager.scene.userToken, roomUuid)
+
 
       await this.appStore.boardStore.init()
 

@@ -61,7 +61,8 @@ export abstract class UserRenderer implements IMediaRenderer {
   }
 
   get isElectron (): boolean {
-    return this.context.sdkWrapper instanceof AgoraElectronRTCWrapper
+    return true
+    // return this.context.sdkWrapper instanceof AgoraElectronRTCWrapper
   }
 
   get web(): AgoraWebRtcWrapper {
@@ -87,11 +88,11 @@ export class LocalUserRenderer extends UserRenderer {
     }
     if (this.isElectron) {
       // @ts-ignore
-      if (this.sourceType === 'default') {
-        this.videoTrack?.play(dom, 1)
-      } else {
-
-      }
+      // if (this.sourceType === 'default') {
+      this.videoTrack?.play(dom, 1)
+      // } else {
+        // this.videoTrack?.play(dom, 1)
+      // }
       // if (this.sourceType === 'default') {
       //   this.electron.client.setupLocalVideo(dom)
       //   //@ts-ignore
@@ -115,10 +116,13 @@ export class LocalUserRenderer extends UserRenderer {
       }
     }
     if (this.isElectron && this.sourceType === 'default') {
-      this.electron.client.stopPreview()
-      if (isPreview) {
-        this.electron.client.setClientRole(2)
+      if (this.videoTrack) {
+        this.videoTrack.stop()
       }
+      // this.electron.client.stopPreview()
+      // if (isPreview) {
+      //   this.electron.client.setClientRole(2)
+      // }
     }
     this._playing = false
   }
@@ -144,15 +148,16 @@ export class RemoteUserRenderer extends UserRenderer {
       }
     }
     if (this.isElectron) {
+      this.videoTrack?.play(dom, 1)
       // this.electron.client.subscribe(+this.uid, dom,)
-      this.electron.client.setupRemoteVideo(+this.uid, dom, this.channel)
-      if (!fit) {
-        //@ts-ignore
-        this.electron.client.setupViewContentMode(+this.uid, 0, this.channel);
-      } else {
-        //@ts-ignore
-        this.electron.client.setupViewContentMode(+this.uid, 1, this.channel);
-      }
+      // this.electron.client.setupRemoteVideo(+this.uid, dom, this.channel)
+      // if (!fit) {
+      //   //@ts-ignore
+      //   this.electron.client.setupViewContentMode(+this.uid, 0, this.channel);
+      // } else {
+      //   //@ts-ignore
+      //   this.electron.client.setupViewContentMode(+this.uid, 1, this.channel);
+      // }
     }
     this._playing = true
   }
@@ -164,6 +169,9 @@ export class RemoteUserRenderer extends UserRenderer {
       }
     }
     if (this.isElectron) {
+      if (this.videoTrack) {
+        this.videoTrack.stop()
+      }
     }
     this._playing = false
   }
