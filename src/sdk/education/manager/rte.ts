@@ -53,6 +53,9 @@ export class EduRteClassroomManager extends EventEmitter implements IEduClassroo
             BizLogger.info('event remotestreamupdated', JSON.stringify(evt))
         })
         this.scene.on('remotestreamadded', (evt: any) => {
+            // if (this.userService) {
+            //     this.userService.subscribeRemoteStream(evt.stream_id, )
+            // }
             this.emit('remotestreamadded', evt)
             BizLogger.info('event remotestreamadded', JSON.stringify(evt))
         })

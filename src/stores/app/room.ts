@@ -662,7 +662,7 @@ export class RoomStore extends SimpleInterval {
   @action
   async sendMessage(text: any) {
     try {
-      await this.rteClassroomManager.sendChannelMessage(text)
+      await this.rteClassroomManager.sendChannelMessage(JSON.stringify({type: 1, message: text}))
       // const message = this.rteClassroomManager.mediaControl.mediaControl.createMessage()
       // message.setMessageInfo(text)
       // this.rteClassroomManager.userService.localUser.sendSceneMessageToAllRemoteUsers({
@@ -847,6 +847,26 @@ export class RoomStore extends SimpleInterval {
         user_name: this.roomInfo.userName,
         user_id: MD5(`${this.roomInfo.userName}${this.roomInfo.userRole}`)
       }
+      this.rteClassroomManager.on('remotestreamadded', (evt: any) => {
+        // this.remoteUsersRenderer.push(new RemoteUserRenderer({
+        //   context: {} as any,
+        //   uid: 0,
+        //   channel: 0,
+        //   sourceType: 'default',
+        //   videoTrack: 
+        // }))
+      })
+      this.rteClassroomManager.on('scenemessagereceived', (evt: any) => {
+        console.log('scenemessagereceived# evt', evt[0].getMessageInfo(), evt[1])
+        const message = JSON.parse(evt[0].getMessageInfo())
+        this.addChatMessage({
+          id: 'key',
+          ts: evt[0].getTimestamp(),
+          text: message.message,
+          account: evt[1].user_name,
+          sender: false
+        })
+      })
       this.rteClassroomManager.on('connectionstatechanged', (evt: any) => {
         if (!this.cameraRenderer && evt[0] === 2) {
           this.rteClassroomManager.openLocalCamera()
