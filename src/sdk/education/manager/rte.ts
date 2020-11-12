@@ -13,6 +13,7 @@ export class EduRteClassroomManager extends EventEmitter implements IEduClassroo
     scene!: AgoraRteScene
     mediaControl!: AgoraRteMediaControl;
     userUuid!: string;
+    clientRole!: string;
 
     cameraVideoTrack?: IAgoraRteVideoTrack;
     microphoneAudioTrack?: IAgoraRteAudioTrack;
@@ -30,6 +31,7 @@ export class EduRteClassroomManager extends EventEmitter implements IEduClassroo
         this.createScene(payload.sceneUuid)
         this.createMediaControl()
         this.userUuid = payload.initializeParams.user_id
+        this.clientRole = payload.initializeParams.client_role
         this.scene.on('connectionstatechanged', (evt: any) => {
             this.emit('connectionstatechanged', evt)
             BizLogger.info('event connectionstatechanged', JSON.stringify(evt))
@@ -66,7 +68,8 @@ export class EduRteClassroomManager extends EventEmitter implements IEduClassroo
             this.emit('scenemessagereceived', evt)
             BizLogger.info('event scenemessagereceived', JSON.stringify(evt))
         })
-        this.scene.join({client_role: payload.client_role, user_name: payload.user_name})
+        BizLogger.info(`sceneJoin : ${payload.ini}`)
+        this.scene.join({client_role: this.clientRole, user_name: payload.initializeParams.user_name})
         console.log('init success', payload)
 
     }
@@ -87,8 +90,12 @@ export class EduRteClassroomManager extends EventEmitter implements IEduClassroo
     }
 
     async release() {
-        let res = await this.rteEngine.release()
-        BizLogger.info(`release`)
+        this.clientRole = ''
+        this.userUuid = ''
+        let ret = this.scene.leave()
+        BizLogger.info('leave scene ret', ret)
+        let res = this.rteEngine.release()
+        BizLogger.info(`release `, res)
         return res
     }
 

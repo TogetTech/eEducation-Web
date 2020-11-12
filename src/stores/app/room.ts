@@ -872,7 +872,7 @@ export class RoomStore extends SimpleInterval {
           uid: 0,
           channel: 0,
           sourceType: 'default',
-          videoTrack: this.rteClassroomManager.cameraVideoTrack
+          videoTrack: this.rteClassroomManager.cameraVideoTrack as any
         })
       } else {
         const sceneType = +this.roomInfo.roomType === 2 ? EduSceneType.SceneLarge : +this.roomInfo.roomType
@@ -915,14 +915,17 @@ export class RoomStore extends SimpleInterval {
     // 当本地是老师时
     const localUser = this.localUser
     if (localUser && localUser.userRole === 'teacher'
-      && this.cameraEduStream) {
+      && this.cameraRenderer) {
       return {
         local: true,
         userUuid: this.appStore.userUuid,
         account: localUser.userName,
-        streamUuid: this.cameraEduStream.streamUuid,
-        video: this.cameraEduStream.hasVideo,
-        audio: this.cameraEduStream.hasAudio,
+        streamUuid: `0`,
+        // streamUuid: this.cameraRenderer.uid,
+        video: true,
+        audio: true,
+        // video: this.cameraEduStream.hasVideo,
+        // audio: this.cameraEduStream.hasAudio,
         renderer: this.cameraRenderer as LocalUserRenderer,
         showControls: this.canControl(this.appStore.userUuid)
       }
