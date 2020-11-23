@@ -33,6 +33,11 @@ export class UIStore {
       text: 'home.super_mini_class',
       value: 3,
     },
+    {
+      path: 'middle-class',
+      text: 'home.middle_class',
+      value: 4,
+    },
   ]
 
   static languages: any[] = [

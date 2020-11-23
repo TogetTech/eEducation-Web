@@ -55,7 +55,8 @@ const zhCN: any = {
     'color_picker': '调色板',
     'add': '新增一页',
     'upload': '上传',
-    'hand_tool': '手抓工具'
+    'hand_tool': '手抓工具',
+    'extension_tool': '扩展'
   },
   'error': {
     'not_found': '页面找不到',
@@ -201,6 +202,7 @@ const zhCN: any = {
     '1v1': '一对一',
     'mini_class': '小班课',
     'large_class': '大班课',
+    'middle_class': '中班课',
     'super_mini_class': '超级小班课',
     'missing_room_name': '缺少房间名',
     'missing_your_name': '缺少昵称',

@@ -674,6 +674,16 @@
       background-image: url('./assets/icon-move.png');
     }
 
+    .extension_tool::after {
+      width: 100%;
+      height: 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+      content: ' ';
+      background-size: contain;
+      background-image: url('./assets/icon-extension.png');
+    }
+
     .lock_board::after {
       width: 100%;
       height: 100%;

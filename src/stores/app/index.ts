@@ -11,6 +11,8 @@ import { RecordingStore } from './recording';
 import AgoraRTM from 'agora-rtm-sdk';
 import { ReplayStore } from './replay';
 import { BreakoutRoomStore } from './breakout-room';
+import { MiddleRoomStore } from './middle-room';
+import { ExtensionStore } from './extension'
 import { get } from 'lodash';
 import { GlobalStorage } from '@/utils/custom-storage';
 import { autorun, toJS, observable, action, computed, runInAction } from 'mobx';
@@ -37,6 +39,8 @@ export class AppStore {
   deviceStore!: DeviceStore;
   recordingStore!: RecordingStore;
   breakoutRoomStore!: BreakoutRoomStore;
+  middleRoomStore!: MiddleRoomStore;
+  extensionStore!: ExtensionStore;
   replayStore!: ReplayStore;
   mediaStore!: MediaStore;
 
@@ -120,7 +124,8 @@ export class AppStore {
     this.deviceStore = new DeviceStore(this)
     this.replayStore = new ReplayStore(this)
     this.breakoutRoomStore = new BreakoutRoomStore(this)
-
+    this.middleRoomStore = new MiddleRoomStore(this)
+    this.extensionStore = new ExtensionStore(this)
     this._screenVideoRenderer = undefined
   }
 
@@ -416,5 +421,7 @@ export { BoardStore } from './board';
 export { RoomStore } from './room';
 export { DeviceStore } from './device';
 export { BreakoutRoomStore } from './breakout-room';
+export { MiddleRoomStore } from './middle-room';
+export { ExtensionStore } from './extension';
 export { ReplayStore } from './replay';
 export { RecordingStore } from './recording';

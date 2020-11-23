@@ -55,7 +55,8 @@ const en = {
     'color_picker': 'color picker',
     'add': 'add new page',
     'upload': 'upload ',
-    'hand_tool': 'hand selector'
+    'hand_tool': 'hand selector',
+    'extension_tool': 'extension tool'
   },
   'error': {
     'not_found': 'Page Not Found',
@@ -202,6 +203,7 @@ const en = {
     '1v1': 'One to One Classroom',
     'mini_class': 'Small Classroom',
     'large_class': 'Lecture Hall',
+    'middle_class': 'Middle Class',
     'super_mini_class': 'Super Small Classroom',
     'missing_room_name': 'missing room name',
     'missing_your_name': 'missing your name',

@@ -2,6 +2,7 @@ import React from 'react';
 import {CustomIcon} from '@/components/icon';
 import { Tooltip, ClickAwayListener } from '@material-ui/core';
 import {UploadBtn} from './upload/upload-btn'
+import {ExtensionCard} from '../extension-card'
 import { observer } from 'mobx-react';
 import { useBoardStore, useRoomStore } from '@/hooks';
 import { BoardStore } from '@/stores/app/board';
@@ -47,6 +48,10 @@ export const Tools = observer(() => {
         boardStore.setTool('')
         break;
       }
+      case 'extension_tool': {
+        boardStore.setTool('')
+        break;
+      }
     }
   }
 
@@ -85,6 +90,10 @@ export const Tools = observer(() => {
         }  
         {boardStore.showUpload ?
           <UploadBtn />
+          : null
+        }
+        {boardStore.showExtension ?
+          <ExtensionCard />
           : null
         }
       </div>

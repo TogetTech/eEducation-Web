@@ -104,7 +104,6 @@ function HomePage() {
     } else {
       history.push(`/classroom/${path}`)
     }
-      // history.push(`/classroom/${path}`)
   }
 
   return (

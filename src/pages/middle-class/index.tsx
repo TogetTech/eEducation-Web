@@ -4,12 +4,10 @@ import {NavController} from '@/components/nav';
 import NativeSharedWindow from '@/components/native-shared-window';
 import { DeviceDetectController } from '../device-detect';
 import { AutoplayToast } from '@/components/autoplay-toast';
-import { useRoomStore, useUIStore, useAppStore } from '@/hooks';
+import { useMiddleRoomStore, useUIStore, useAppStore } from '@/hooks';
 import { Loading } from '@/components/loading';
 import { observer } from 'mobx-react';
 import { t } from '@/i18n';
-
-import './room.scss';
 import { BizLogger } from '@/utils/biz-logger';
 
 export const roomTypes = [
@@ -43,7 +41,7 @@ const RoomController = observer(({children}: any) => {
 
   const location = useLocation()
 
-  const roomStore = useRoomStore()
+  const middleRoomStore = useMiddleRoomStore()
 
   const appStore = useAppStore()
 
@@ -59,7 +57,7 @@ const RoomController = observer(({children}: any) => {
 
     const handlePopState = (evt: any) => {
       window.history.pushState(null, document.title, null);
-      if (roomStore.joined && !uiStore.hasDialog('exitRoom')) {
+      if (middleRoomStore.joined && !uiStore.hasDialog('exitRoom')) {
         uiStore.showDialog({
           type: 'exitRoom',
           message: t('icon.exit-room'),
@@ -72,7 +70,7 @@ const RoomController = observer(({children}: any) => {
     let pathList = location.pathname.split('/')
     let path = pathList[pathList.length - 1]
 
-    roomStore.join().then(() => {
+    middleRoomStore.join().then(() => {
       uiStore.addToast(t('toast.successfully_joined_the_room'))
     }).catch((err) => {
       BizLogger.warn(err.msg)
@@ -103,7 +101,7 @@ const RoomController = observer(({children}: any) => {
   );
 })
 
-export function RoomPage({ children }: any) {
+export function MiddleRoomPage({ children }: any) {
   return (
     <RoomController>
       {children}

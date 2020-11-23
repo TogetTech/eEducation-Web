@@ -97,6 +97,10 @@ export class BoardStore {
     {
       name: 'hand_tool',
       text: t('tool.hand_tool')
+    },
+    {
+      name: 'extension_tool',
+      text: t('tool.extension_tool')
     }
   ]
 
@@ -141,6 +145,9 @@ export class BoardStore {
 
   @observable
   showUpload: boolean = false;
+
+  @observable
+  showExtension: boolean = false;
 
   @observable
   activeFooterItem: string = ''
@@ -417,6 +424,12 @@ export class BoardStore {
       this.showColorPicker = false
     }
 
+    if (this.selector === 'extension_tool') {
+      this.showExtension = true
+    } else if (this.showExtension) {
+      this.showExtension = false
+    }
+
     if (!this.room || !this.room.isWritable) return
 
     switch(this.selector) {
@@ -444,6 +457,11 @@ export class BoardStore {
             currentApplianceName: "hand" as any
           })
         }
+        break;
+      }
+      case 'extension_tool': {
+        // 点击扩展执行
+        
         break;
       }
       case 'add': {

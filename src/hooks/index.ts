@@ -4,6 +4,8 @@ import { useContext } from 'react';
 import { 
   AppStore,
   RoomStore,
+  MiddleRoomStore,
+  ExtensionStore,
   BoardStore,
   DeviceStore,
   UIStore,
@@ -27,6 +29,16 @@ export const useUIStore = (): UIStore => {
 export const useRoomStore = (): RoomStore => {
   const context = useContext<appContext>(MobXProviderContext)
   return context.store.roomStore;
+}
+
+export const useMiddleRoomStore = (): MiddleRoomStore => {
+  const context = useContext<appContext>(MobXProviderContext)
+  return context.store.middleRoomStore;
+}
+
+export const useExtensionStore = (): ExtensionStore => {
+  const context = useContext<appContext>(MobXProviderContext)
+  return context.store.extensionStore;
 }
 
 export const useBreakoutRoomStore = (): BreakoutRoomStore => {

@@ -136,6 +136,7 @@ export const roomTypes = [
   { value: 1, path: 'small-class' },
   { value: 2, path: 'big-class' },
   { value: 3, path: 'breakout-class' },
+  { value: 4, path: 'middle-class' },
 ];
 
 function getIpc() {
