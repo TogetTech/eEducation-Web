@@ -1,5 +1,5 @@
 import { logApi } from "../services/log-upload";
-import db from "./db";
+import {db} from "./db";
 import Dexie from "dexie";
 // eslint-disable
 import LogWorker from 'worker-loader!./log.worker';
@@ -126,6 +126,11 @@ export class EduLogger {
     return res;
   }
 
+  // 当前时间戳
+  static get ts(): number {
+    return +Date.now()
+  }
+
   static async enableUpload(roomUuid: string, isElectron: boolean) {
     const ids = [];
     // Upload Electron log
@@ -148,10 +153,12 @@ export class EduLogger {
       .map((e: any) => (Array.isArray(e) ? e[0] : e))
       .join('\n');
 
+    const now = this.ts
+
     //@ts-ignore
     window.logsStr = logsStr
 
-    const file = await new File([logsStr], `${+Date.now()}`)
+    const file = await new File([logsStr], `${now}`)
 
     //@ts-ignore
     window.file = file
@@ -160,14 +167,8 @@ export class EduLogger {
       roomId,
       file,
     )
-    await db.delete();
-    if (!(await Dexie.exists(db.name))) {
-      db.version(1).stores({
-        logs: 'content'
-      });
-    }
-    await db.open();
-    console.log("[LOG] upload res: ", res)
+    await db.readAndDeleteBy(now)
+    console.log(`完成日志上传，文件名: ${file.name}, 上传时间: ${now}, 日志上传，res: ${JSON.stringify(res)}`)
     return res;
   }
 }

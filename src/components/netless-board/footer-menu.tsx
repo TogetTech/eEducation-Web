@@ -2,10 +2,11 @@ import React from 'react';
 import { Tooltip } from '@material-ui/core';
 import { t } from '@/i18n';
 import { ControlItem } from '../control-item';
-import { useBoardStore, useRoomStore, useBreakoutRoomStore } from '@/hooks';
+import { useBoardStore, useRoomStore, useBreakoutRoomStore, useExtensionStore } from '@/hooks';
 import {observer} from 'mobx-react';
 import ScaleController from './scale-controller';
 import { useLocation } from 'react-router-dom';
+import { ApplyUserList } from '../apply-user-list';
 
 export const FooterMenu = () => {
 
@@ -18,8 +19,9 @@ export const FooterMenu = () => {
   )
 }
 
-const BasicSceneFooterMenu = observer(() => {
+const BasicSceneFooterMenu = observer((props: any) => {
   const boardStore = useBoardStore()
+  const extensionStore = useExtensionStore()
   const roomStore = useRoomStore()
 
   const current = boardStore.activeFooterItem
@@ -29,8 +31,6 @@ const BasicSceneFooterMenu = observer(() => {
   const handleRecording = async () => {
     await roomStore.startOrStopRecording()
   } 
-
-  
 
   const handleSharing = async () => {
     await roomStore.startOrStopSharing()
@@ -96,19 +96,22 @@ const BasicSceneFooterMenu = observer(() => {
         </span>
       </Tooltip>
     </div>
-    <ScaleController
-      lockBoard={boardStore.lock}
-      zoomScale={boardStore.scale}
-      onClick={() => {
-        boardStore.openFolder()
-      }}
-      onClickBoardLock={() => {
-        boardStore.toggleLockBoard()
-      }}
-      zoomChange={(scale: number) => {
-        boardStore.updateScale(scale)
-      }}
-    />
+    <div className="zoom-controls">
+      <ApplyUserList />
+      <ScaleController
+        lockBoard={boardStore.lock}
+        zoomScale={boardStore.scale}
+        onClick={() => {
+          boardStore.openFolder()
+        }}
+        onClickBoardLock={() => {
+          boardStore.toggleLockBoard()
+        }}
+        zoomChange={(scale: number) => {
+          boardStore.updateScale(scale)
+        }}
+      />
+    </div>
     </>
     : null
   )

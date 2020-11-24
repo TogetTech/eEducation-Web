@@ -1140,4 +1140,9 @@ export class BoardStore {
       this.boardClient.room.bindHtmlElement(null)
     }
   }
+
+  @action
+  toggleExtension() {
+    this.showExtension = !this.showExtension
+  }
 }

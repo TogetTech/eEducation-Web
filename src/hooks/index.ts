@@ -33,7 +33,7 @@ export const useRoomStore = (): RoomStore => {
 
 export const useMiddleRoomStore = (): MiddleRoomStore => {
   const context = useContext<appContext>(MobXProviderContext)
-  return context.store.middleRoomStore;
+  return context.store.roomStore as MiddleRoomStore;
 }
 
 export const useExtensionStore = (): ExtensionStore => {

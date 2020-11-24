@@ -39,7 +39,7 @@ export class AppStore {
   deviceStore!: DeviceStore;
   recordingStore!: RecordingStore;
   breakoutRoomStore!: BreakoutRoomStore;
-  middleRoomStore!: MiddleRoomStore;
+  // middleRoomStore!: MiddleRoomStore;
   extensionStore!: ExtensionStore;
   replayStore!: ReplayStore;
   mediaStore!: MediaStore;
@@ -120,13 +120,17 @@ export class AppStore {
     this.uiStore = new UIStore(this)
     this.boardStore = new BoardStore(this)
     this.recordingStore = new RecordingStore(this)
-    this.roomStore = new RoomStore(this)
+    this.roomStore = new MiddleRoomStore(this)
+    // this.middleRoomStore = new MiddleRoomStore(this)
     this.deviceStore = new DeviceStore(this)
     this.replayStore = new ReplayStore(this)
     this.breakoutRoomStore = new BreakoutRoomStore(this)
-    this.middleRoomStore = new MiddleRoomStore(this)
     this.extensionStore = new ExtensionStore(this)
     this._screenVideoRenderer = undefined
+  }
+
+  get middleRoomStore(): MiddleRoomStore {
+    return this.roomStore as MiddleRoomStore
   }
 
   get userRole (): string {
@@ -175,33 +179,6 @@ export class AppStore {
   resetTime() {
     this.time = 0
   }
-
-  // @observable
-  // classState: boolean = false
-
-  // @action
-  // async startClass() {
-  //   try {
-  //     await this.roomManager?.userService.updateCourseState(EduCourseState.EduCourseStateStart)
-  //     // this.classState = true
-  //     this.uiStore.addToast(t('toast.course_started_successfully'))
-  //   } catch (err) {
-  //     BizLogger.info(err)
-  //     this.uiStore.addToast(t('toast.setting_start_failed'))
-  //   }
-  // }
-
-  // @action
-  // async stopClass() {
-  //   try {
-  //     await this.roomManager?.userService.updateCourseState(EduCourseState.EduCourseStateStop)
-  //     // this.classState = false
-  //     this.uiStore.addToast(t('toast.the_course_ends_successfully'))
-  //   } catch (err) {
-  //     BizLogger.info(err)
-  //     this.uiStore.addToast(t('toast.setting_ended_failed'))
-  //   }
-  // }
 
   @action
   setRoomInfo(payload: any) {

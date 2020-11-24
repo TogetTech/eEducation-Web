@@ -4,6 +4,26 @@ import { EduLogger } from '../logger';
 import { HttpClient } from '../utils/http-client';
 import { EntryRequestParams, UserStreamResponseData, UserStreamList, EduJoinRoomParams, JoinRoomResponseData } from "./interface.d";
 
+export type CauseType = Record<string, any>
+
+export type BatchStreamAttribute = {
+  streamUuid: string
+  userUuid: string
+}
+
+export type EduStreamAttribute = {
+  streamUuid: string
+  userUuid: string
+  videoSourceType: number
+  audioSourceType: number
+  hasVideo: number
+  hasAudio: number
+}
+
+export type BatchAttributes = {
+  properties: Record<any, any>
+  cause?: CauseType
+}
 export interface ILocalUserInfo {
   userUuid: string
   userToken: string
@@ -59,7 +79,6 @@ type RemoteMediaParams = {
 }
 
 export class AgoraEduApi {
-
   roomUuid: string = '';
 
   // private _prefix: string = `${REACT_APP_AGORA_APP_SDK_DOMAIN}/scenario/education/apps/%app_id`
@@ -938,5 +957,106 @@ export class AgoraEduApi {
       method: 'GET',
     })
     return res.data
+  }
+
+  /**
+   * 批量更新用户属性
+   * @param roomUuid 房间id
+   * @param userUuid 用户id
+   * @param properties 属性
+   */
+  async batchUpdateUserAttributes(roomUuid: string, userUuid: string, properties: BatchAttributes, cause?: CauseType) {
+    let res = await this.fetch({
+      url: `/v1/rooms/${roomUuid}/users/${userUuid}/properties`,
+      method: 'PUT',
+      data: {
+        properties,
+        cause
+      }
+    })
+    return res.data;
+  }
+
+  /**
+   * 批量移除用户属性
+   * @param roomUuid 房间id
+   * @param userUuid 用户id
+   */
+  async batchRemoveUserAttributes(roomUuid: string, userUuid: string, cause?: CauseType) {
+    let res = await this.fetch({
+      url: `/v1/rooms/${roomUuid}/users/${userUuid}/properties`,
+      method: 'DELETE',
+      data: {
+        cause
+      }
+    })
+    return res.data;
+  }
+
+
+  /**
+   * 批量更新房间属性
+   * @param roomUuid roomUuid: string
+   * @param properties properties: Object 
+   */
+  async batchUpdateRoomAttributes(roomUuid: string, properties: BatchAttributes, cause?: CauseType) {
+    let res = await this.fetch({
+      url: `/v1/rooms/${roomUuid}/properties`,
+      method: 'PUT',
+      data: {
+        properties,
+        cause
+      }
+    })
+    console.log(`batchUpdateRoomAttributes: `, res.data)
+    return res.data;
+  }
+
+  /**
+   * 批量移除房间属性
+   * @param roomUuid roomUuid: string
+   */
+  async batchRemoveRoomAttributes(roomUuid: string, cause?: CauseType) {
+    let res = await this.fetch({
+      url: `/v1/rooms/${roomUuid}/properties`,
+      method: 'DELETE',
+      data: {
+        cause
+      }
+    })
+    return res.data;
+  }
+
+  /**
+   * 批量移除流属性
+   * @param streamUuid 
+   */
+  async batchRemoveStreamAttributes(streams: BatchStreamAttribute[], cause?: CauseType) {
+    let res = await this.fetch({
+      url: `/v1/rooms/${this.roomUuid}/streams`,
+      method: 'DELETE',
+      data: {
+        streams,
+        cause
+      }
+    })
+    return res.data;
+  }
+
+  /**
+   * 批量更新流属性
+   * @param streamUuid 
+   * @param properties 
+   */
+  async batchUpdateStreamAttributes(streams: EduStreamAttribute[], cause?: CauseType) {
+    let res = await this.fetch({
+      url: `/v1/rooms/${this.roomUuid}/streams`,
+      method: 'put',
+      data: {
+        streams,
+        cause
+      }
+    })
+    return res.data;
   }
 }

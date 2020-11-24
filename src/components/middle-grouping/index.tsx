@@ -3,7 +3,6 @@ import './middle-grouping.scss';
 import { CustomButton } from '@/components/custom-button';
 import React, { Component, useState } from 'react';
 import ReactDOM from 'react-dom';
-// @ts-ignore
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { AnyARecord } from 'dns';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';

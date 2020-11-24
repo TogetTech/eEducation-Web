@@ -362,8 +362,8 @@ export class RoomStore extends SimpleInterval {
     return this.mediaService.sdkWrapper instanceof AgoraElectronRTCWrapper
   }
 
-  private _hasCamera?: boolean = undefined
-  private _hasMicrophone?: boolean = undefined
+  protected _hasCamera?: boolean = undefined
+  protected _hasMicrophone?: boolean = undefined
 
   public readonly mutex = new Mutex()
 

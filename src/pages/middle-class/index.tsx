@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, useHistory } from 'react-router-dom';
 import {NavController} from '@/components/nav';
 import NativeSharedWindow from '@/components/native-shared-window';
@@ -47,6 +47,7 @@ const RoomController = observer(({children}: any) => {
 
   const history = useHistory()
 
+  // TODO: need uncomment
   useEffect(() => {
     if (!appStore.userRole) {
       history.push('/')

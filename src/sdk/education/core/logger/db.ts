@@ -1,9 +1,11 @@
-import Dexie from 'dexie';
+import { EduSDKLogger } from "./edu-sdk-logger"
 
-const db = new Dexie('webdemo_agora_edu');
+let logDB: EduSDKLogger | null = null
+export const openDB = () => {
+  if (!logDB) {
+    logDB = new EduSDKLogger()
+  }
+  return logDB
+}
 
-db.version(1).stores({
-  logs: 'content'
-});
-
-export default db;
+export const db = openDB()

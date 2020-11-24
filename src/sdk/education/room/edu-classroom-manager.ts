@@ -124,7 +124,7 @@ export class EduClassroomManager extends EventEmitter {
             return EduLogger.warn('[room] ChannelMessage is invalid', res)
           }
           const { sequence, cmd, version, data } = res
-          EduLogger.info('[EDU-STATE] Raw ChannelMessage', JSON.stringify(res))
+          EduLogger.info(`[EDU-STATE] Raw ChannelMessage, res: `, JSON.stringify(res), ` data: ${JSON.stringify(data)}`)
           if (version !== 1) {
             return EduLogger.warn('using old version')
           }

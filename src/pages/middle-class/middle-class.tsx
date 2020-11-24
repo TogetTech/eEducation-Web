@@ -1,19 +1,38 @@
-import React, {useRef, useState} from 'react';
+import React, {useState} from 'react';
 import {VideoPlayer} from '@/components/video-player';
 import { ControlItem } from '@/components/control-item';
 import './middle-class.scss';
-import {ChatBoard} from '@/components/chat/board';
 import { NetlessBoard } from '@/components/netless-board';
 import { ScreenSharing } from '@/components/screen-sharing';
-import { MiddleRoomBoard } from '@/components/middle-board';
 import { observer } from 'mobx-react';
-import { useMiddleRoomStore, useBoardStore, useAppStore, useExtensionStore} from '@/hooks';
+import { useMiddleRoomStore, useBoardStore, useExtensionStore} from '@/hooks';
 import { MiddleGrouping } from '@/components/middle-grouping';
-import { BizLogger } from '@/utils/biz-logger';
-import {ChatPanel} from '@/components/chat/panel';
 import { t } from '@/i18n';
 import { EduMediaStream } from '@/stores/app/room';
 import {StudentList} from '@/components/student-list';
+import { CustomCard } from '@/components/cards';
+import { VideoMarquee } from '@/components/video-marquee';
+import { ChatPanel } from '@/components/chat/panel';
+
+const FirstGroupVideoMarquee = observer(() => {
+  const store = useMiddleRoomStore()
+  return <VideoMarquee
+    className="group first-group"
+    canHover={true}
+    teacherStream={store.groups[0].teacherStream}
+    studentStreams={store.groups[0].studentStreams}
+  />
+})
+
+const SecondGroupVideoMarquee = observer(() => {
+  const store = useMiddleRoomStore()
+  return <VideoMarquee
+    className="group second-group"
+    canHover={true}
+    teacherStream={store.groups[1].teacherStream}
+    studentStreams={store.groups[1].studentStreams}
+  />
+})
 
 export const MiddleClass = observer(() => {
 
@@ -112,12 +131,18 @@ export const MiddleClass = observer(() => {
   return (
     <div className="room-container">
       <div className="live-container">
+        <FirstGroupVideoMarquee />
         <div className="biz-container">
           <NetlessBoard />
           <ScreenSharing />
           {
             extensionStore.controlGrouping ?
             <MiddleGrouping dataList={studentInfoList} sure={foo1} close={foo2} reduce={foo3}></MiddleGrouping>
+            : null
+          }
+          {
+            extensionStore.visibleCard ? 
+            <CustomCard />
             : null
           }
           <div className={`interactive ${middleRoomStore.roomInfo.userRole}`}>
@@ -128,6 +153,7 @@ export const MiddleClass = observer(() => {
             : null}
           </div>
         </div>
+        <SecondGroupVideoMarquee />
       </div>
       <div className="live-board">
         <div className="video-board">

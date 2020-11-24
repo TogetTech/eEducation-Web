@@ -2,6 +2,14 @@ const BUILD_VERSION = process.env.REACT_APP_BUILD_VERSION as string;
 const build_version = BUILD_VERSION ? BUILD_VERSION : '0.0.1';
 
 const en = {
+  "extension": {
+    "grouping": "Group",
+    "hands_up": "CoVideo",
+  },
+  "switch": {
+    "enable_auto_hands_up": "Set HandsUp CoVideo",
+    "enable_hands_up": "Set HandsUp",
+  },
   "unknown": "[unknown]: ",
   "from_room": "[Room]: ",
   "student_role": "[Student]: ",

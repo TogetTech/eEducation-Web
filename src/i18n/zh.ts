@@ -2,6 +2,14 @@ const BUILD_VERSION = process.env.REACT_APP_BUILD_VERSION as string;
 const build_version = BUILD_VERSION ? BUILD_VERSION : '0.0.1';
 
 const zhCN: any = {
+  "extension": {
+    "grouping": "分组",
+    "hands_up": "举手",
+  },
+  "switch": {
+    "enable_auto_hands_up": "开启举手及上台",
+    "enable_hands_up": "开启举手功能",
+  },
   "unknown": "[未知]: ",
   "from_room": "[教室]: ",
   "student_role": "[学生]: ",

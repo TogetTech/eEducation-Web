@@ -1,3 +1,4 @@
+import { CauseType } from './../core/services/edu-api';
 import { MessageSerializer } from './../core/rtm/message-serializer';
 import uuidv4 from 'uuid/v4';
 import {
@@ -202,13 +203,12 @@ export class EduClassroomDataController {
 
       switch(cmd) {
         // init full user
-        case 0: {
+        case EduChannelMessageCmdType.initState: {
           this.setRoomInfo(data.roomInfo)
           this.setRoomStatus(MessageSerializer.roomStatus(data.roomState))
           this.setRoomProperties(data.roomProperties)
           this.setRawUsers(data.users)
           EduLogger.info(`[${this._id}] [${seqId}] set latest currentId, seqId: `)
-          // this.setCurrentSeqId(seqId)
           break;
         }
         // classroom-property-updated
@@ -219,15 +219,16 @@ export class EduClassroomDataController {
           this.setRoomStatus({
             courseState: data.state,
             startTime: data.startTime,
-          })
+          }, data.cause)
           EduLogger.info(`[${this._id}] [${seqId}]#setRoomStatus: `, data)
           break;
         }
+
         case EduChannelMessageCmdType.roomMediaState: {
           EduLogger.info(`[${this._id}] before [${seqId}]#setRoomStatus: `, data)
           this.setRoomStatus({
             isStudentChatAllowed: MessageSerializer.isStudentChatAllowed(data),
-          })
+          }, data.cause)
           EduLogger.info(`[${this._id}] after [${seqId}]#setRoomStatus: `, data)
           break;
         }
@@ -256,13 +257,22 @@ export class EduClassroomDataController {
         }
         // users-updated
         case EduChannelMessageCmdType.userStateUpdated: {
-          EduLogger.info(`[${this._id}] before [${seqId}]#updateUserState: `, data)
+          EduLogger.info(`[${this._id}] before [${seqId}]#updateUserState: `, JSON.stringify(data))
           EduLogger.info(`[${this._id}] before [${seqId}]#updateUserState: `)
           const user = MessageSerializer.getChangedUser(data)
           this.updateUserState(user)
 
           EduLogger.info(`[${this._id}] after [${seqId}]#updateUserState: `, data)
           EduLogger.info(`[${this._id}] after [${seqId}]#updateUserState: `, user)
+          break;
+        }
+        // TODO: 
+        case EduChannelMessageCmdType.userListBatchUpdated: {
+          EduLogger.info(`[${this._id}] before [${seqId}]#userListBatchUpdated: `, JSON.stringify(data))
+          // const user = MessageSerializer.getChangedUser(data)
+          // this.updateUserState(user)
+          // EduLogger.info(`[${this._id}] after [${seqId}]#userListBatchUpdated: `, data)
+          // EduLogger.info(`[${this._id}] after [${seqId}]#userListBatchUpdated: `, user)
           break;
         }
 
@@ -283,8 +293,42 @@ export class EduClassroomDataController {
           break;
         }
 
+        // TODO: 
+        case EduChannelMessageCmdType.streamListChanged: {
+          const action = MessageSerializer.getAction(data)
+          const streams = MessageSerializer.getStreams(data)
+          const operatorUser = MessageSerializer.getOperator(data)
+
+          const onlineStreams = streams.filter((it: EduStreamData) => it.state !== 0)
+          const offlineStreams = streams.filter((it: EduStreamData) => it.state === 0)
+          EduLogger.info(`[${this._id}] before [${seqId}]#updateStreamList: data`, data)
+          EduLogger.info(`[${this._id}] before [${seqId}]#updateStreamList: onlineStreams`, onlineStreams,  ' offlineStreams', onlineStreams, ' operatorUser', operatorUser)
+          this.updateStreamList(onlineStreams, offlineStreams, operatorUser, seqId)
+          EduLogger.info(`[${this._id}] after [${seqId}]#updateUsersStreams: userList, streamList,`, this._userList, this._streamList)
+          break;
+        }
+
+        case EduChannelMessageCmdType.streamListBatchUpdated: {
+          const action = MessageSerializer.getAction(data)
+          const streams = MessageSerializer.getStreams(data)
+          const operatorUser = MessageSerializer.getOperator(data)
+
+          const onlineStreams = streams.filter((it: EduStreamData) => it.state !== 0)
+          const offlineStreams = streams.filter((it: EduStreamData) => it.state === 0)
+          EduLogger.info(`[${this._id}] before [${seqId}]#updateStreamList: data`, data)
+          EduLogger.info(`[${this._id}] before [${seqId}]#updateStreamList: onlineStreams`, onlineStreams,  ' offlineStreams', onlineStreams, ' operatorUser', operatorUser)
+          this.updateStreamList(onlineStreams, offlineStreams, operatorUser, seqId)
+          EduLogger.info(`[${this._id}] after [${seqId}]#updateUsersStreams: userList, streamList,`, this._userList, this._streamList)
+          break;
+        }
+
         case EduChannelMessageCmdType.roomPropertiesStateChanged: {
-          this.setRoomProperties(data.changeProperties)
+          this.setRoomProperties(data.changeProperties, data.cause)
+          break;
+        }
+
+        case EduChannelMessageCmdType.roomPropertiesBatchUpdated: {
+          this.setRoomProperties(data.changeProperties, data.cause)
           break;
         }
 
@@ -317,52 +361,6 @@ export class EduClassroomDataController {
 
   }
 
-  public dispatchBatchMessage(map: any) {
-    for (let cmd of Object.keys(map)) {
-      const data = map[cmd]
-      switch(+cmd) {
-        // classroom-property-updated
-        case EduChannelMessageCmdType.courseState: {
-          // data
-          break;
-        }
-        // classroom-property-updated
-        // room media state
-        case EduChannelMessageCmdType.roomMediaState: {
-          break;
-        }
-        // room user list changed
-        // user-joined
-        // user-removed
-        case EduChannelMessageCmdType.userListChanged: {
-          break;
-        }
-        // users-updated
-        case EduChannelMessageCmdType.userStateUpdated: {
-          break;
-        }
-
-        case EduChannelMessageCmdType.streamListChanged: {
-          break;
-        }
-
-        case EduChannelMessageCmdType.roomPropertiesStateChanged: {
-          break;
-        }
-
-        // room chat message
-        case EduChannelMessageCmdType.roomChatState: {
-          break;
-        }
-
-        // custom message
-        case EduChannelMessageCmdType.customMessage: {
-          break;
-        }
-      }
-    }
-  }
-
   public async syncFullSequence() {
     let times = 3
     do {
@@ -371,7 +369,7 @@ export class EduClassroomDataController {
         const res = await this.roomManager.apiService.syncSnapShot(roomUuid)
         const {seq, roomInfo, roomState, roomProperties, users} = res
         this.appendBuffer({
-          cmd: 0,
+          cmd: EduChannelMessageCmdType.initState,
           seqId: seq,
           data: {
             roomInfo,
@@ -411,11 +409,6 @@ export class EduClassroomDataController {
           .catch(onFailure)
       }, 2000)
     }
-    // this.setRoomInfo(roomInfo)
-    // this.setRoomStatus(roomState)
-    // this.setRoomProperties(roomProperties)
-    // this.setRawUsers(users)
-    // this.setCurrentSeqId(seq)
   }
 
   private async syncSequence(roomUuid: string, curSeqId: number, count?: number): Promise<any> {
@@ -640,62 +633,6 @@ export class EduClassroomDataController {
       }
     }
   }
-
-  // updateStreams(streams: EduStreamData[]) {
-  //   for (let newItem of streams) {
-  //     const newStream = newItem.stream
-  //     const targetIdx = this._streamList.findIndex((it: EduStreamData) => it.stream.streamUuid === newStream.streamUuid)
-  //     const targetStream = this._streamList[targetIdx]
-  //     if (targetStream && targetStream.ts <= newItem.ts) {
-  //       if (newItem.state === 0) {
-  //         // 删除stream
-  //         EduLogger.info("删除stream updateStreams", " new ", newItem, " prev ", targetStream)
-  //         this._streamList.splice(targetIdx, 1)
-  //         if (this.isLocalStreams(targetStream.stream.streamUuid)) {
-  //           this.removeLocalStream(targetStream.stream.streamUuid)
-  //         } else {
-  //           // if (!this.roomManager.syncingData) {
-  //           this.fire('remote-stream-removed', {stream: newItem.stream})
-  //           // }
-  //         }
-  //       } else {
-  //         // 更新stream
-  //         EduLogger.info("更新stream updateStreams", newItem)
-  //         this._streamList[targetIdx] = newItem;
-  //         if (this.isLocalStreams(targetStream.stream.streamUuid)) {
-  //           if (this.isMainStream(targetStream.stream.streamUuid)) {
-  //             this.upsertLocalStream('main', newItem)
-  //           }
-  //           if (this.isScreenShare(targetStream.stream.streamUuid)) {
-  //             this.upsertLocalStream('screen', newItem)
-  //           }
-  //         } else {
-  //           // if (!this.roomManager.syncingData) {
-  //           this.fire('remote-stream-updated', {stream: newItem.stream})
-  //           // }
-  //         }
-  //       }
-  //     }
-  //     if (!targetStream) {
-  //       // 新增stream
-  //       EduLogger.info("新增stream updateStreams", newItem)
-  //       this._streamList.push(newItem)
-  //       if (this.isLocalStreams(newItem.stream.streamUuid)) {
-  //         if (this.isScreenShare(newItem.stream.streamUuid)) {
-  //           this.upsertLocalStream('screen', newItem)
-  //         }
-  //         if (this.isMainStream(newItem.stream.streamUuid)) {
-  //           this.upsertLocalStream('main', newItem)
-  //         }
-  //       } else {
-  //         // if (!this.roomManager.syncingData) {
-  //         //   EduLogger.info("remote-stream-added", newItem, targetStream)
-  //         this.fire('remote-stream-added', {stream: newItem.stream})
-  //         // }
-  //       }
-  //     }
-  //   }
-  // }
 
   private isMainStream(streamUuid: string): boolean {
     const mainStream = this._cachedLocalStreams['main']
@@ -1261,7 +1198,7 @@ export class EduClassroomDataController {
     }
   }
 
-  setRoomStatus(state: any) {
+  setRoomStatus(state: any, cause?: CauseType) {
     const prevState = this._roomStatus
 
     const curState = {
@@ -1272,11 +1209,11 @@ export class EduClassroomDataController {
     this._roomStatus = curState
     EduLogger.info(">>> setRoomStatus ", state)
     if (diff(prevState, curState)) {
-      this.fire('classroom-property-updated', this.classroom)
+      this.fire('classroom-property-updated', this.classroom, cause)
     }
   }
 
-  setRoomProperties(roomProperties: any) {
+  setRoomProperties(roomProperties: any, cause?: CauseType) {
     const prevState = this._roomProperties
 
     const curState = {
@@ -1287,7 +1224,7 @@ export class EduClassroomDataController {
     this._roomProperties = curState
     EduLogger.info(">>> setRoomProperties ", curState)
     if (diff(prevState, curState)) {
-      this.fire('classroom-property-updated', this.classroom)
+      this.fire('classroom-property-updated', this.classroom, cause)
     }
   }
 

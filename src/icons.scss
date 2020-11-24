@@ -98,11 +98,93 @@
 .icon-speaker-on,
 .icon-speaker-off,
 .icons-camera-mute-s,
-.icons-camera-unmute-s
+.icons-camera-unmute-s,
+.icon-inactive-star,
+.icon-active-star,
+.icon-blue-star,
+.icon-new-star,
+.icon-hollow-white-star,
+.icon-hollow-white-hover-star,
+.icon-hollow-blue-star,
+.icons-close-co-video
+// .icons-reward-star
 {
   display: flex;
   width: 24px;
   height: 24px;
+}
+
+.icons-close-co-video::after {
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  background-image: url('./assets/icons-close-co-video.png');
+}
+
+.icon-blue-star::after {
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  background-image: url('./assets/icon-blue-star.png');
+}
+
+// .icon-hollow-white-::after {
+//   width: 100%;
+//   height: 100%;
+//   background-position: center;
+//   background-repeat: no-repeat;
+//   background-size: contain;
+//   content: ' ';
+//   background-image: url('./assets/icon-hollow-white-star.png');
+// }
+
+.icon-hollow-white-star::after {
+  // &:hover {
+  //   background-image: url('./assets/icon-hollow-blue-star.png')
+  // }
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  background-image: url('./assets/icon-hollow-white-star.png');
+}
+
+.icon-hollow-blue-star::after {
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  background-image: url('./assets/icon-hollow-blue-star.png');
+}
+
+.icon-inactive-star::after {
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  background-image: url('./assets/icon-inactive-star.png');
+}
+
+.icon-active-star::after {
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  background-image: url('./assets/icon-active-star.png');
 }
 
 .icon-voice::after {
