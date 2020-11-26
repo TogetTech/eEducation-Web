@@ -7,7 +7,7 @@ const zhCN: any = {
     "hands_up": "举手",
   },
   "switch": {
-    "enable_auto_hands_up": "开启举手及上台",
+    "enable_auto_hands_up": "举手即上台",
     "enable_hands_up": "开启举手功能",
   },
   "unknown": "[未知]: ",
@@ -220,6 +220,7 @@ const zhCN: any = {
     'password': '密码',
   },
   'room': {
+    'hands_up': '举手',
     'show': '显示',
     'course_list': '教室列表',
     'chat_room': '消息列表',

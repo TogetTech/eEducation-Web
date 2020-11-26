@@ -851,7 +851,7 @@ export class AgoraEduApi {
 
   async kickUser(args: {roomUuid: string, userUuid: string}) {
     let res = await this.fetch({
-      url: `/rooms/${args.roomUuid}/users/${args.userUuid}/exit`,
+      url: `/v1/rooms/${args.roomUuid}/users/${args.userUuid}/exit`,
       method: 'POST',
     })
     return res.data;

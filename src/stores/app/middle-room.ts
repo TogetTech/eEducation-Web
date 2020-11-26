@@ -67,6 +67,8 @@ export type EduMediaStream = {
 
 export class MiddleRoomStore extends RoomStore {
 
+  middleRoomApi!: MiddleRoomApi;
+
   constructor(appStore: AppStore) {
     super(appStore);
   }
@@ -76,6 +78,7 @@ export class MiddleRoomStore extends RoomStore {
     try {
       this.appStore.uiStore.startLoading()
       this.roomApi = new RoomApi()
+      this.middleRoomApi = new MiddleRoomApi()
       let {roomUuid} = await this.roomApi.fetchRoom({
         roomName: `${this.roomInfo.roomName}`,
         roomType: +this.roomInfo.roomType as number,
@@ -424,8 +427,7 @@ export class MiddleRoomStore extends RoomStore {
       const localStreamData = roomManager.data.localStreamData
   
       let canPublish = this.roomInfo.userRole === 'teacher' ||
-         localStreamData && !!(+localStreamData.state) ||
-         (this.roomInfo.userRole === 'student' && +this.roomInfo.roomType !== 2)
+         localStreamData && !!(+localStreamData.state)
   
       if (canPublish) {
   

@@ -8,7 +8,8 @@ export enum EduRoomType {
   SceneType1v1 = 0,
   SceneTypeSmallClass = 1,
   SceneTypeBigClass = 2,
-  SceneTypeBreakoutClass = 3
+  SceneTypeBreakoutClass = 3,
+  SceneTypeMiddleClass = 4
 }
 
 export enum EnumBoardState {

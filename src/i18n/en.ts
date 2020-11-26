@@ -7,8 +7,8 @@ const en = {
     "hands_up": "CoVideo",
   },
   "switch": {
-    "enable_auto_hands_up": "Set HandsUp CoVideo",
-    "enable_hands_up": "Set HandsUp",
+    "enable_auto_hands_up": "HandsUp CoVideo",
+    "enable_hands_up": "HandsUp",
   },
   "unknown": "[unknown]: ",
   "from_room": "[Room]: ",
@@ -221,6 +221,7 @@ const en = {
     'password': 'Password',
   },
   'room': {
+    'hands_up': 'Hands Up',
     'show': 'Show',
     'course_list': 'Room List',
     'chat_room': 'Chat Room',

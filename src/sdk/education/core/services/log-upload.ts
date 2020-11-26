@@ -1,25 +1,15 @@
 import { getIntlError } from "@/services/intl-error-helper";
 import { AgoraFetch } from "../utils/fetch";
 import OSS from "ali-oss";
-import os from 'os';
+import md5 from "js-md5";
 import { t } from "@/i18n";
 import { get } from "lodash";
 import { APP_ID } from "@/utils/config";
 import UAParser from 'ua-parser-js';
 
-var UA = new UAParser();
-var parser = UA.getResult()
-
-//@ts-ignore
-window.parser = parser
-
-var platform: string = ''
-
-if(window.isElectron) {
-  platform = 'Electron'
-} else {
-  platform = 'Web'
-}
+const UA = new UAParser();
+const parser = UA.getResult()
+const platform: string = window.isElectron ? 'Electron' : 'Web'
 
 //@ts-ignore
 window.platform = platform
@@ -64,8 +54,11 @@ export class logUpload {
   
   async fetchStsToken(roomId: string, fileExt: string) {
 
-    const _roomId = roomId ? roomId: 0
+    const _roomId = roomId ? roomId : 0
+
+    let timestamp = new Date().getTime()
     let body = {
+      appId: this.appID,
       appVersion: t('build_version'),
       deviceName: parser.os.name,
       deviceVersion: parser.os.version,
@@ -75,12 +68,20 @@ export class logUpload {
         roomId: _roomId,
       },
     }
-    
+
+    let params = JSON.stringify(body)
+    let appSecret = '7AIsPeMJgQAppO0Z'
+    let signStr = appSecret + params + timestamp
+    let sign =  md5(signStr)
+
     let data = await AgoraFetchJson({
-      url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/monitor/apps/${this.appID}/v1/log/oss/policy`,
+      url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/monitor/v1/log/oss/policy`,
       data: body,    
       method: 'POST',
-      outHeaders: {}
+      outHeaders: {
+        sign: sign,
+        timestamp: timestamp,
+      }
     })
     return {
       bucketName: data.bucketName as string,
@@ -142,7 +143,7 @@ export class logUpload {
     try {
       let res = await ossClient.put(ossKey, file, {
         callback: {
-          url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/monitor/apps/${this.appID}/v1/log/oss/callback`,
+          url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/monitor/v1/log/oss/callback`,
           body: callbackBody,
           contentType: 'application/json',
         }

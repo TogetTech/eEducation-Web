@@ -1,15 +1,9 @@
-import { EduAudioSourceType } from './../../sdk/education/interfaces/index.d';
-import { EduVideoSourceType } from '@/sdk/education/interfaces/index.d';
+import { EduAudioSourceType, EduVideoSourceType } from '@/sdk/education/interfaces/index.d';
 import { AppStore } from '@/stores/app/index';
-import { AgoraWebRtcWrapper } from '../../sdk/education/core/media-service/web/index';
-import { MediaService } from '../../sdk/education/core/media-service/index';
-import { IMicrophoneAudioTrack } from 'agora-rtc-sdk-ng';
-import { observable, computed, action, runInAction } from 'mobx';
-import { AgoraElectronRTCWrapper } from '@/sdk/education/core/media-service/electron';
-import { StartScreenShareParams, PrepareScreenShareParams } from '@/sdk/education/core/media-service/interfaces';
-import { LocalUserRenderer } from '@/sdk/education/core/media-service/renderer';
-import { Dialog } from '@material-ui/core';
+import { observable, computed, action } from 'mobx';
 import { get } from 'lodash';
+
+export type SetInterval = ReturnType<typeof setInterval>
 
 type ApplyUser = {
   userName: string
@@ -76,25 +70,9 @@ export class ExtensionStore {
     this.handVisible = false
   }
 
-  // @observable
-  // enableCoVideo: boolean = false
-
-  // @observable
-  // enableAutoHandUpCoVideo: boolean = false
-
   @computed
   get enableAutoHandUpCoVideo(): boolean {
     return !!get(this.appStore.middleRoomStore,'roomProperties.handUpStates.apply', 0)
-  }
-
-  @action
-  async toggleEnableAutoHandUpCoVideo() {
-    await this.appStore.middleRoomStore.roomManager?.userService?.updateRoomProperties2({
-      "handUpStates": {
-        "state": +this.enableCoVideo,
-        "apply": +!this.enableAutoHandUpCoVideo
-      }
-    })
   }
 
   @computed
@@ -103,11 +81,11 @@ export class ExtensionStore {
   }
 
   @action
-  async toggleEnableCoVideo() {
+  async updateHandUpState(enableCoVideo: boolean, enableAutoHandUpCoVideo: boolean) {
     await this.appStore.middleRoomStore.roomManager?.userService?.updateRoomProperties2({
       "handUpStates": {
-        "state": +!this.enableCoVideo,
-        "apply": +this.enableAutoHandUpCoVideo
+        "state": +enableCoVideo,
+        "apply": +enableAutoHandUpCoVideo
       }
     })
   }
@@ -118,6 +96,10 @@ export class ExtensionStore {
   @action
   toggleCard() {
     this.visibleCard = !this.visibleCard
+  }
+
+  hideCard() {
+    this.visibleCard = false
   }
 
   async acceptApply(userUuid: string, streamUuid: string) {
@@ -131,5 +113,84 @@ export class ExtensionStore {
         hasAudio: 1
       }
     ])
+  }
+
+  @computed
+  get userRole(): string {
+    return this.appStore.roomStore.localUser.userRole
+  }
+
+  @computed
+  get showStudentHandsTool(): boolean {
+    if (this.userRole === 'student' && this.enableCoVideo) {
+      return true
+    }
+    return false
+  }
+
+  @computed
+  get showTeacherHandsTool(): boolean {
+    if (this.userRole === 'teacher' && this.enableCoVideo) {
+      return true
+    }
+    return false
+  }
+
+  @observable
+  tick: number = 3000
+
+  interval?: SetInterval
+
+  @observable
+  inTick: boolean = false
+  
+  @action
+  startTick() {
+    if (this.interval !== undefined) {
+      this.stopTick()
+    }
+    this.tick = 3000
+    this.inTick = true
+    this.interval = setInterval(() => {
+      if (this.tick === 0) {
+        if (this.interval) {
+          clearInterval(this.interval)
+          this.interval = undefined
+        }
+        this.inTick = false
+        return
+      }
+      this.tick -= 1000
+    }, 1000)
+  }
+
+  @action
+  stopTick() {
+    this.interval && clearInterval(this.interval)
+    this.interval = undefined
+    this.inTick = false
+  }
+
+  @action
+  async raiseHands() {
+
+  }
+
+  @action
+  async acceptRaiseHands(userUuid: string) {
+    // await this.appStore.middleRoomStore.middleRoomApi.handInvitationStart()
+  }
+
+  @observable
+  visibleUserList: boolean = false
+
+  @action
+  toggleApplyUserList() {
+    this.visibleUserList = !this.visibleUserList
+  }
+
+  @action
+  hideApplyUserList() {
+    this.visibleUserList = false
   }
 }

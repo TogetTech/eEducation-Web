@@ -1,3 +1,4 @@
+import { EduRoomType } from '@/sdk/education/core/services/interface.d';
 import { GlobalStorage } from '../../utils/custom-storage';
 import { observable, action, computed } from 'mobx';
 import { AppStore } from '.';
@@ -257,5 +258,76 @@ export class UIStore {
 
   updateLastSeqId(v: number) {
     this.lastSeqId = v
+  }
+
+  @computed
+  get showPagination (): boolean {
+    if (this.appStore.roomStore.roomInfo.userRole === 'teacher') {
+      return true
+    }
+    return false
+  }
+
+  @computed
+  get showStudentApply(): boolean {
+    return false
+  }
+  
+  @computed
+  get showScaler(): boolean {
+    const userRole = this.appStore.roomStore.roomInfo.userRole
+    if (userRole === 'teacher') {
+      return true
+    }
+    return false
+  }
+
+  @computed
+  get showFooterMenu(): boolean {
+    const userRole = this.appStore.roomStore.roomInfo.userRole
+    if (userRole === 'teacher') {
+      return true
+    }
+    const roomType = this.appStore.roomStore.roomInfo.roomType
+    if (userRole === 'student' && `${roomType}` === `${EduRoomType.SceneTypeMiddleClass}`) {
+      return true
+    }
+    return false
+  }
+
+  @computed
+  get showApplyUserList(): boolean {
+    const userRole = this.appStore.roomStore.roomInfo.userRole
+    const roomType = this.appStore.roomStore.roomInfo.roomType
+    if (`${roomType}` === `${EduRoomType.SceneTypeMiddleClass}`) {
+      return true
+    }
+    return false
+  }
+
+  @computed
+  get showTools(): boolean {
+    const userRole = this.appStore.roomStore.roomInfo.userRole
+    if (userRole === 'teacher') {
+      return true
+    }
+    const roomType = this.appStore.roomStore.roomInfo.roomType
+    if (`${roomType}` === `${EduRoomType.SceneTypeMiddleClass}` && this.appStore.extensionStore.enableCoVideo) {
+      return true
+    }
+    return false
+  }
+
+  @observable
+  visibleShake: boolean = false
+  
+  @action
+  showShakeHands() {
+    this.visibleShake = true
+  }
+
+  @action
+  hideShakeHands() {
+    this.visibleShake = false
   }
 }

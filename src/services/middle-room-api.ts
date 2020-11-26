@@ -4,7 +4,48 @@ import { APP_ID, AUTHORIZATION } from "@/utils/config";
 import { HttpClient } from "@/sdk/education/core/utils/http-client";
 import { BizLogger } from "@/utils/biz-logger";
 
+export enum InvitationEnum {
+  Apply =  1,
+  Invite = 2,
+  Accept = 3,
+  Reject = 4,
+  Cancel = 5
+}
+
+export type RoomInfo = {
+  roomUuid: string
+  roomName: string
+  userUuid: string
+  userName: string
+  role: string
+  userToken: string
+}
+
 export class MiddleRoomApi {
+  _sessionInfo!: RoomInfo;
+
+  setSessionInfo(payload: RoomInfo) {
+    this._sessionInfo = payload
+  }
+
+  get room(): any {
+    return {
+      name: this._sessionInfo.roomName,
+      uuid: this._sessionInfo.roomUuid
+    }
+  }
+
+  get me(): any {
+    return {
+      uuid: this._sessionInfo.userUuid,
+      name: this._sessionInfo.userName,
+      role: this._sessionInfo.role
+    }
+  }
+
+  get userToken(): string {
+    return this._sessionInfo.userToken;
+  }
 
   get prefix(): string {
     return `${REACT_APP_AGORA_APP_SDK_DOMAIN}/scene/apps/%app_id`.replace("%app_id", APP_ID)
@@ -89,39 +130,33 @@ export class MiddleRoomApi {
   }
 
   // 举手邀请开启
-  async handInvitationStart(processUuid: string, action: number, toUserUuid: string,fromUserUuid: string, timeout: number, userToken: string, limit: number, payload: object) {
+  async handInvitationStart(processUuid: string, action: number, toUserUuid: string, payload: object) {
     let res = await this.fetch({
-      full_url: `http://115.231.168.26:3000/mock/23/scene/apps/${APP_ID}/v1/process/${processUuid}/start`,
-      // full_url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/scene/apps/${APP_ID}/v1/process/${processUuid}/start`,
+      full_url: `http://115.231.168.26:3000/mock/9/invitation/apps/${APP_ID}/v1/rooms/${this.room.uuid}/users/${toUserUuid}/process/${processUuid}`,
       method: 'POST',
       data: {
-        action: action, 
-        toUserUuid: toUserUuid,  
-        fromUserUuid: fromUserUuid, 
-        timeout: timeout, 
-        limit: limit, 
+        action: action,
+        fromUser: this.me,
+        fromRoom: this.room,
         payload: payload,
       },
-      token: userToken
+      token: this.userToken
     })
     return res.data
   }
 
   // 举手邀请结束
-  async handInvitationEnd(processUuid: string, action: number, toUserUuid: string,fromUserUuid: string, timeout: number, userToken: string, limit: number, payload: object) {
+  async handInvitationEnd(processUuid: string, action: number, toUserUuid: string, payload: object) {
     let res = await this.fetch({
-      full_url: `http://115.231.168.26:3000/mock/23/scene/apps/${APP_ID}/v1/process/${processUuid}/stop`,
-      // full_url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/scene/apps/${APP_ID}/v1/process/${processUuid}/stop`,
-      method: 'POST',
+      full_url: `http://115.231.168.26:3000/mock/9/invitation/apps/${APP_ID}/v1/rooms/${this.room.uuid}/users/${toUserUuid}/process/${processUuid}`,
+      method: 'DELETE',
       data: {
-        action: action, 
-        toUserUuid: toUserUuid,  
-        fromUserUuid: fromUserUuid, 
-        timeout: timeout, 
-        limit: limit, 
-        payload: payload, 
+        action: action,
+        fromUser: this.me,
+        fromRoom: this.room,
+        payload: payload,
       },
-      token: userToken
+      token: this.userToken
     })
     return res.data
   }

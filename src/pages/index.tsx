@@ -18,6 +18,7 @@ import { ReplayPage } from './replay';
 import {Provider} from 'mobx-react';
 import { AppStore } from '@/stores/app';
 import {AssistantCoursesPage} from './breakout-class/assistant-courses-page';
+// import {UIFascade} from './ui-fascade';
 
 const defaultStore = new AppStore()
 //@ts-ignore
@@ -67,6 +68,7 @@ export default function () {
             <ReplayPage />
           </Route>
           <Route exact path="/">
+            {/* <UIFascade /> */}
             <Home />
           </Route>
         </HashRouter>

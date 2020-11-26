@@ -8,7 +8,7 @@ export type ScaleControllerProps = {
   zoomChange: (scale: number) => void
   onClick: () => void
   onClickBoardLock: () => void
-};
+}
 
 export default class ScaleController extends React.Component<ScaleControllerProps, {}> {
 

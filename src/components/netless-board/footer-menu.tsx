@@ -2,7 +2,7 @@ import React from 'react';
 import { Tooltip } from '@material-ui/core';
 import { t } from '@/i18n';
 import { ControlItem } from '../control-item';
-import { useBoardStore, useRoomStore, useBreakoutRoomStore, useExtensionStore } from '@/hooks';
+import { useBoardStore, useRoomStore, useBreakoutRoomStore, useExtensionStore, useUIStore } from '@/hooks';
 import {observer} from 'mobx-react';
 import ScaleController from './scale-controller';
 import { useLocation } from 'react-router-dom';
@@ -23,6 +23,7 @@ const BasicSceneFooterMenu = observer((props: any) => {
   const boardStore = useBoardStore()
   const extensionStore = useExtensionStore()
   const roomStore = useRoomStore()
+  const uiStore = useUIStore()
 
   const current = boardStore.activeFooterItem
 
@@ -35,10 +36,10 @@ const BasicSceneFooterMenu = observer((props: any) => {
   const handleSharing = async () => {
     await roomStore.startOrStopSharing()
   }
-
+  
   return (
-    roomStore.roomInfo.userRole === 'teacher' ?
     <>
+    {uiStore.showPagination ?
     <div className="pagination">
     {!roomStore.sharing ?
       <>
@@ -96,24 +97,28 @@ const BasicSceneFooterMenu = observer((props: any) => {
         </span>
       </Tooltip>
     </div>
-    <div className="zoom-controls">
-      <ApplyUserList />
-      <ScaleController
-        lockBoard={boardStore.lock}
-        zoomScale={boardStore.scale}
-        onClick={() => {
-          boardStore.openFolder()
-        }}
-        onClickBoardLock={() => {
-          boardStore.toggleLockBoard()
-        }}
-        zoomChange={(scale: number) => {
-          boardStore.updateScale(scale)
-        }}
-      />
+    : null}  
+    <div className="bottom-tools">
+      {uiStore.showApplyUserList ? <ApplyUserList /> : null}
+      {uiStore.showTools ?
+      <div className="tool-kit zoom-controls">
+        {uiStore.showScaler ? 
+        <ScaleController
+          lockBoard={boardStore.lock}
+          zoomScale={boardStore.scale}
+          onClick={() => {
+            boardStore.openFolder()
+          }}
+          onClickBoardLock={() => {
+            boardStore.toggleLockBoard()
+          }}
+          zoomChange={(scale: number) => {
+            boardStore.updateScale(scale)
+          }}
+        /> : null}
+      </div> : null}
     </div>
     </>
-    : null
   )
 })
 

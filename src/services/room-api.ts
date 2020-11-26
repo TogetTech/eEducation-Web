@@ -1,3 +1,4 @@
+import { MiddleClass } from './../pages/middle-class/middle-class';
 import { AgoraFetchParams } from "@/sdk/education/interfaces/index.d";
 import { EduRoomType } from "@/sdk/education/core/services/interface.d";
 import { APP_ID, AUTHORIZATION } from "@/utils/config";
@@ -155,6 +156,17 @@ export class RoomApi {
           assistant: {
             limit: 1
           }
+        }
+      }
+
+      if (params.roomType === EduRoomType.SceneTypeMiddleClass) {
+        roomConfig.roleConfig = {
+          host: {
+            limit: 1
+          },
+          audience: {
+            limit: -1
+          },
         }
       }
       
