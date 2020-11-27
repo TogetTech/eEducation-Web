@@ -165,8 +165,8 @@ export class RoomApi {
             limit: 1
           },
           audience: {
-            limit: -1
-          },
+            limit: 100
+          }
         }
       }
       

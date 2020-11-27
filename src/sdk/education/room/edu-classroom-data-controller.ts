@@ -19,7 +19,7 @@ import {
 } from '../interfaces/index.d';
 import { EduClassroomManager } from '../room/edu-classroom-manager';
 import { EduLogger } from '../core/logger';
-import { get } from 'lodash';
+import { get, set } from 'lodash';
 import { diff } from 'deep-diff';
 
 enum DataEnumType {
@@ -1225,6 +1225,25 @@ export class EduClassroomDataController {
     EduLogger.info(">>> setRoomProperties ", curState)
     if (diff(prevState, curState)) {
       this.fire('classroom-property-updated', this.classroom, cause)
+    }
+  }
+
+  setRoomBatchProperties(roomProperties: any) {
+    const mergeRoomProperties = (properties: any, changeProperties: any) => {
+      let newProperties = {...properties}
+      for (let key in changeProperties) {
+        set(newProperties, key, changeProperties[key])
+      }
+      return newProperties
+    }
+
+    const prevState = this._roomProperties
+    const curState = mergeRoomProperties(prevState, roomProperties)
+
+    this._roomProperties = curState
+    EduLogger.info(">>> setRoomBatchProperties ", curState)
+    if (diff(prevState, curState)) {
+      this.fire('classroom-property-updated', this.classroom)
     }
   }
 

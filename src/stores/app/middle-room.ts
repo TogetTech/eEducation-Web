@@ -1,3 +1,4 @@
+import { CauseType } from './../../sdk/education/core/services/edu-api';
 import { MiddleRoomApi } from '../../services/middle-room-api';
 import { Mutex } from './../../utils/mutex';
 import uuidv4 from 'uuid/v4';
@@ -18,7 +19,7 @@ import { AgoraElectronRTCWrapper } from '@/sdk/education/core/media-service/elec
 import { StartScreenShareParams, PrepareScreenShareParams } from '@/sdk/education/core/media-service/interfaces';
 import { MediaService } from '@/sdk/education/core/media-service';
 import { get } from 'lodash';
-import { EduCourseState, EduUser, EduStream, EduVideoSourceType, EduRoleType } from '@/sdk/education/interfaces/index.d';
+import { EduCourseState, EduUser, EduStream, EduVideoSourceType, EduRoleType, UserGroup, RoomProperties } from '@/sdk/education/interfaces/index.d';
 import { ChatMessage } from '@/utils/types';
 import { t } from '@/i18n';
 import { DialogType } from '@/components/dialog';
@@ -38,8 +39,18 @@ const genStudentStreams = (num: number) => {
   }))
 }
 
+type MiddleRoomProperties = {
+  handUpStates: {
+    state: number,
+    apply: number
+  },
+  groups: any[],
+  students: Record<string, any>,
+  teachers: Record<string, any>
+}
 
-// var middleRoom = new MiddleRoomApi()
+type MiddleRoomSchema = Partial<MiddleRoomProperties>
+
 const delay = 2000
 
 const ms = 500
@@ -66,12 +77,14 @@ export type EduMediaStream = {
 }
 
 export class MiddleRoomStore extends RoomStore {
-
   middleRoomApi!: MiddleRoomApi;
 
   constructor(appStore: AppStore) {
     super(appStore);
   }
+
+  @observable
+  userGroups: UserGroup[] = []
 
   @action
   async join() {
@@ -357,6 +370,32 @@ export class MiddleRoomStore extends RoomStore {
             }
           }
           this.isMuted = !classroom.roomStatus.isStudentChatAllowed
+
+          // 中班功能
+          this.roomProperties = classroom.roomProperties
+          const groups = get(classroom, 'roomProperties.groups')
+          const students = get(classroom, 'roomProperties.students')
+
+          this.userGroups = []
+          if (groups) {
+            Object.keys(groups).forEach(groupUuid => {
+              let group = groups[groupUuid]
+              let userGroup: UserGroup = {
+                groupName: group.groupName,
+                groupUuid: groupUuid,
+                members: []
+              }
+              group.members.forEach((stuUuid: string) => {
+                let info = students[stuUuid]
+                userGroup.members.push({
+                  userUuid: stuUuid,
+                  userName: info.userName,
+                  reward: info.reward
+                })
+              })
+              this.userGroups.push(userGroup)
+            })
+          }
       })
       roomManager.on('room-chat-message', (evt: any) => {
         const {textMessage} = evt;
@@ -523,17 +562,20 @@ export class MiddleRoomStore extends RoomStore {
   async sendClose(userUuid: string) {
   }
 
+  @action
+  async updateRoomBatchProperties(payload: {properties: MiddleRoomSchema, cause: CauseType}) {
+    await this.roomManager.userService.updateRoomBatchProperties(payload)
+  }
+
   @observable
-  roomProperties: {
-    handUpStates: {
-      state: number,
-      apply: number
-    }
-  } = {
+  roomProperties: MiddleRoomProperties = {
     handUpStates: {
       state: 0,
       apply: 0
-    }
+    },
+    groups: [],
+    students: {},
+    teachers: {}
   }
 
 

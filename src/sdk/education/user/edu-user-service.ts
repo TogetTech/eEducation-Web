@@ -177,6 +177,14 @@ export class EduUserService extends EventEmitter implements IEduUserService {
     })
   }
 
+  public async updateRoomBatchProperties(record: Record<string, any>) {
+    await this.apiService.updateRoomBatchProperties({
+      roomUuid: this.roomUuid,
+      properties: record.properties,
+      cause: record.cause
+    })
+  }
+
   public async updateCourseState(courseState: EduCourseState) {
     await this.apiService.updateCourseState({
       roomUuid: this.roomUuid,

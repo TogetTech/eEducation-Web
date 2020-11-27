@@ -1,7 +1,7 @@
 import { Button } from '@material-ui/core';
 import './middle-grouping.scss';
 import { CustomButton } from '@/components/custom-button';
-import React, { Component, useState } from 'react';
+import React, { Component, useState, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { AnyARecord } from 'dns';
@@ -11,7 +11,9 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
+import Tooltip from '@material-ui/core/Tooltip';
 import { useMiddleRoomStore, useUIStore, useAppStore, useExtensionStore} from '@/hooks';
+import { rangeRight, random } from 'lodash';
   
 const getItems = (count:number, offset = 0) =>
   Array.from({ length: count }, (v, k) => k).map(k => ({
@@ -113,8 +115,8 @@ function MiddleGroup(props: MiddleGroupProps) {
                 </div>
                 {groupItem.map((item:any, index:any) => (
                     <Draggable
-                        key={item.id}
-                        draggableId={item.id}
+                        key={item.userUuid}
+                        draggableId={item.userUuid}
                         index={index}>
                         {(provided:any, snapshot:any) => (
                             <div 
@@ -128,7 +130,7 @@ function MiddleGroup(props: MiddleGroupProps) {
                                 )}>
                                 <div className="stu-identity">
                                   <div className="stu-head"></div>
-                                  <div className="stu-name">{item.content}</div>
+                                  <div className="stu-name">{item.userName}</div>
                                 </div>
                             </div>
                         )}
@@ -143,7 +145,45 @@ function MiddleGroup(props: MiddleGroupProps) {
   )
 }
 
-export const MiddleGrouping = function ({sure, close, reduce, dataList}: any) {
+export const MiddleGroupCard = function({groupStuList, groupName}: any) {
+
+  const handleClickAddStar = function() {
+    // 整组加星奖励
+  }
+  
+  return (
+    <div className="middle-group-card">
+      <div className="head">
+        <div className="text">
+          <div className="group-text">{groupName}:</div>
+          <div className="group-stu-num">({groupStuList.length}人)</div>
+        </div>
+        <div className="icon">
+          <div className="microphone"></div>
+          <div className="platform"></div>
+          <div className="add-star" onClick={handleClickAddStar}></div>
+        </div>
+      </div>
+      <hr />
+      <div className="group-body">
+      {groupStuList.map((item: any) => (
+        <div className="group-stu" key={item.userUuid}>
+          <div className="stu-head"></div>
+          <span className="stu-name">{item.userName}</span>
+          <div className="star-box">
+            <div className="stu-star"></div>
+            <span className="star-num"></span>
+            {item.reward}
+          </div>
+        </div>
+      ))}
+      </div>
+    </div>
+  )
+}
+
+export const MiddleGrouping = function ({sure, dataList}: any) {
+  let itemList = [...dataList]
 
   const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -165,10 +205,11 @@ export const MiddleGrouping = function ({sure, close, reduce, dataList}: any) {
   const [controlSpread, setControlSpread] = useState<number>(2)
   const [addition, setAddition] = useState<boolean>(true)
 
-  const [groupNum, setGroupNum] = React.useState('')
-  const [groupType, setGroupType] = React.useState('')
+  const [groupStuNum, setGroupStuNum] = React.useState<number>(4)
+  
+  const [groupType, setGroupType] = React.useState<number>(0)
 
-  const [groups, setGroups] = useState<Array<any>>([getItems(5), getItems(5, 10), getItems(5, 20), getItems(5, 30)])
+  const [groups, setGroups] = useState<Array<any>>([])
   
   const sureGroup = function () {
     sure(groups)
@@ -177,7 +218,6 @@ export const MiddleGrouping = function ({sure, close, reduce, dataList}: any) {
   const reduceGroup = function() {
     setAddition(false)
     setControlSpread(1)
-    reduce()
   }
 
   const reduceGroupSmall = function() {
@@ -187,14 +227,14 @@ export const MiddleGrouping = function ({sure, close, reduce, dataList}: any) {
   
   const closeGroup = function() {
     extensionStore.hiddenGrouping()
-    close()
   }
 
-  const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setGroupNum(event.target.value as string);
-  }
-  const handleChange2 = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setGroupType(event.target.value as string);
+  const handleChangeStuNum = useCallback((event: React.ChangeEvent<{ value: unknown }>) => {
+    setGroupStuNum(event.target.value as number)
+  }, [setGroupStuNum, groupStuNum])
+  
+  const handleChangeType = (event: React.ChangeEvent<{ value: unknown }>) => {
+    setGroupType(Number(event.target.value) as number);
   }
 
   const classes = useStyles()
@@ -206,13 +246,43 @@ export const MiddleGrouping = function ({sure, close, reduce, dataList}: any) {
   const clickSureCreate = function() {
     setCreatePopup(false)
     setDragGrouping(true)
-    
+
+    if (groupType === 1) {
+      const len = itemList.length
+      for (let i = 0; i < len; i++) {
+        let a = random(0, len - 1)
+        let b = random(0, len - 1)
+        let temp = itemList[a]
+        itemList[a] = itemList[b]
+        itemList[b] = temp
+      }
+    }
+
+    let singleGroup: Array<any> = []
+    let multGroups: Array<any> = []
+    for(let i = 0; i < itemList.length; i++) {
+      let item = itemList[i]
+      if (singleGroup.length !== groupStuNum) {
+        singleGroup.push(item)
+      } else {
+        multGroups.push(singleGroup)
+        singleGroup = [item]
+      }
+    }
+
+    if(singleGroup.length > 0) {
+      multGroups.push(singleGroup)
+    } 
+    setGroups(multGroups)
+
   }
   
   const clickCancelCreate = function() {
     setCreatePopup(false)
     
   }
+
+  const groupText = '分组使用说明：选择每组人数上限进行分组。例如：教室内共5名学生，选择每组上限2人则分成3组（2 2 1），选择每组上限4人则分成两组（4 1），选择每组上限6人则分成1组（5）。'
   
   return (
     <div className="grouping">
@@ -245,16 +315,20 @@ export const MiddleGrouping = function ({sure, close, reduce, dataList}: any) {
             <div className="creat-group">
               <div className="creat-text">创建分组</div>
               <FormControl className={classes.formControl}>
-                <InputLabel id="demo-simple-select-label" >分组数量</InputLabel>
+                <Tooltip title={groupText}>
+                  <InputLabel id="demo-simple-select-label" >分组内人数上限</InputLabel>
+                </Tooltip>
                 <Select
                   labelId="demo-simple-select-label"
                   id="demo-simple-select"
-                  value={groupNum}
-                  onChange={handleChange}
+                  value={groupStuNum}
+                  onChange={handleChangeStuNum}
                 >
-                  <MenuItem value={0}>2</MenuItem>
-                  <MenuItem value={1}>4</MenuItem>
-                  <MenuItem value={2}>6</MenuItem>
+                  <MenuItem value={2}>2</MenuItem>
+                  <MenuItem value={3}>3</MenuItem>
+                  <MenuItem value={4}>4</MenuItem>
+                  <MenuItem value={5}>5</MenuItem>
+                  <MenuItem value={6}>6</MenuItem>
                 </Select>
               </FormControl>
               <FormControl className={classes.formControl}>
@@ -263,7 +337,7 @@ export const MiddleGrouping = function ({sure, close, reduce, dataList}: any) {
                   labelId="demo-simple-select-label"
                   id="demo-simple-select"
                   value={groupType}
-                  onChange={handleChange2}
+                  onChange={handleChangeType}
                 >
                   <MenuItem value={0}>顺序</MenuItem>
                   <MenuItem value={1}>随机</MenuItem>

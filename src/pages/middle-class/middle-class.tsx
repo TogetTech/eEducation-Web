@@ -5,14 +5,14 @@ import './middle-class.scss';
 import { NetlessBoard } from '@/components/netless-board';
 import { ScreenSharing } from '@/components/screen-sharing';
 import { observer } from 'mobx-react';
-import { useMiddleRoomStore, useBoardStore, useExtensionStore} from '@/hooks';
-import { MiddleGrouping } from '@/components/middle-grouping';
-import { t } from '@/i18n';
-import { EduMediaStream } from '@/stores/app/room';
-import {StudentList} from '@/components/student-list';
 import { CustomCard } from '@/components/cards';
 import { VideoMarquee } from '@/components/video-marquee';
-import { ChatPanel } from '@/components/chat/panel';
+import { useMiddleRoomStore, useBoardStore, useExtensionStore} from '@/hooks';
+import { MiddleGroupCard, MiddleGrouping } from '@/components/middle-grouping';
+import { BizLogger } from '@/utils/biz-logger';
+import {ChatPanel} from '@/components/chat/panel';
+import { t } from '@/i18n';
+import {StudentList} from '@/components/student-list';
 
 const FirstGroupVideoMarquee = observer(() => {
   const store = useMiddleRoomStore()
@@ -46,22 +46,37 @@ export const MiddleClass = observer(() => {
     teacherStream: teacher,
     studentStreams,
     roomInfo,
+    roomProperties,
+    userGroups
   } = middleRoomStore
 
   const [chat, setChat] = useState<string>('')
-
+  const [showGroupCard, setShowGroupCard] = useState<boolean>(false)
+  
   const userRole = middleRoomStore.roomInfo.userRole
   const boardStore = useBoardStore()
   const {grantUsers} = boardStore
 
-  const studentInfoList = [
-    {
-      id: '34335',
-      content: 'xiao'
-    },
-    
-  ]
+  const sutdents = roomProperties.students? roomProperties.students: {}
+ 
+  const studentInfoList = Object.keys(sutdents).map(uuid => {
+    return {
+      userUuid: uuid,
+      userName: sutdents[uuid].userName
+    }
+  })
 
+  const studentList = function() {
+    let students = {}
+    let list = studentInfoList
+    for(let i = 0; i < list.length; i++) {
+      students[list[i].userUuid] = {
+        reward: '',
+        userName: list[i].userName
+      }
+    }
+    return students
+  }
 
   const sendMessage = async () => {
     await middleRoomStore.sendMessage(chat)
@@ -69,40 +84,7 @@ export const MiddleClass = observer(() => {
   }
 
   const handleClick = async (evt: any, id: string, type: string) => {
-    const isLocal = (userUuid: string) => middleRoomStore.roomInfo.userUuid === userUuid
-    if (middleRoomStore.roomInfo.userRole === 'teacher' || isLocal(id))  {
-      const target = studentStreams.find((it: EduMediaStream) => it.userUuid === id)
-      switch(type) {
-        case 'grantBoard': {
-          if (boardStore.checkUserPermission(id)) {
-            boardStore.revokeBoardPermission(id)
-          } else {
-            boardStore.grantBoardPermission(id)
-          }
-          break
-        }
-        case 'audio': {
-          if (target) {
-            if (target.audio) {
-              await middleRoomStore.muteAudio(id, isLocal(id))
-            } else {
-              await middleRoomStore.unmuteAudio(id, isLocal(id))
-            }
-          }
-          break
-        }
-        case 'video': {
-          if (target) {
-            if (target.video) {
-              await middleRoomStore.muteVideo(id, isLocal(id))
-            } else {
-              await middleRoomStore.unmuteVideo(id, isLocal(id))
-            }
-          }
-          break
-        }
-      }
-    }
+    
   }
 
   const handleMute = async () => {
@@ -118,13 +100,26 @@ export const MiddleClass = observer(() => {
     // middleRoomStore.showDialog()
   }
 
-  const foo1 = function(groups:any) {
+  const saveGroupModify = function(groups:any) {
+    setShowGroupCard(true)
+    let backendGroups: Object[] = []
+    for(let i = 0; i < groups.length; i++) {
+      let groupNum: number = i + 1
+      let groupItem: any = {
+        groupName: "",
+        members: [],
+        groupProperties: {},
+      }
+      groupItem.groupName = "group" + groupNum
+      groupItem.members = groups[i].map((stu:any) => stu.userUuid)
+      backendGroups.push(groupItem)
+    }
 
-  }
-  const foo2 = function(groups:any) {
-    
-  }
-  const foo3 = function(groups:any) {
+    let properties = {
+      groups: backendGroups
+    }
+    let cause = {cmd:"102"}
+    middleRoomStore.updateRoomBatchProperties({ properties, cause })
 
   }
   
@@ -137,7 +132,7 @@ export const MiddleClass = observer(() => {
           <ScreenSharing />
           {
             extensionStore.controlGrouping ?
-            <MiddleGrouping dataList={studentInfoList} sure={foo1} close={foo2} reduce={foo3}></MiddleGrouping>
+            <MiddleGrouping dataList={studentInfoList} sure={saveGroupModify}></MiddleGrouping>
             : null
           }
           {
@@ -194,12 +189,23 @@ export const MiddleClass = observer(() => {
               }} />
           </div>
           <div className={`student-container ${middleRoomStore.activeTab !== 'chatroom' ? '' : 'hide'}`}>
-            <StudentList
-              userRole={userRole}
-              studentStreams={studentStreams}
-              grantUsers={grantUsers}
-              handleClick={handleClick}
-            />
+            {
+              showGroupCard ? 
+              <div className="group-card-list">
+                { userGroups.map((group, index) => (
+                    <MiddleGroupCard key={index} groupName={group.groupName} groupStuList={group.members}></MiddleGroupCard>
+                  ))
+                }
+              </div>
+              :
+              <StudentList
+                userRole={userRole}
+                studentStreams={studentStreams}
+                grantUsers={grantUsers}
+                handleClick={handleClick}
+                isMiddleClassRoom={true}
+              />
+            }
           </div>
         </div> 
       </div>

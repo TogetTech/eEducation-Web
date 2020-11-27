@@ -112,6 +112,7 @@ export const AssistantChatBoard = observer(() => {
           studentStreams={studentStreams}
           grantUsers={grantUsers}
           handleClick={handleClick}
+          isMiddleClassRoom={false}
         />
       </div>
     </>

@@ -567,6 +567,23 @@ export interface EduStream {
   }
 }
 
+export interface UserGroup {
+  groupUuid: string;
+  groupName: string;
+  members: Array<{
+    userUuid?: string;
+    userName?: string;
+    reward?: number;
+  }>;
+}
+
+export interface RoomProperties {
+  groupStates?: any;
+  interactOutGroups?: any;
+  groups?: any;
+  students?: any;
+}
+
 export interface EduStreamAttrs extends EduStream {
   updateTime?: number
   state?: EnumOnlineState
