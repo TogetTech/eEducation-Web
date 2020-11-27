@@ -43,6 +43,7 @@ export enum EduChannelMessageCmdType {
   roomMediaState = 2,
   roomChatState = 3,
   roomPropertiesStateChanged = 4,
+  roomBatchPropertiesStateChanged = 5,
   userListChanged = 20,
   userStateUpdated = 21,
   streamListChanged = 40,
@@ -561,6 +562,23 @@ export interface EduStream {
     userName: string
     role: EduRoleType
   }
+}
+
+export interface UserGroup {
+  groupUuid: string;
+  groupName: string;
+  members: Array<{
+    userUuid?: string;
+    userName?: string;
+    reward?: number;
+  }>;
+}
+
+export interface RoomProperties {
+  groupStates?: any;
+  interactOutGroups?: any;
+  groups?: any;
+  students?: any;
 }
 
 export interface EduStreamAttrs extends EduStream {

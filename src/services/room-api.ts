@@ -157,6 +157,17 @@ export class RoomApi {
           }
         }
       }
+
+      if (params.roomType === EduRoomType.SceneTypeMiddleClass) {
+        roomConfig.roleConfig = {
+          host: {
+            limit: 1
+          },
+          broadcaster: {
+            limit: 100
+          }
+        }
+      }
       
       await this.createRoom(roomConfig)
     } catch (err) {

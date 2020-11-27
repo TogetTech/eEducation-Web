@@ -17,7 +17,7 @@ import { AgoraElectronRTCWrapper } from '@/sdk/education/core/media-service/elec
 import { StartScreenShareParams, PrepareScreenShareParams } from '@/sdk/education/core/media-service/interfaces';
 import { MediaService } from '@/sdk/education/core/media-service';
 import { get } from 'lodash';
-import { EduCourseState, EduUser, EduStream, EduVideoSourceType, EduRoleType } from '@/sdk/education/interfaces/index.d';
+import { EduCourseState, EduUser, EduStream, EduVideoSourceType, EduRoleType, UserGroup, RoomProperties } from '@/sdk/education/interfaces/index.d';
 import { ChatMessage } from '@/utils/types';
 import { t } from '@/i18n';
 import { DialogType } from '@/components/dialog';
@@ -242,6 +242,8 @@ export class MiddleRoomStore extends SimpleInterval {
     this.resetScreenStream()
     this.streamList = []
     this.userList = []
+    this.userGroups = []
+    this.roomProperties = {}
     this.customScreenShareWindowVisible = false
     this.currentWindowId = ''
     this.customScreenShareItems = []
@@ -647,6 +649,12 @@ export class MiddleRoomStore extends SimpleInterval {
   @observable
   streamList: EduStream[] = []
 
+  @observable
+  roomProperties: RoomProperties = {}
+
+  @observable
+  userGroups: UserGroup[] = []
+  
   @action
   async stopScreenShare() {
 
@@ -671,6 +679,20 @@ export class MiddleRoomStore extends SimpleInterval {
       })
     } catch (err) {
       this.appStore.uiStore.addToast(t('toast.failed_to_send_chat'))
+      BizLogger.warn(err)
+    }
+  }
+
+  @action
+  async updateRoomBatchProperties({properties, cause}: {properties: object, cause?: object}) {
+    let recard: {properties: object, cause?: object} = {properties}
+    if (cause) {
+      recard.cause = cause
+    }
+    try {
+      await this.roomManager?.userService.updateRoomBatchProperties(recard)
+    } catch (err) {
+      this.appStore.uiStore.addToast(t('toast.failed_to_update_room_batch_properties'))
       BizLogger.warn(err)
     }
   }
@@ -1101,6 +1123,32 @@ export class MiddleRoomStore extends SimpleInterval {
             }
           }
           this.isMuted = !classroom.roomStatus.isStudentChatAllowed
+
+          // 中班功能
+          this.roomProperties = classroom.roomProperties
+          const groups = get(classroom, 'roomProperties.groups')
+          const students = get(classroom, 'roomProperties.students')
+
+          this.userGroups = []
+          if (groups) {
+            Object.keys(groups).forEach(groupUuid => {
+              let group = groups[groupUuid]
+              let userGroup: UserGroup = {
+                groupName: group.groupName,
+                groupUuid: groupUuid,
+                members: []
+              }
+              group.members.forEach((stuUuid: string) => {
+                let info = students[stuUuid]
+                userGroup.members.push({
+                  userUuid: stuUuid,
+                  userName: info.userName,
+                  reward: info.reward
+                })
+              })
+              this.userGroups.push(userGroup)
+            })
+          }
       })
       roomManager.on('room-chat-message', (evt: any) => {
         const {textMessage} = evt;

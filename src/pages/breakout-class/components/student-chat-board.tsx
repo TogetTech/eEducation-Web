@@ -113,6 +113,7 @@ export const StudentChatBoard = observer(() => {
           studentStreams={studentStreams}
           grantUsers={grantUsers}
           handleClick={handleClick}
+          isMiddleClassRoom={false}
         />
       </div>
     </>

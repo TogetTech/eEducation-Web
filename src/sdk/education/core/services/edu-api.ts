@@ -794,6 +794,20 @@ export class AgoraEduApi {
     return res.data;
   }
 
+  async updateRoomBatchProperties({roomUuid, properties, cause}: {roomUuid: string, properties: object, cause?: string}) {
+    const data: any = { properties }
+    if (cause) {
+      data.cause = cause
+    }
+
+    let res = await this.fetch({
+      url: `/v1/rooms/${roomUuid}/properties`,
+      method: 'PUT',
+      data: data
+    })
+    return res.data;
+  }
+
   async allowStudentChatByRole(args: {enable: boolean, roomUuid: string, roles: string[]}) {
     const muteChat = {}
     args.roles.reduce((acc: any, key: string) => {

@@ -121,6 +121,7 @@ const RoomBoardController = observer((props: any) => {
           studentStreams={studentStreams}
           grantUsers={grantUsers}
           handleClick={handleClick}
+          isMiddleClassRoom={false}
         />
       </div>
     </div>

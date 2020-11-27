@@ -167,7 +167,8 @@ const BreakoutClassSceneFooterMenu = observer(() => {
         </span>
       </Tooltip>
       <div className="menu-split" style={{ marginLeft: '7px', marginRight: '7px' }}></div>
-      </> : null }
+      </> : null 
+    }
       <Tooltip title={t(roomStore.recordId ? 'control_items.stop_recording' : 'control_items.recording')} placement="top">
         <span>
           <ControlItem
@@ -203,6 +204,6 @@ const BreakoutClassSceneFooterMenu = observer(() => {
       }}
     />
     </>
-    : null
+    : <div>xxxxx</div>
   )
 })
