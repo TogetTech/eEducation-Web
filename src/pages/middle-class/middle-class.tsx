@@ -7,9 +7,8 @@ import { ScreenSharing } from '@/components/screen-sharing';
 import { observer } from 'mobx-react';
 import { CustomCard } from '@/components/cards';
 import { VideoMarquee } from '@/components/video-marquee';
-import { useMiddleRoomStore, useBoardStore, useExtensionStore} from '@/hooks';
+import { useMiddleRoomStore, useBoardStore, useExtensionStore, useUIStore, useSceneStore} from '@/hooks';
 import { MiddleGroupCard, MiddleGrouping } from '@/components/middle-grouping';
-import { BizLogger } from '@/utils/biz-logger';
 import {ChatPanel} from '@/components/chat/panel';
 import { t } from '@/i18n';
 import {StudentList} from '@/components/student-list';
@@ -19,8 +18,8 @@ const FirstGroupVideoMarquee = observer(() => {
   return <VideoMarquee
     className="group first-group"
     canHover={true}
-    teacherStream={store.groups[0].teacherStream}
-    studentStreams={store.groups[0].studentStreams}
+    mainStream={store.groups[0].mainStream}
+    othersStreams={store.groups[0].studentStreams}
   />
 })
 
@@ -29,8 +28,8 @@ const SecondGroupVideoMarquee = observer(() => {
   return <VideoMarquee
     className="group second-group"
     canHover={true}
-    teacherStream={store.groups[1].teacherStream}
-    studentStreams={store.groups[1].studentStreams}
+    mainStream={store.groups[1].mainStream}
+    othersStreams={store.groups[1].studentStreams}
   />
 })
 
@@ -40,12 +39,19 @@ export const MiddleClass = observer(() => {
 
   const extensionStore = useExtensionStore()
 
+  const sceneStore = useSceneStore()
+
+  const uiStore = useUIStore()
+
   const {
     mutedChat,
     muteControl,
     teacherStream: teacher,
     studentStreams,
     roomInfo,
+  } = sceneStore
+
+  const {
     roomProperties,
     userGroups
   } = middleRoomStore
@@ -57,12 +63,12 @@ export const MiddleClass = observer(() => {
   const boardStore = useBoardStore()
   const {grantUsers} = boardStore
 
-  const sutdents = roomProperties.students? roomProperties.students: {}
+  const students = roomProperties.students? roomProperties.students: {}
  
-  const studentInfoList = Object.keys(sutdents).map(uuid => {
+  const studentInfoList = Object.keys(students).map(uuid => {
     return {
       userUuid: uuid,
-      userName: sutdents[uuid].userName
+      userName: students[uuid].userName
     }
   })
 
@@ -89,9 +95,9 @@ export const MiddleClass = observer(() => {
 
   const handleMute = async () => {
     if (mutedChat) {
-      await middleRoomStore.unmuteChat()
+      await sceneStore.unmuteChat()
     } else {
-      await middleRoomStore.muteChat()
+      await sceneStore.muteChat()
     }
   }
 
@@ -160,26 +166,26 @@ export const MiddleClass = observer(() => {
         </div>
         <div className={`small-class chat-board`}>
           <div className="menu">
-            <div className={`item ${middleRoomStore.activeTab === 'student_list' ? 'active' : ''}`}
+            <div className={`item ${uiStore.activeTab === 'student_list' ? 'active' : ''}`}
                 onClick={() => {
-                  middleRoomStore.switchTab('student_list')
+                  uiStore.switchTab('student_list')
                 }}
               >
               {t('room.student_list')}
             </div>
-            <div className={`item ${middleRoomStore.activeTab === 'chatroom' ? 'active' : ''}`}
+            <div className={`item ${uiStore.activeTab === 'chatroom' ? 'active' : ''}`}
             onClick={() => {
-              middleRoomStore.switchTab('chatroom')
+              uiStore.switchTab('chatroom')
             }}>
               {t('room.chat_room')}
-              {middleRoomStore.activeTab !== 'chatroom' && middleRoomStore.unreadMessageCount > 0 ? <span className={`message-count`}>{middleRoomStore.unreadMessageCount}</span> : null}
+              {uiStore.activeTab !== 'chatroom' && middleRoomStore.unreadMessageCount > 0 ? <span className={`message-count`}>{middleRoomStore.unreadMessageCount}</span> : null}
             </div>
           </div>
-          <div className={`chat-container ${middleRoomStore.activeTab === 'chatroom' ? '' : 'hide'}`}>
+          <div className={`chat-container ${uiStore.activeTab === 'chatroom' ? '' : 'hide'}`}>
             <ChatPanel
-              canChat={middleRoomStore.roomInfo.userRole === 'teacher'}
-              muteControl={middleRoomStore.muteControl}
-              muteChat={middleRoomStore.mutedChat}
+              canChat={sceneStore.roomInfo.userRole === 'teacher'}
+              muteControl={sceneStore.muteControl}
+              muteChat={sceneStore.mutedChat}
               handleMute={handleMute}
               messages={middleRoomStore.roomChatMessages}
               value={chat}
@@ -188,7 +194,7 @@ export const MiddleClass = observer(() => {
                 setChat(evt.target.value)
               }} />
           </div>
-          <div className={`student-container ${middleRoomStore.activeTab !== 'chatroom' ? '' : 'hide'}`}>
+          <div className={`student-container ${uiStore.activeTab !== 'chatroom' ? '' : 'hide'}`}>
             {
               showGroupCard ? 
               <div className="group-card-list">

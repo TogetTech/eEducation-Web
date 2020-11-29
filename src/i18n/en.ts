@@ -251,6 +251,12 @@ const en = {
     'refresh': 'refresh',
     'exit': 'exit',
   },
+  "middle_room": {
+    'student_hands_up': `"{reason}" hands up'`,
+    'the_teacher_accepted': `Teacher accepted your apply`,
+    'end_covideo_by_teacher': 'CoVideo end by teacher',
+    'end_covideo_by_self': 'CoVideo end by you',
+  },
   'course_recording': 'course recording',
   'build_version': `build version: ${build_version}`,
 }

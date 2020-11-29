@@ -3,8 +3,27 @@
 declare const REACT_APP_AGORA_APP_SDK_DOMAIN: string;
 declare const REACT_APP_AGORA_APP_SDK_LOG_SECRET: string;
 
-declare interface Window {
-  isElectron: boolean;
+interface CustomGlobalUtils {
+  platform: string
+  isElectron: boolean
+  store: AppStore
+  ipc: {
+    send: CallableFunction,
+    once: (evt: string, callback: CallableFunction) => any
+  }
+  doGzip: CallableFunction
+  logsStr: string // debug only
+  videoSourceLogPath: string
+  logPath: string
+  setNodeAddonLogPath: string
+  setNodeAddonVideoSourceLogPath: string
+  RTMRestful: RTMRestful
+  EduLogger: EduLogger
+  file: File
+}
+
+declare interface Window extends CustomGlobalUtils {
+
 }
 
 interface RtmTextMessage {

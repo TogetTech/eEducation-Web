@@ -84,14 +84,14 @@ export class RoomApi {
 
     return resp
   }
-
+  
   async acquireRoomGroupBy(roomUuid: string, userToken: string) {
     const memberLimit = 4
     try {
       let data = await this.createGroup(roomUuid, memberLimit, userToken)
       return data
     } catch (err) {
-      BizLogger.warn('[breakout] ', err)
+      BizLogger.warn(`[room-api]#acquireRoomGroupBy code: ${err.code} msg: ${err.message}`)
     }
   }
 
@@ -166,8 +166,11 @@ export class RoomApi {
           },
           audience: {
             limit: 100
-          }
+          },
         }
+        // roomConfig.roomProperties = {
+        //   processUuid: roomConfig.roomUuid
+        // }
       }
       
       await this.createRoom(roomConfig)

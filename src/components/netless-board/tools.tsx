@@ -4,10 +4,11 @@ import { Tooltip, ClickAwayListener } from '@material-ui/core';
 import {UploadBtn} from './upload/upload-btn'
 import {ExtensionCard} from '../extension-card'
 import { observer } from 'mobx-react';
-import { useBoardStore, useRoomStore } from '@/hooks';
+import { useBoardStore, useSceneStore } from '@/hooks';
 import { BoardStore } from '@/stores/app/board';
 import { SketchPicker } from 'react-color';
 import { get } from 'lodash';
+import { useLocation } from 'react-router-dom';
 
 const ToolItem = (props: any) => {
   const onClick = (evt: any) => {
@@ -25,11 +26,15 @@ const ToolItem = (props: any) => {
 
 export const Tools = observer(() => {
 
+  const location = useLocation()
+
+  const isMiddleClass = location.pathname.match(/middle-class/) ? true : false
+
   const items: any[] = BoardStore.items
 
   const boardStore = useBoardStore()
 
-  const roomStore = useRoomStore()
+  const sceneStore = useSceneStore()
 
   const handleClickOutSide = () => {
     switch(boardStore.selector) {
@@ -58,8 +63,11 @@ export const Tools = observer(() => {
           <div className="board-tools-menu">
             {items
               .filter((it: any) => {
-                if (get(roomStore, 'roomInfo.userRole', 'student') === 'student') {
-                  if (['add', 'upload', 'hand_tool'].indexOf(it.name) !== -1) return false
+                if (get(sceneStore, 'roomInfo.userRole', 'student') === 'student') {
+                  if (['add', 'upload', 'hand_tool', 'extension_tool'].indexOf(it.name) !== -1) return false
+                }
+                if (it.name === 'extension_tool' && !isMiddleClass) {
+                  return false
                 }
                 return true
               })

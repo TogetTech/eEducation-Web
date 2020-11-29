@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import {observer} from 'mobx-react'
-import { useBreakoutRoomStore, useBoardStore, useRoomStore } from '@/hooks'
+import { useBreakoutRoomStore, useBoardStore, useSceneStore } from '@/hooks'
 import { EduMediaStream } from '@/stores/app/room'
 import { t } from '@/i18n'
 import { ChatPanel } from '@/components/chat/panel'
@@ -40,12 +40,12 @@ export const TeacherChatBoard = observer(() => {
   const boardStore = useBoardStore()
   const { grantUsers } = boardStore
 
-  const roomStore = useRoomStore()
-  const { studentStreams } = roomStore
+  const sceneStore = useSceneStore()
+  const { studentStreams } = sceneStore
 
   const handleClick = async (evt: any, id: string, type: string) => {
-    const isLocal = (userUuid: string) => roomStore.roomInfo.userUuid === userUuid
-    if (roomStore.roomInfo.userRole === 'teacher' || isLocal(id)) {
+    const isLocal = (userUuid: string) => sceneStore.roomInfo.userUuid === userUuid
+    if (sceneStore.roomInfo.userRole === 'teacher' || isLocal(id)) {
       const target = studentStreams.find((it: EduMediaStream) => it.userUuid === id)
       switch (type) {
         case 'grantBoard': {
@@ -59,9 +59,9 @@ export const TeacherChatBoard = observer(() => {
         case 'audio': {
           if (target) {
             if (target.audio) {
-              await roomStore.muteAudio(id, isLocal(id))
+              await sceneStore.muteAudio(id, isLocal(id))
             } else {
-              await roomStore.unmuteAudio(id, isLocal(id))
+              await sceneStore.unmuteAudio(id, isLocal(id))
             }
           }
           break
@@ -69,9 +69,9 @@ export const TeacherChatBoard = observer(() => {
         case 'video': {
           if (target) {
             if (target.video) {
-              await roomStore.muteVideo(id, isLocal(id))
+              await sceneStore.muteVideo(id, isLocal(id))
             } else {
-              await roomStore.unmuteVideo(id, isLocal(id))
+              await sceneStore.unmuteVideo(id, isLocal(id))
             }
           }
           break

@@ -82,11 +82,10 @@ export class EduLogger {
 
   static originConsole = window.console;
 
-  static thread = null;
+  static thread: LogWorker | null = null;
 
   static init() {
     if (!this.thread) {
-      //@ts-ignore
       this.thread = new LogWorker()
       this.debugLog();
     }
@@ -117,7 +116,6 @@ export class EduLogger {
   }
 
   static async uploadElectronLog(roomId: any) {
-    //@ts-ignore
     let file = await window.doGzip();
     const res = await logApi.uploadZipLogFile(
       roomId,
@@ -145,9 +143,7 @@ export class EduLogger {
   static async uploadLog(roomId: string) {
     console.log('[LOG] [upload] roomId: ', roomId)
     let logs: any[] = []
-    //@ts-ignore
     db.logs.each((e: any) => logs.push(e))
-    //@ts-ignore
     const logsStr = logs
       .map((e: any) => JSON.parse(e.content))
       .map((e: any) => (Array.isArray(e) ? e[0] : e))
@@ -155,12 +151,10 @@ export class EduLogger {
 
     const now = this.ts
 
-    //@ts-ignore
     window.logsStr = logsStr
 
     const file = await new File([logsStr], `${now}`)
 
-    //@ts-ignore
     window.file = file
     
     let res: any = await logApi.uploadLogFile(
@@ -173,5 +167,4 @@ export class EduLogger {
   }
 }
 
-//@ts-ignore
 window.EduLogger = EduLogger

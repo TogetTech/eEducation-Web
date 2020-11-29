@@ -2,9 +2,7 @@ import { Button } from '@material-ui/core';
 import './middle-grouping.scss';
 import { CustomButton } from '@/components/custom-button';
 import React, { Component, useState, useCallback } from 'react';
-import ReactDOM from 'react-dom';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { AnyARecord } from 'dns';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -12,8 +10,8 @@ import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import Tooltip from '@material-ui/core/Tooltip';
-import { useMiddleRoomStore, useUIStore, useAppStore, useExtensionStore} from '@/hooks';
-import { rangeRight, random } from 'lodash';
+import {useExtensionStore} from '@/hooks';
+import { random } from 'lodash';
   
 const getItems = (count:number, offset = 0) =>
   Array.from({ length: count }, (v, k) => k).map(k => ({
@@ -42,7 +40,7 @@ const move = (source:Array<any>, destination:Array<any>, droppableSource:any, dr
 
 const grid = 8
 
-const getItemStyle = (isDragging:any, draggableStyle:any) => ({
+const getItemStyle = (isDragging: any, draggableStyle: any) => ({
   userSelect: 'none',
   padding: grid * 2,
   margin: `0 0 ${grid}px 0`,
@@ -145,7 +143,7 @@ function MiddleGroup(props: MiddleGroupProps) {
   )
 }
 
-export const MiddleGroupCard = function({groupStuList, groupName}: any) {
+export const MiddleGroupCard = ({groupUserList, groupName}: any) => {
 
   const handleClickAddStar = function() {
     // 整组加星奖励
@@ -156,7 +154,7 @@ export const MiddleGroupCard = function({groupStuList, groupName}: any) {
       <div className="head">
         <div className="text">
           <div className="group-text">{groupName}:</div>
-          <div className="group-stu-num">({groupStuList.length}人)</div>
+          <div className="group-stu-num">({groupUserList.length}人)</div>
         </div>
         <div className="icon">
           <div className="microphone"></div>
@@ -166,7 +164,7 @@ export const MiddleGroupCard = function({groupStuList, groupName}: any) {
       </div>
       <hr />
       <div className="group-body">
-      {groupStuList.map((item: any) => (
+      {groupUserList.map((item: any) => (
         <div className="group-stu" key={item.userUuid}>
           <div className="stu-head"></div>
           <span className="stu-name">{item.userName}</span>
@@ -182,8 +180,8 @@ export const MiddleGroupCard = function({groupStuList, groupName}: any) {
   )
 }
 
-export const MiddleGrouping = function ({sure, dataList}: any) {
-  let itemList = [...dataList]
+export const MiddleGrouping = ({sure, dataList}: any) => {
+  const itemList = dataList
 
   const useStyles = makeStyles((theme: Theme) =>
     createStyles({

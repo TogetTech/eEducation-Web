@@ -26,6 +26,7 @@ import { AgoraWebRtcWrapper } from '@/sdk/education/core/media-service/web';
 import { AgoraElectronRTCWrapper } from '@/sdk/education/core/media-service/electron';
 import { BizLogger } from '@/utils/biz-logger';
 import { platform } from '@/utils/platform';
+import { SceneStore } from './scene';
 
 const APP_ID: string = process.env.REACT_APP_AGORA_APP_ID as string;
 BizLogger.info("APP_ID ", APP_ID)
@@ -39,10 +40,11 @@ export class AppStore {
   deviceStore!: DeviceStore;
   recordingStore!: RecordingStore;
   breakoutRoomStore!: BreakoutRoomStore;
-  // middleRoomStore!: MiddleRoomStore;
+  middleRoomStore!: MiddleRoomStore;
   extensionStore!: ExtensionStore;
   replayStore!: ReplayStore;
   mediaStore!: MediaStore;
+  sceneStore!: SceneStore;
 
   eduManager!: EduManager;
 
@@ -120,17 +122,14 @@ export class AppStore {
     this.uiStore = new UIStore(this)
     this.boardStore = new BoardStore(this)
     this.recordingStore = new RecordingStore(this)
-    this.roomStore = new MiddleRoomStore(this)
-    // this.middleRoomStore = new MiddleRoomStore(this)
+    this.roomStore = new RoomStore(this)
+    this.sceneStore = new SceneStore(this)
+    this.middleRoomStore = new MiddleRoomStore(this)
     this.deviceStore = new DeviceStore(this)
     this.replayStore = new ReplayStore(this)
     this.breakoutRoomStore = new BreakoutRoomStore(this)
     this.extensionStore = new ExtensionStore(this)
     this._screenVideoRenderer = undefined
-  }
-
-  get middleRoomStore(): MiddleRoomStore {
-    return this.roomStore as MiddleRoomStore
   }
 
   get userRole (): string {

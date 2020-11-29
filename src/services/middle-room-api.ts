@@ -1,8 +1,6 @@
 import { AgoraFetchParams } from "@/sdk/education/interfaces/index.d";
-import { EduRoomType } from "@/sdk/education/core/services/interface.d";
 import { APP_ID, AUTHORIZATION } from "@/utils/config";
 import { HttpClient } from "@/sdk/education/core/utils/http-client";
-import { BizLogger } from "@/utils/biz-logger";
 
 export enum InvitationEnum {
   Apply =  1,
@@ -88,8 +86,7 @@ export class MiddleRoomApi {
   // 中班课分组
   async createGroupMiddle(roomUuid: string, memberLimit: number, userToken: string, type: number) {
     let res = await this.fetch({
-      full_url: `http://115.231.168.26:3000/mock/9/scenario/grouping/apps/${APP_ID}/v2/rooms/${roomUuid}/groups`,
-      // full_url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/grouping/apps/${APP_ID}/v2/rooms/${roomUuid}/groups`,
+      full_url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/scenario/grouping/apps/${APP_ID}/v2/rooms/${roomUuid}/groups`,
       method: 'POST',
       data: {
         type: type,   // 1 随机 2 顺序分组
@@ -103,8 +100,7 @@ export class MiddleRoomApi {
   // 分组更新
   async updateGroupMiddle(roomUuid: string, groupUuid: string, userToken: string) {
     let res = await this.fetch({
-      full_url: `http://115.231.168.26:3000/mock/9/scenario/grouping/apps/${APP_ID}/v2/rooms/${roomUuid}/groups`,
-      // full_url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/scenario/grouping/apps/${APP_ID}/v2/rooms/${roomUuid}/groups`,
+      full_url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/scenario/grouping/apps/${APP_ID}/v2/rooms/${roomUuid}/groups`,
       method: 'PUT',
       data: {
         groups: {
@@ -120,8 +116,7 @@ export class MiddleRoomApi {
   // 分组删除
   async deleteGroupMiddle(roomUuid: string, userToken: string) {
     let res = await this.fetch({
-      full_url: `http://115.231.168.26:3000/mock/9/scenario/grouping/apps/${APP_ID}/v2/rooms/${roomUuid}/groups`,
-      // full_url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/scenario/grouping/apps/${APP_ID}/v2/rooms/${roomUuid}/groups`,
+      full_url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/scenario/grouping/apps/${APP_ID}/v2/rooms/${roomUuid}/groups`,
       method: 'DELETE',
       data: {},
       token: userToken
@@ -129,16 +124,33 @@ export class MiddleRoomApi {
     return res.data
   }
 
-  // 举手邀请开启
-  async handInvitationStart(processUuid: string, action: number, toUserUuid: string, payload: object) {
+  async setInvitation() {
     let res = await this.fetch({
-      full_url: `http://115.231.168.26:3000/mock/9/invitation/apps/${APP_ID}/v1/rooms/${this.room.uuid}/users/${toUserUuid}/process/${processUuid}`,
+      full_url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/invitation/apps/${APP_ID}/v1/rooms/${this.room.uuid}/process/${this.room.uuid}`,
+      method: 'PUT',
+      data: {
+        limit: 4,
+        timeout: 3,
+      },
+      token: this.userToken
+    })
+    return res.data
+  }
+
+  // 举手邀请开启
+  async handInvitationStart(action: number, toUserUuid: string) {
+    let res = await this.fetch({
+      full_url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/invitation/apps/${APP_ID}/v1/rooms/${this.room.uuid}/users/${toUserUuid}/process/${this.room.uuid}`,
       method: 'POST',
       data: {
-        action: action,
-        fromUser: this.me,
-        fromRoom: this.room,
-        payload: payload,
+        fromUserUuid: this.me.uuid,
+        // fromUser: this.me,
+        // fromRoom: this.room,
+        payload: {
+          action: action,
+          fromUser: this.me,
+          fromRoom: this.room,
+        },
       },
       token: this.userToken
     })
@@ -146,19 +158,21 @@ export class MiddleRoomApi {
   }
 
   // 举手邀请结束
-  async handInvitationEnd(processUuid: string, action: number, toUserUuid: string, payload: object) {
+  async handInvitationEnd(action: number, toUserUuid: string) {
     let res = await this.fetch({
-      full_url: `http://115.231.168.26:3000/mock/9/invitation/apps/${APP_ID}/v1/rooms/${this.room.uuid}/users/${toUserUuid}/process/${processUuid}`,
+      full_url: `${REACT_APP_AGORA_APP_SDK_DOMAIN}/invitation/apps/${APP_ID}/v1/rooms/${this.room.uuid}/users/${toUserUuid}/process/${this.room.uuid}`,
       method: 'DELETE',
       data: {
+        fromUserUuid: this.me.uuid,
         action: action,
-        fromUser: this.me,
-        fromRoom: this.room,
-        payload: payload,
+        payload: {
+          action,
+          fromUser: this.me,
+          fromRoom: this.room,
+        },
       },
       token: this.userToken
     })
     return res.data
   }
-
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import { Tooltip } from '@material-ui/core';
 import { t } from '@/i18n';
 import { ControlItem } from '../control-item';
-import { useBoardStore, useRoomStore, useBreakoutRoomStore, useExtensionStore, useUIStore } from '@/hooks';
+import { useBoardStore, useBreakoutRoomStore, useExtensionStore, useSceneStore, useUIStore } from '@/hooks';
 import {observer} from 'mobx-react';
 import ScaleController from './scale-controller';
 import { useLocation } from 'react-router-dom';
@@ -22,7 +22,7 @@ export const FooterMenu = () => {
 const BasicSceneFooterMenu = observer((props: any) => {
   const boardStore = useBoardStore()
   const extensionStore = useExtensionStore()
-  const roomStore = useRoomStore()
+  const sceneStore = useSceneStore()
   const uiStore = useUIStore()
 
   const current = boardStore.activeFooterItem
@@ -30,18 +30,18 @@ const BasicSceneFooterMenu = observer((props: any) => {
   const onClick = (key: string) => boardStore.changeFooterMenu(key)
 
   const handleRecording = async () => {
-    await roomStore.startOrStopRecording()
+    await sceneStore.startOrStopRecording()
   } 
 
   const handleSharing = async () => {
-    await roomStore.startOrStopSharing()
+    await sceneStore.startOrStopSharing()
   }
   
   return (
     <>
     {uiStore.showPagination ?
     <div className="pagination">
-    {!roomStore.sharing ?
+    {!sceneStore.sharing ?
       <>
       <Tooltip title={t(`control_items.first_page`)} placement="top">
         <span>
@@ -76,23 +76,23 @@ const BasicSceneFooterMenu = observer((props: any) => {
       </Tooltip>
       <div className="menu-split" style={{ marginLeft: '7px', marginRight: '7px' }}></div>
       </> : null }
-      <Tooltip title={t(roomStore.recordId ? 'control_items.stop_recording' : 'control_items.recording')} placement="top">
+      <Tooltip title={t(sceneStore.recordId ? 'control_items.stop_recording' : 'control_items.recording')} placement="top">
         <span>
           <ControlItem
-            loading={roomStore.recording}
-            name={roomStore.recording ? 'icon-loading ' : (roomStore.recordId ? 'stop_recording' : 'recording')}
+            loading={sceneStore.recording}
+            name={sceneStore.recording ? 'icon-loading ' : (sceneStore.recordId ? 'stop_recording' : 'recording')}
             onClick={handleRecording}
             active={false}
           />
         </span>
       </Tooltip>
-      <Tooltip title={t(roomStore.sharing ? 'control_items.quit_screen_sharing' : 'control_items.screen_sharing')} placement="top">
+      <Tooltip title={t(sceneStore.sharing ? 'control_items.quit_screen_sharing' : 'control_items.screen_sharing')} placement="top">
         <span>
           <ControlItem
-            name={roomStore.sharing ? 'quit_screen_sharing' : 'screen_sharing'}
+            name={sceneStore.sharing ? 'quit_screen_sharing' : 'screen_sharing'}
             onClick={handleSharing}
             active={false}
-            text={roomStore.sharing ? 'stop sharing' : ''}
+            text={sceneStore.sharing ? 'stop sharing' : ''}
           />
         </span>
       </Tooltip>
@@ -198,20 +198,24 @@ const BreakoutClassSceneFooterMenu = observer(() => {
         </span>
       </Tooltip>
     </div>
-    <ScaleController
-      lockBoard={boardStore.lock}
-      zoomScale={boardStore.scale}
-      onClick={() => {
-        boardStore.openFolder()
-      }}
-      onClickBoardLock={() => {
-        boardStore.toggleLockBoard()
-      }}
-      zoomChange={(scale: number) => {
-        boardStore.updateScale(scale)
-      }}
-    />
+    <div className="bottom-tools">
+      <div className="tool-kit zoom-controls">
+        <ScaleController
+          lockBoard={boardStore.lock}
+          zoomScale={boardStore.scale}
+          onClick={() => {
+            boardStore.openFolder()
+          }}
+          onClickBoardLock={() => {
+            boardStore.toggleLockBoard()
+          }}
+          zoomChange={(scale: number) => {
+            boardStore.updateScale(scale)
+          }}
+        />
+      </div>
+    </div>
     </>
-    : <div>xxxxx</div>
+    : null
   )
 })

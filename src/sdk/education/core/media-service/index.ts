@@ -32,13 +32,10 @@ export class MediaService extends EventEmitter implements IMediaService {
         AgoraRtcEngine: rtcProvider.agoraSdk,
         appId: rtcProvider.appId,
       })
-      //@ts-ignore
       window.ipc && window.ipc.once("initialize", (events: any, args: any) => {
         const logPath = args[0]
         const videoSourceLogPath = args[2];
-        //@ts-ignore
         window.videoSourceLogPath = videoSourceLogPath;
-        //@ts-ignore
         window.logPath = logPath
         EduLogger.info(`[media-service] set logPath: ${logPath}, ${videoSourceLogPath}`)
         this.electron.setAddonLogPath({logPath, videoSourceLogPath})

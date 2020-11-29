@@ -1,10 +1,9 @@
+import { ExtensionStore } from './extension';
+import { SimpleInterval } from './../mixin/simple-interval';
 import { CauseType } from './../../sdk/education/core/services/edu-api';
 import { MiddleRoomApi } from '../../services/middle-room-api';
 import { Mutex } from './../../utils/mutex';
 import uuidv4 from 'uuid/v4';
-import { SimpleInterval } from './../mixin/simple-interval';
-import { EduBoardService } from './../../sdk/board/edu-board-service';
-import { EduRecordService } from './../../sdk/record/edu-record-service';
 import { EduAudioSourceType, EduTextMessage, EduSceneType, EduClassroom } from './../../sdk/education/interfaces/index.d';
 import { RemoteUserRenderer } from './../../sdk/education/core/media-service/renderer/index';
 import { RoomApi } from './../../services/room-api';
@@ -24,6 +23,8 @@ import { ChatMessage } from '@/utils/types';
 import { t } from '@/i18n';
 import { DialogType } from '@/components/dialog';
 import { BizLogger } from '@/utils/biz-logger';
+import { EduBoardService } from '@/sdk/board/edu-board-service';
+import { EduRecordService } from '@/sdk/record/edu-record-service';
 
 const genStudentStreams = (num: number) => {
   const items = Array.from({length: num}, (v, i) => i)
@@ -37,6 +38,15 @@ const genStudentStreams = (num: number) => {
     account: `${item}-account`,
     showStar: true
   }))
+}
+
+type ExtendEduMediaStream = {
+
+}
+
+type VideoMarqueeItem = {
+  mainStream: EduMediaStream | null
+  studentStreams: EduMediaStream[]
 }
 
 type MiddleRoomProperties = {
@@ -76,15 +86,172 @@ export type EduMediaStream = {
   showControls: boolean
 }
 
-export class MiddleRoomStore extends RoomStore {
-  middleRoomApi!: MiddleRoomApi;
-
+export class MiddleRoomStore extends SimpleInterval {
   constructor(appStore: AppStore) {
-    super(appStore);
+    super()
+    this.appStore = appStore
   }
+
+  static resolutions: any[] = [
+    {
+      name: '480p',
+      value: '480p_1',
+    },
+    {
+      name: '720p',
+      value: '720p_1',
+    },
+    {
+      name: '1080p',
+      value: '1080p_1'
+    }
+  ]
+
+  middleRoomApi!: MiddleRoomApi;
+  roomApi!: RoomApi;
+  appStore: AppStore;
+  get sceneStore() {
+    return this.appStore.sceneStore
+  }
+  
+  get roomManager() {
+    return this.sceneStore.roomManager
+  }
+
+  get extensionStore() {
+    return this.appStore.extensionStore;
+  }
+
+
+  @computed
+  get userUuid(): string {
+    return this.sceneStore.userUuid
+  }
+
+  get uiStore() {
+    return this.appStore.uiStore;
+  }
+
+  @action
+  resetRoomInfo() {
+    this.appStore.resetRoomInfo()
+  }
+
+  @action
+  reset() {
+    this.appStore.mediaStore.resetRoomState()
+    this.appStore.resetTime()
+    this.sceneStore.reset()
+    this.roomChatMessages = []
+    this.userGroups = []
+    this.pkList = []
+    this.messages = []
+    this.notice = undefined
+  }
+
+
+  @observable
+  roomChatMessages: ChatMessage[] = []
+
+  @action
+  addChatMessage(args: any) {
+    this.roomChatMessages.push(args)
+  }
+  
+  @observable
+  unreadMessageCount: number = 0
+
+  @observable
+  messages: any[] = []
 
   @observable
   userGroups: UserGroup[] = []
+
+  @observable
+  pkList: any[] = []
+
+  @observable
+  notice?: any = undefined
+
+  @action
+  showNotice(type: PeerInviteEnum, userUuid: string, userName: string) {
+    BizLogger.info(`type: ${type}, userUuid: ${userUuid}`)
+    let text = t('toast.you_have_a_default_message')
+    switch(type) {
+      case PeerInviteEnum.teacherAccept: {
+        text = t('middle_room.the_teacher_accepted')
+        break;
+      }
+      case PeerInviteEnum.studentApply: {
+        text = t('middle_room.student_hands_up', {reason: userName})
+        break;
+      }
+      case PeerInviteEnum.teacherStop: {
+        text = t('middle_room.end_covideo_by_teacher')
+        break;
+      }
+      case PeerInviteEnum.studentStop:
+      case PeerInviteEnum.studentCancel: 
+        text = t('middle_room.end_covideo_by_self')
+        this.removeDialogBy(userUuid)
+        break;
+      // case PeerInviteEnum.teacherReject: {
+      //   text = t('toast.the_teacher_refused')
+      //   break;
+      // }
+    }
+    this.notice = {
+      reason: text,
+      userUuid
+    }
+    this.appStore.uiStore.addToast(this.notice.reason)
+  }
+
+  @action
+  async callApply() {
+    try {
+      const teacher = this.roomManager?.getFullUserList().find((it: EduUser) => it.userUuid === this.sceneStore.teacherStream.userUuid)
+      if (teacher) {
+        await this.roomManager?.userService.sendCoVideoApply(teacher)
+      }
+    } catch (err) {
+      this.appStore.uiStore.addToast(t('toast.failed_to_initiate_a_raise_of_hand_application') + ` ${err.msg}`)
+    }
+  }
+
+  @action
+  async callEnded() {
+    try {
+      await this.sceneStore.closeStream(this.roomInfo.userUuid, true)
+    } catch (err) {
+      this.appStore.uiStore.addToast(t('toast.failed_to_end_the_call') + ` ${err.msg}`)
+    }
+  }
+
+  showDialog(userName: string, userUuid: any) {
+    const isExists = this.appStore
+      .uiStore
+      .dialogs.filter((it: DialogType) => it.dialog.userUuid)
+      .find((it: DialogType) => it.dialog.userUuid === userUuid)
+    if (isExists) {
+      return
+    }
+    this.appStore.uiStore.showDialog({
+      type: 'apply',
+      userUuid: userUuid,
+      message: `${userName}` + t('icon.requests_to_connect_the_microphone')
+    })
+  }
+
+  removeDialogBy(userUuid: any) {
+    const target = this.appStore
+    .uiStore
+    .dialogs.filter((it: DialogType) => it.dialog.userUuid)
+    .find((it: DialogType) => it.dialog.userUuid === userUuid)
+    if (target) {
+      this.appStore.uiStore.removeDialog(target.id)
+    }
+  }
 
   @action
   async join() {
@@ -109,22 +276,22 @@ export class MiddleRoomStore extends RoomStore {
       })
       // 本地用户更新
       roomManager.on('local-user-updated', (evt: any) => {
-        this.userList = roomManager.getFullUserList()
+        this.sceneStore.userList = roomManager.getFullUserList()
         BizLogger.info("local-user-updated", evt)
       })
       // 本地流移除
       roomManager.on('local-stream-removed', async (evt: any) => {
-        await this.mutex.dispatch<Promise<void>>(async () => {
-          if (!this.joiningRTC) {
+        await this.sceneStore.mutex.dispatch<Promise<void>>(async () => {
+          if (!this.sceneStore.joiningRTC) {
             return 
           }
           try {
             const tag = uuidv4()
             BizLogger.info(`[demo] tag: ${tag}, [${Date.now()}], handle event: local-stream-removed, `, JSON.stringify(evt))
             if (evt.type === 'main') {
-              this._cameraEduStream = undefined
-              await this.closeCamera()
-              await this.closeMicrophone()
+              this.sceneStore._cameraEduStream = undefined
+              await this.sceneStore.closeCamera()
+              await this.sceneStore.closeMicrophone()
               BizLogger.info(`[demo] tag: ${tag}, [${Date.now()}], main stream closed local-stream-removed, `, JSON.stringify(evt))
             }
             BizLogger.info("[demo] local-stream-removed emit done", evt)
@@ -136,51 +303,51 @@ export class MiddleRoomStore extends RoomStore {
       })
       // 本地流加入
       // roomManager.on('local-stream-added', (evt: any) => {
-      //   this.streamList = roomManager.getFullStreamList()
+      //   this.sceneStore.streamList = roomManager.getFullStreamList()
       //   BizLogger.info("local-stream-added", evt)
       // })
       // 本地流更新
       roomManager.on('local-stream-updated', async (evt: any) => {
-        await this.mutex.dispatch<Promise<void>>(async () => {
-          if (!this.joiningRTC) {
+        await this.sceneStore.mutex.dispatch<Promise<void>>(async () => {
+          if (!this.sceneStore.joiningRTC) {
             return 
           }
           const tag = uuidv4()
           BizLogger.info(`[demo] tag: ${tag}, seq[${evt.seqId}] time: ${Date.now()} local-stream-updated, `, JSON.stringify(evt))
           if (evt.type === 'main') {
             const localStream = roomManager.getLocalStreamData()
-            BizLogger.info(`[demo] local-stream-updated tag: ${tag}, time: ${Date.now()} local-stream-updated, main stream `, JSON.stringify(localStream), this.joiningRTC)
+            BizLogger.info(`[demo] local-stream-updated tag: ${tag}, time: ${Date.now()} local-stream-updated, main stream `, JSON.stringify(localStream), this.sceneStore.joiningRTC)
             if (localStream && localStream.state !== 0) {
-              BizLogger.info(`[demo] local-stream-updated tag: ${tag}, time: ${Date.now()} local-stream-updated, main stream is online`, ' _hasCamera', this._hasCamera, ' _hasMicrophone ', this._hasMicrophone, this.joiningRTC)
-              this._cameraEduStream = localStream.stream
-              await this.prepareCamera()
-              await this.prepareMicrophone()
-              BizLogger.info(`[demo] tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()} local-stream-updated, main stream is online`, ' _hasCamera', this._hasCamera, ' _hasMicrophone ', this._hasMicrophone, this.joiningRTC, ' _eduStream', JSON.stringify(this._cameraEduStream))
-              if (this.joiningRTC) {
-                if (this._hasCamera) {
-                  if (this.cameraEduStream.hasVideo) {
-                    await this.openCamera()
-                    BizLogger.info(`[demo] local-stream-updated tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()}  after openCamera  local-stream-updated, main stream is online`, ' _hasCamera', this._hasCamera, ' _hasMicrophone ', this._hasMicrophone, this.joiningRTC, ' _eduStream', JSON.stringify(this._cameraEduStream))
+              BizLogger.info(`[demo] local-stream-updated tag: ${tag}, time: ${Date.now()} local-stream-updated, main stream is online`, ' _hasCamera', this.sceneStore._hasCamera, ' _hasMicrophone ', this.sceneStore._hasMicrophone, this.sceneStore.joiningRTC)
+              this.sceneStore._cameraEduStream = localStream.stream
+              await this.sceneStore.prepareCamera()
+              await this.sceneStore.prepareMicrophone()
+              BizLogger.info(`[demo] tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()} local-stream-updated, main stream is online`, ' _hasCamera', this.sceneStore._hasCamera, ' _hasMicrophone ', this.sceneStore._hasMicrophone, this.sceneStore.joiningRTC, ' _eduStream', JSON.stringify(this.sceneStore._cameraEduStream))
+              if (this.sceneStore.joiningRTC) {
+                if (this.sceneStore._hasCamera) {
+                  if (this.sceneStore.cameraEduStream.hasVideo) {
+                    await this.sceneStore.openCamera()
+                    BizLogger.info(`[demo] local-stream-updated tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()}  after openCamera  local-stream-updated, main stream is online`, ' _hasCamera', this.sceneStore._hasCamera, ' _hasMicrophone ', this.sceneStore._hasMicrophone, this.sceneStore.joiningRTC, ' _eduStream', JSON.stringify(this.sceneStore._cameraEduStream))
                   } else {
-                    await this.closeCamera()
-                    BizLogger.info(`[demo] local-stream-updated tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()}  after closeCamera  local-stream-updated, main stream is online`, ' _hasCamera', this._hasCamera, ' _hasMicrophone ', this._hasMicrophone, this.joiningRTC, ' _eduStream', JSON.stringify(this._cameraEduStream))
+                    await this.sceneStore.closeCamera()
+                    BizLogger.info(`[demo] local-stream-updated tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()}  after closeCamera  local-stream-updated, main stream is online`, ' _hasCamera', this.sceneStore._hasCamera, ' _hasMicrophone ', this.sceneStore._hasMicrophone, this.sceneStore.joiningRTC, ' _eduStream', JSON.stringify(this.sceneStore._cameraEduStream))
                   }
                 }
-                if (this._hasMicrophone) {
-                  if (this.cameraEduStream.hasAudio) {
+                if (this.sceneStore._hasMicrophone) {
+                  if (this.sceneStore.cameraEduStream.hasAudio) {
                     BizLogger.info('open microphone')
-                    await this.openMicrophone()
-                    BizLogger.info(`[demo] local-stream-updated tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()} after openMicrophone  local-stream-updated, main stream is online`, ' _hasCamera', this._hasCamera, ' _hasMicrophone ', this._hasMicrophone, this.joiningRTC, ' _eduStream', JSON.stringify(this._cameraEduStream))
+                    await this.sceneStore.openMicrophone()
+                    BizLogger.info(`[demo] local-stream-updated tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()} after openMicrophone  local-stream-updated, main stream is online`, ' _hasCamera', this.sceneStore._hasCamera, ' _hasMicrophone ', this.sceneStore._hasMicrophone, this.sceneStore.joiningRTC, ' _eduStream', JSON.stringify(this.sceneStore._cameraEduStream))
                   } else {
                     BizLogger.info('close local-stream-updated microphone')
-                    await this.closeMicrophone()
-                    BizLogger.info(`[demo] local-stream-updated tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()}  after closeMicrophone  local-stream-updated, main stream is online`, ' _hasCamera', this._hasCamera, ' _hasMicrophone ', this._hasMicrophone, this.joiningRTC, ' _eduStream', JSON.stringify(this._cameraEduStream))
+                    await this.sceneStore.closeMicrophone()
+                    BizLogger.info(`[demo] local-stream-updated tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()}  after closeMicrophone  local-stream-updated, main stream is online`, ' _hasCamera', this.sceneStore._hasCamera, ' _hasMicrophone ', this.sceneStore._hasMicrophone, this.sceneStore.joiningRTC, ' _eduStream', JSON.stringify(this.sceneStore._cameraEduStream))
                   }
                 }
               }
             } else {
               BizLogger.info("reset camera edu stream", JSON.stringify(localStream), localStream && localStream.state)
-              this._cameraEduStream = undefined
+              this.sceneStore._cameraEduStream = undefined
             }
           }
     
@@ -189,50 +356,50 @@ export class MiddleRoomStore extends RoomStore {
               const screenStream = roomManager.getLocalScreenData()
               BizLogger.info("local-stream-updated getLocalScreenData#screenStream ", JSON.stringify(screenStream))
               if (screenStream && screenStream.state !== 0) {
-                this._screenEduStream = screenStream.stream
-                this.sharing = true
+                this.sceneStore._screenEduStream = screenStream.stream
+                this.sceneStore.sharing = true
               } else {
                 BizLogger.info("local-stream-updated reset screen edu stream", screenStream, screenStream && screenStream.state)
-                this._screenEduStream = undefined
-                this.sharing = false
+                this.sceneStore._screenEduStream = undefined
+                this.sceneStore.sharing = false
               }
             }
           }
     
           BizLogger.info(`[demo] local-stream-updated tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()} local-stream-updated emit done`, evt)
-          BizLogger.info(`[demo] local-stream-updated tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()} local-stream-updated emit done`, ' _hasCamera', this._hasCamera, ' _hasMicrophone ', this._hasMicrophone, this.joiningRTC, ' _eduStream', JSON.stringify(this._cameraEduStream))
+          BizLogger.info(`[demo] local-stream-updated tag: ${tag}, seq[${evt.seqId}], time: ${Date.now()} local-stream-updated emit done`, ' _hasCamera', this.sceneStore._hasCamera, ' _hasMicrophone ', this.sceneStore._hasMicrophone, this.sceneStore.joiningRTC, ' _eduStream', JSON.stringify(this.sceneStore._cameraEduStream))
         })
       })
       // 远端人加入
       roomManager.on('remote-user-added', (evt: any) => {
         runInAction(() => {
-          this.userList = roomManager.getFullUserList()
+          this.sceneStore.userList = roomManager.getFullUserList()
         })
         BizLogger.info("remote-user-added", evt)
       })
       // 远端人更新
       roomManager.on('remote-user-updated', (evt: any) => {
         runInAction(() => {
-          this.userList = roomManager.getFullUserList()
+          this.sceneStore.userList = roomManager.getFullUserList()
         })
         BizLogger.info("remote-user-updated", evt)
       })
       // 远端人移除
       roomManager.on('remote-user-removed', (evt: any) => {
         runInAction(() => {
-          this.userList = roomManager.getFullUserList()
+          this.sceneStore.userList = roomManager.getFullUserList()
         })
         BizLogger.info("remote-user-removed", evt)
       })
       // 远端流加入
       roomManager.on('remote-stream-added', (evt: any) => {
         runInAction(() => {
-          this.streamList = roomManager.getFullStreamList()
+          this.sceneStore.streamList = roomManager.getFullStreamList()
           if (this.roomInfo.userRole !== 'teacher') {
-            if (this.streamList.find((it: EduStream) => it.videoSourceType === EduVideoSourceType.screen)) {
-              this.sharing = true
+            if (this.sceneStore.streamList.find((it: EduStream) => it.videoSourceType === EduVideoSourceType.screen)) {
+              this.sceneStore.sharing = true
             } else { 
-              this.sharing = false
+              this.sceneStore.sharing = false
             }
           }
         })
@@ -241,12 +408,12 @@ export class MiddleRoomStore extends RoomStore {
       // 远端流移除
       roomManager.on('remote-stream-removed', (evt: any) => {
         runInAction(() => {
-          this.streamList = roomManager.getFullStreamList()
+          this.sceneStore.streamList = roomManager.getFullStreamList()
           if (this.roomInfo.userRole !== 'teacher') {
-            if (this.streamList.find((it: EduStream) => it.videoSourceType === EduVideoSourceType.screen)) {
-              this.sharing = true
+            if (this.sceneStore.streamList.find((it: EduStream) => it.videoSourceType === EduVideoSourceType.screen)) {
+              this.sceneStore.sharing = true
             } else { 
-              this.sharing = false
+              this.sceneStore.sharing = false
             }
           }
         })
@@ -255,12 +422,12 @@ export class MiddleRoomStore extends RoomStore {
       // 远端流更新
       roomManager.on('remote-stream-updated', (evt: any) => {
         runInAction(() => {
-          this.streamList = roomManager.getFullStreamList()
+          this.sceneStore.streamList = roomManager.getFullStreamList()
           if (this.roomInfo.userRole !== 'teacher') {
-            if (this.streamList.find((it: EduStream) => it.videoSourceType === EduVideoSourceType.screen)) {
-              this.sharing = true
+            if (this.sceneStore.streamList.find((it: EduStream) => it.videoSourceType === EduVideoSourceType.screen)) {
+              this.sceneStore.sharing = true
             } else { 
-              this.sharing = false
+              this.sceneStore.sharing = false
             }
           }
         })
@@ -275,8 +442,8 @@ export class MiddleRoomStore extends RoomStore {
         }
       }
       this.eduManager.on('user-message', async (evt: any) => {
-        await this.mutex.dispatch<Promise<void>>(async () => {
-          if (!this.joiningRTC) {
+        await this.sceneStore.mutex.dispatch<Promise<void>>(async () => {
+          if (!this.sceneStore.joiningRTC) {
             return 
           }
           try {
@@ -286,36 +453,47 @@ export class MiddleRoomStore extends RoomStore {
             const msg = decodeMsg(evt.message.message)
             BizLogger.info("user-message", msg)
             if (msg) {
-              const {cmd, data} = msg
-              const {type, userName} = data
-              BizLogger.info("data", data)
-              this.showNotice(type as PeerInviteEnum, fromUserUuid)
-              if (type === PeerInviteEnum.studentApply) {
-                this.showDialog(fromUserName, fromUserUuid)
+              const {payload} = msg
+              const {action} = payload
+              // const payload = msg.payload
+              const {name, role, uuid} = payload.fromUser
+              this.showNotice(action as PeerInviteEnum, uuid, name)
+              if (action === PeerInviteEnum.studentApply) {
+                const userExists = this.extensionStore.applyUsers.find((user) => user.userUuid === uuid)
+                const user = this.roomManager?.data.userList.find(it => it.user.userUuid === uuid)
+                if (!userExists && user) {
+                  this.extensionStore.applyUsers.push({
+                    userName: name,
+                    userUuid: uuid,
+                    streamUuid: user.streamUuid,
+                    userState: true
+                  })
+                }
+                this.uiStore.showShakeHands()
               }
-              if (type === PeerInviteEnum.teacherStop) {
+              if (action === PeerInviteEnum.teacherStop) {
                 try {
-                  await this.closeCamera()
-                  await this.closeMicrophone()
+                  await this.sceneStore.closeCamera()
+                  await this.sceneStore.closeMicrophone()
                   this.appStore.uiStore.addToast(t('toast.co_video_close_success'))
                 } catch (err) {
                   this.appStore.uiStore.addToast(t('toast.co_video_close_failed'))
                   BizLogger.warn(err)
                 }
               }
-              if (type === PeerInviteEnum.teacherAccept 
+              if (action === PeerInviteEnum.teacherAccept 
                 && this.isBigClassStudent()) {
                 try {
-                  await this.prepareCamera()
-                  await this.prepareMicrophone()
-                  BizLogger.info("propertys ", this._hasCamera, this._hasMicrophone)
-                  if (this._hasCamera) {
-                    await this.openCamera()
+                  await this.sceneStore.prepareCamera()
+                  await this.sceneStore.prepareMicrophone()
+                  BizLogger.info("propertys ", this.sceneStore._hasCamera, this.sceneStore._hasMicrophone)
+                  if (this.sceneStore._hasCamera) {
+                    await this.sceneStore.openCamera()
                   }
       
-                  if (this._hasMicrophone) {
+                  if (this.sceneStore._hasMicrophone) {
                     BizLogger.info('open microphone')
-                    await this.openMicrophone()
+                    await this.sceneStore.openMicrophone()
                   }
                 } catch (err) {
                   BizLogger.warn('published failed', err) 
@@ -324,6 +502,45 @@ export class MiddleRoomStore extends RoomStore {
                 this.appStore.uiStore.addToast(t('toast.publish_rtc_success'))
               }
             }
+            // if (msg) {
+            //   const {cmd, data} = msg
+            //   const {type, userName} = data
+            //   BizLogger.info("data", data)
+            //   this.showNotice(type as PeerInviteEnum, fromUserUuid)
+            //   if (type === PeerInviteEnum.studentApply) {
+            //     this.showDialog(fromUserName, fromUserUuid)
+            //   }
+            //   if (type === PeerInviteEnum.teacherStop) {
+            //     try {
+            //       await this.sceneStore.closeCamera()
+            //       await this.sceneStore.closeMicrophone()
+            //       this.appStore.uiStore.addToast(t('toast.co_video_close_success'))
+            //     } catch (err) {
+            //       this.appStore.uiStore.addToast(t('toast.co_video_close_failed'))
+            //       BizLogger.warn(err)
+            //     }
+            //   }
+            //   if (type === PeerInviteEnum.teacherAccept 
+            //     && this.isBigClassStudent()) {
+            //     try {
+            //       await this.sceneStore.prepareCamera()
+            //       await this.sceneStore.prepareMicrophone()
+            //       BizLogger.info("propertys ", this.sceneStore._hasCamera, this.sceneStore._hasMicrophone)
+            //       if (this.sceneStore._hasCamera) {
+            //         await this.sceneStore.openCamera()
+            //       }
+      
+            //       if (this.sceneStore._hasMicrophone) {
+            //         BizLogger.info('open microphone')
+            //         await this.sceneStore.openMicrophone()
+            //       }
+            //     } catch (err) {
+            //       BizLogger.warn('published failed', err) 
+            //       throw err
+            //     }
+            //     this.appStore.uiStore.addToast(t('toast.publish_rtc_success'))
+            //   }
+            // }
           } catch (error) {
             BizLogger.error(`[demo] user-message async handler failed`)
             BizLogger.error(error)
@@ -334,68 +551,42 @@ export class MiddleRoomStore extends RoomStore {
       roomManager.on('classroom-property-updated', (classroom: any) => {
         BizLogger.info("classroom-property-updated", classroom)
         // if (evt.reason === EduClassroomStateType.EduClassroomStateTypeRoomAttrs) {
-          this.roomProperties = get(classroom, 'roomProperties')
+          this.roomProperties = classroom.roomProperties
           const record = get(classroom, 'roomProperties.record')
           if (record) {
             const state = record.state
             if (state === 1) {
-              this.recordState = true
+              this.sceneStore.recordState = true
             } else {
-              if (state === 0 && this.recordState) {
+              if (state === 0 && this.sceneStore.recordState) {
                 this.addChatMessage({
                   id: 'system',
                   ts: Date.now(),
                   text: '',
                   account: 'system',
-                  link: this.roomUuid,
+                  link: this.sceneStore.roomUuid,
                   sender: false
                 })
-                this.recordState = false
-                this.recordId = ''
+                this.sceneStore.recordState = false
+                this.sceneStore.recordId = ''
               }
             }
           }
           const newClassState = classroom.roomStatus.courseState
-          if (this.classState !== newClassState) {
-            this.classState = newClassState
-            if (this.classState === 1) {
-              this.startTime = get(classroom, 'roomStatus.startTime', 0)
+          if (this.sceneStore.classState !== newClassState) {
+            this.sceneStore.classState = newClassState
+            if (this.sceneStore.classState === 1) {
+              this.sceneStore.startTime = get(classroom, 'roomStatus.startTime', 0)
               this.addInterval('timer', () => {
                 this.appStore.updateTime(+get(classroom, 'roomStatus.startTime', 0))
               }, ms)
             } else {
-              this.startTime = get(classroom, 'roomStatus.startTime', 0)
-              BizLogger.info("end timeer", this.startTime)
+              this.sceneStore.startTime = get(classroom, 'roomStatus.startTime', 0)
+              BizLogger.info("end timeer", this.sceneStore.startTime)
               this.delInterval('timer')
             }
           }
-          this.isMuted = !classroom.roomStatus.isStudentChatAllowed
-
-          // 中班功能
-          this.roomProperties = classroom.roomProperties
-          const groups = get(classroom, 'roomProperties.groups')
-          const students = get(classroom, 'roomProperties.students')
-
-          this.userGroups = []
-          if (groups) {
-            Object.keys(groups).forEach(groupUuid => {
-              let group = groups[groupUuid]
-              let userGroup: UserGroup = {
-                groupName: group.groupName,
-                groupUuid: groupUuid,
-                members: []
-              }
-              group.members.forEach((stuUuid: string) => {
-                let info = students[stuUuid]
-                userGroup.members.push({
-                  userUuid: stuUuid,
-                  userName: info.userName,
-                  reward: info.reward
-                })
-              })
-              this.userGroups.push(userGroup)
-            })
-          }
+          this.sceneStore.isMuted = !classroom.roomStatus.isStudentChatAllowed
       })
       roomManager.on('room-chat-message', (evt: any) => {
         const {textMessage} = evt;
@@ -416,48 +607,54 @@ export class MiddleRoomStore extends RoomStore {
           roomUuid,
           userName: `${this.roomInfo.userName}`,
           userUuid: `${this.userUuid}`,
-          autoPublish: true,
         })
       } else {
-        const sceneType = +this.roomInfo.roomType === 2 ? EduSceneType.SceneLarge : +this.roomInfo.roomType
+        const {sceneType, userRole} = this.getStudentConfig()
         await roomManager.join({
-          userRole: 'audience',
+          userRole: userRole,
           roomUuid,
           userName: `${this.roomInfo.userName}`,
           userUuid: `${this.userUuid}`,
-          autoPublish: true,
           sceneType,
         })
         const reward = 0
         this.batchUpdateRoomAttributes({
           "students": {
-            [`${this.localUser.userUuid}`]: {
-              "userName": `${this.localUser.userName}`,
+            [`${this.sceneStore.localUser.userUuid}`]: {
+              "userName": `${this.sceneStore.localUser.userName}`,
               "reward": reward,
             },
           }
         })
       }
-      this._roomManager = roomManager;
+      this.sceneStore._roomManager = roomManager;
       this.appStore._boardService = new EduBoardService(roomManager.userToken, roomManager.roomUuid)
       this.appStore._recordService = new EduRecordService(roomManager.userToken)
   
       const roomInfo = roomManager.getClassroomInfo()
       this.roomProperties = roomInfo.roomProperties as any
-      this.startTime = +get(roomInfo, 'roomStatus.startTime', 0)
+      this.sceneStore.startTime = +get(roomInfo, 'roomStatus.startTime', 0)
 
+      this.middleRoomApi.setSessionInfo({
+        roomName: roomManager.roomName,
+        roomUuid: roomManager.roomUuid,
+        userUuid: this.sceneStore.roomInfo.userUuid,
+        userToken: roomManager.userToken,
+        userName: this.sceneStore.roomInfo.userName,
+        role: this.sceneStore.roomInfo.userRole
+      })
       const mainStream = roomManager.data.streamMap['main']
   
-      this.classState = roomInfo.roomStatus.courseState
+      this.sceneStore.classState = roomInfo.roomStatus.courseState
 
-      if (this.classState === 1) {
+      if (this.sceneStore.classState === 1) {
         this.addInterval('timer', () => {
           this.appStore.updateTime(+get(roomInfo, 'roomStatus.startTime', 0))
         }, ms)
       }
-      this.isMuted = !roomInfo.roomStatus.isStudentChatAllowed
+      this.sceneStore.isMuted = !roomInfo.roomStatus.isStudentChatAllowed
   
-      await this.joinRTC({
+      await this.sceneStore.joinRTC({
         uid: +mainStream.streamUuid,
         channel: roomInfo.roomInfo.roomUuid,
         token: mainStream.rtcToken
@@ -483,22 +680,22 @@ export class MiddleRoomStore extends RoomStore {
           userInfo: {} as EduUser
         })
         this.appStore.uiStore.addToast(t('toast.publish_business_flow_successfully'))
-        this._cameraEduStream = this.roomManager.userService.localStream.stream
+        this.sceneStore._cameraEduStream = this.roomManager.userService.localStream.stream
         try {
-          await this.prepareCamera()
-          await this.prepareMicrophone()
-          if (this._cameraEduStream) {
-            if (this._cameraEduStream.hasVideo) {
-              await this.openCamera()
+          await this.sceneStore.prepareCamera()
+          await this.sceneStore.prepareMicrophone()
+          if (this.sceneStore._cameraEduStream) {
+            if (this.sceneStore._cameraEduStream.hasVideo) {
+              await this.sceneStore.openCamera()
             } else {
-              await this.closeCamera()
+              await this.sceneStore.closeCamera()
             }
-            if (this._cameraEduStream.hasAudio) {
+            if (this.sceneStore._cameraEduStream.hasAudio) {
               BizLogger.info('open microphone')
-              await this.openMicrophone()
+              await this.sceneStore.openMicrophone()
             } else {
               BizLogger.info('close microphone')
-              await this.closeMicrophone()
+              await this.sceneStore.closeMicrophone()
             }
           }
         } catch (err) {
@@ -511,18 +708,18 @@ export class MiddleRoomStore extends RoomStore {
   
       const roomProperties = roomManager.getClassroomInfo().roomProperties
       if (roomProperties) {
-        this.recordId = get(roomProperties, 'record.recordId', '')
+        this.sceneStore.recordId = get(roomProperties, 'record.recordId', '')
       } else {
-        this.recordId = ''
+        this.sceneStore.recordId = ''
       }
     
-      this.userList = roomManager.getFullUserList()
-      this.streamList = roomManager.getFullStreamList()
+      this.sceneStore.userList = roomManager.getFullUserList()
+      this.sceneStore.streamList = roomManager.getFullStreamList()
       if (this.roomInfo.userRole !== 'teacher') {
-        if (this.streamList.find((it: EduStream) => it.videoSourceType === EduVideoSourceType.screen)) {
-          this.sharing = true
+        if (this.sceneStore.streamList.find((it: EduStream) => it.videoSourceType === EduVideoSourceType.screen)) {
+          this.sceneStore.sharing = true
         } else { 
-          this.sharing = false
+          this.sceneStore.sharing = false
         }
       }
       this.appStore.uiStore.stopLoading()
@@ -533,25 +730,66 @@ export class MiddleRoomStore extends RoomStore {
     }
   }
 
-  @observable
-  groups: any[] = [
-    {
-      teacherStream: {
-        video: false,
-        audio: false
-      },
-      studentStreams: [],
-      // studentStreams: genStudentStreams(20),
-    },
-    {
-      teacherStream: {
-        video: false,
-        audio: false
-      },
-      studentStreams: [],
-      // studentStreams: genStudentStreams(20),
+  getStudentConfig() {
+    const roomType = +this.roomInfo.roomType
+    if (roomType === 2 || roomType === 4) {
+      return {
+        sceneType: EduSceneType.SceneLarge,
+        userRole: 'audience'
+      }
     }
-  ]
+    return {
+      sceneType: roomType,
+      userRole: 'broadcaster'
+    }
+  }
+
+  @computed
+  get groups() {
+    const firstGroup: VideoMarqueeItem = {
+      mainStream: null,
+      studentStreams: [],
+    }
+    const secondGroup: VideoMarqueeItem = {
+      mainStream: null,
+      studentStreams: [],
+    }
+
+    if (this.userGroups.length) {
+      // this.userGroups[0].members.
+    }
+
+    const userIdsNotInPkList = this.sceneStore
+      .userList.filter((user) => !this.pkList.includes(user.userUuid))
+      .map((user) => user.userUuid)
+
+    if (userIdsNotInPkList) {
+      const streams = this.sceneStore.studentStreams.filter((stream) => userIdsNotInPkList.includes(stream.userUuid))
+      firstGroup.studentStreams = firstGroup.studentStreams.concat(streams)
+      firstGroup.studentStreams = firstGroup.studentStreams.map((stream) => ({
+        ...stream,
+        showStar: true,
+        showControls: false,
+        showHover: this.roomInfo.userRole === 'teacher'
+      }))
+    }
+
+    return [firstGroup, secondGroup]
+  }
+
+  // @observable
+  // groups: any[] = [
+  //   {
+  //     mainStream: null,
+  //     studentStreams: [],
+  //     // studentStreams: genStudentStreams(20),
+  //   },
+  //   {
+  //     mainStream: null,
+  //     studentStreams: [],
+  //     // studentStreams: genStudentStreams(20),
+  //   }
+  // ]
 
   @action
   async sendReward(userUuid: string, reward: number) {
@@ -560,6 +798,8 @@ export class MiddleRoomStore extends RoomStore {
 
   @action
   async sendClose(userUuid: string) {
+    const isLocal = this.roomInfo.userUuid === userUuid
+    await this.sceneStore.closeStream(userUuid, isLocal)
   }
 
   @action
@@ -578,33 +818,11 @@ export class MiddleRoomStore extends RoomStore {
     teachers: {}
   }
 
-
-  @action
-  async callApply() {
-    try {
-      const teacher = this.roomManager?.getFullUserList().find((it: EduUser) => it.userUuid === this.teacherStream.userUuid)
-      if (teacher) {
-        await this.roomManager?.userService.sendCoVideoApply(teacher)
-      }
-    } catch (err) {
-      this.appStore.uiStore.addToast(t('toast.failed_to_initiate_a_raise_of_hand_application') + ` ${err.msg}`)
-    }
-  }
-
-  @action
-  async callEnded() {
-    try {
-      await this.closeStream(this.roomInfo.userUuid, true)
-    } catch (err) {
-      this.appStore.uiStore.addToast(t('toast.failed_to_end_the_call') + ` ${err.msg}`)
-    }
-  }
-
   async batchUpdateStreamAttributes(streams: any[]) {
     try {
       await this.roomManager?.userService.batchUpdateStreamAttributes(streams)
     } catch (err) {
-      console.warn(err)
+      BizLogger.warn(err)
     }
   }
 
@@ -612,7 +830,7 @@ export class MiddleRoomStore extends RoomStore {
     try {
       await this.roomManager?.userService.batchRemoveStreamAttributes(streams)
     } catch (err) {
-      console.warn(err)
+      BizLogger.warn(err)
     }
   }
 
@@ -620,7 +838,7 @@ export class MiddleRoomStore extends RoomStore {
     try {
       await this.roomManager?.userService.batchUpdateRoomAttributes(properties)
     } catch (err) {
-      console.warn(err)
+      BizLogger.warn(err)
     }
   }
 
@@ -628,7 +846,7 @@ export class MiddleRoomStore extends RoomStore {
     try {
       await this.roomManager?.userService.batchRemoveRoomAttributes()
     } catch (err) {
-      console.warn(err)
+      BizLogger.warn(err)
     }
   }
 
@@ -636,7 +854,7 @@ export class MiddleRoomStore extends RoomStore {
     try {
       await this.roomManager?.userService.batchUpdateUserAttributes(userUuid, properties)
     } catch (err) {
-      console.warn(err)
+      BizLogger.warn(err)
     }
   }
 
@@ -644,7 +862,61 @@ export class MiddleRoomStore extends RoomStore {
     try {
       await this.roomManager?.userService.batchRemoveUserAttributes(userUuid)
     } catch (err) {
-      console.warn(err)
+      BizLogger.warn(err)
+    }
+  }
+
+  @action
+  async sendMessage(message: string) {
+    try {
+      await this.roomManager.userService.sendRoomChatMessage(message)
+      this.addChatMessage({
+        id: this.userUuid,
+        ts: +Date.now(),
+        text: message,
+        account: this.roomInfo.userName,
+        sender: true,
+      })
+    } catch (err) {
+      BizLogger.warn(err)
+    }
+  }
+
+  isBigClassStudent(): boolean {
+    const userRole = this.roomInfo.userRole
+    return +this.roomInfo.roomType === 2 && userRole === 'student'
+  }
+
+  get eduManager() {
+    return this.appStore.eduManager
+  }
+
+  @observable
+  joined: boolean = false
+
+
+  @computed
+  get roomInfo() {
+    return this.appStore.roomInfo
+  }
+
+  @action
+  async leave() {
+    try {
+      this.sceneStore.joiningRTC = true
+      await this.sceneStore.leaveRtc()
+      await this.appStore.boardStore.leave()
+      await this.eduManager.logout()
+      await this.roomManager?.leave()
+      this.appStore.uiStore.addToast(t('toast.successfully_left_the_business_channel'))
+      this.delInterval('timer')
+      this.reset()
+      this.resetRoomInfo()
+      this.appStore.uiStore.updateCurSeqId(0)
+      this.appStore.uiStore.updateLastSeqId(0)
+    } catch (err) {
+      this.reset()
+      BizLogger.error(err)
     }
   }
 }

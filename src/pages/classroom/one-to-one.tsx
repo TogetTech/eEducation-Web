@@ -3,12 +3,13 @@ import {VideoPlayer} from '@/components/video-player';
 import {ChatBoard} from '@/components/chat/board';
 import { NetlessBoard } from '@/components/netless-board';
 import { ScreenSharing } from '@/components/screen-sharing';
-import { useRoomStore } from '@/hooks';
+import { useRoomStore, useSceneStore } from '@/hooks';
 import { observer } from 'mobx-react';
 
 export const OneToOne = observer(() => {
 
   const roomStore = useRoomStore()
+  const sceneStore = useSceneStore()
 
   const {
     teacherStream,
@@ -16,13 +17,13 @@ export const OneToOne = observer(() => {
     roomInfo,
     mutedChat,
     muteControl,
-  } = roomStore
+  } = sceneStore
 
   const handleMute = async () => {
     if (mutedChat) {
-      await roomStore.unmuteChat()
+      await sceneStore.unmuteChat()
     } else {
-      await roomStore.muteChat()
+      await sceneStore.muteChat()
     }
   }
 

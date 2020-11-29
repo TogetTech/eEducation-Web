@@ -6,7 +6,7 @@ import * as moment from 'moment';
 import { isElectron, platform } from '@/utils/platform';
 // import Log from '@/utils/LogUploader';
 import { Tooltip } from '@material-ui/core';
-import { useUIStore, useRoomStore, useAppStore, useMediaStore, useBreakoutRoomStore } from '@/hooks';
+import { useUIStore, useAppStore, useMediaStore, useBreakoutRoomStore, useSceneStore } from '@/hooks';
 import { t } from '@/i18n';
 import { observer } from 'mobx-react';
 import { useLocation } from 'react-router-dom';
@@ -41,16 +41,16 @@ const BreakoutStartClassButton = observer((props: any) => {
 })
 
 const BasicStartClassButton = observer((props: any) => {
-  const roomStore = useRoomStore()
+  const sceneStore = useSceneStore()
 
-  const classState = roomStore.classState === 1
+  const classState = sceneStore.classState === 1
 
   return (
     <CustomButton className={`nav-button ${classState ? "stop" : "start"}`} name={classState ? t('nav.class_end') : t('nav.class_start')} onClick={async (evt: any) => {
       if (!classState) {
-        await roomStore.startClass()
+        await sceneStore.startClass()
       } else {
-        await roomStore.stopClass()
+        await sceneStore.stopClass()
       }
     }} />
   )
@@ -99,7 +99,7 @@ const BreakoutUploadButton = observer(() => {
 
 const BasicUploadButton = observer(() => {
 
-  const roomStore = useRoomStore()
+  const sceneStore = useSceneStore()
   const uiStore = useUIStore()
 
   const [lock, setLock] = useState<boolean>(false)
@@ -107,7 +107,7 @@ const BasicUploadButton = observer(() => {
   const handleUpload = async () => {
     try {
       setLock(true)
-      const id = await EduManager.uploadLog(roomStore.roomUuid)
+      const id = await EduManager.uploadLog(sceneStore.roomUuid)
       uiStore.showDialog({
         type: 'feedLog',
         message: `id: ${id}`

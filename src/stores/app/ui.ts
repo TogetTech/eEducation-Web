@@ -131,6 +131,8 @@ export class UIStore {
     this.toastQueue = []
     this.autoplayToast = false
     this.dialogs = []
+    this.menuVisible = false
+    this.activeTab = 'chatroom'
   }
 
   @action
@@ -205,7 +207,6 @@ export class UIStore {
   }
 
   get ipc() {
-    //@ts-ignore
     return window.ipc
   }
 
@@ -311,10 +312,6 @@ export class UIStore {
     if (userRole === 'teacher') {
       return true
     }
-    const roomType = this.appStore.roomStore.roomInfo.roomType
-    if (`${roomType}` === `${EduRoomType.SceneTypeMiddleClass}` && this.appStore.extensionStore.enableCoVideo) {
-      return true
-    }
     return false
   }
 
@@ -330,4 +327,21 @@ export class UIStore {
   hideShakeHands() {
     this.visibleShake = false
   }
+
+  @observable
+  activeTab: string = 'chatroom'
+
+  @action
+  switchTab(tab: string) {
+    this.activeTab = tab
+  }
+
+  @observable
+  menuVisible: boolean = false
+
+  @action
+  toggleMenu() {
+    this.menuVisible = !this.menuVisible
+  }
+
 }

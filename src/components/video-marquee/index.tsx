@@ -20,15 +20,15 @@ const showScrollbar = () => {
 }
 
 type VideoMarqueePropsType = {
-  teacherStream: any,
-  studentStreams: any[]
+  mainStream: any,
+  othersStreams: any[]
   className?: string
   showMain?: boolean
   canHover?: boolean
 }
 
 export const VideoMarquee = (props: VideoMarqueePropsType) => {
-  const {teacherStream, studentStreams} = props
+  const {mainStream, othersStreams} = props
 
   const marqueeEl = useRef(null);
 
@@ -55,9 +55,9 @@ export const VideoMarquee = (props: VideoMarqueePropsType) => {
   const [scrollBar, setScrollBar] = useState<boolean>(false);
 
   useLayoutEffect(() => {
-    if (!studentStreams.length) return;
+    if (!othersStreams.length) return;
     !ref.current && setScrollBar(showScrollbar());
-  }, [studentStreams]);
+  }, [othersStreams]);
 
   useEffect(() => {
     window.addEventListener('resize', (evt: any) => {
@@ -70,12 +70,12 @@ export const VideoMarquee = (props: VideoMarqueePropsType) => {
 
   return (
     <div className={`video-marquee-container ${props.className ? props.className : ''}`}>
-      {props.showMain ? <div className="main">
+      {mainStream ? <div className="main">
         <VideoPlayer
           showHover={props.canHover}
           showClose={false}
           role="teacher"
-          {...teacherStream}
+          {...mainStream}
         />
       </div> : null}
       <div className="video-marquee-mask">
@@ -86,7 +86,7 @@ export const VideoMarquee = (props: VideoMarqueePropsType) => {
             <div className="icon icon-right" onClick={handleScrollRight}></div>
           </div> : null
         }
-          {studentStreams.map((studentStream: any, key: number) => (
+          {othersStreams.map((studentStream: any, key: number) => (
             <VideoPlayer
               showHover={props.canHover}
               key={key}

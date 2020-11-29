@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { CustomIcon } from "../icon"
 import './index.scss'
-import { useMiddleRoomStore, useRoomStore } from '@/hooks'
+import { useMiddleRoomStore, useSceneStore } from '@/hooks'
 import { RendererPlayer } from '../media-player'
 import { observer } from 'mobx-react'
 import { get } from 'lodash'
 import { useTimeout } from '../toast'
+import starsUrl from '../../assets/stars.gif';
 
 type VideoPlayerProps = {
   className?: string
@@ -34,6 +35,7 @@ type RewardMenuPropsType = {
 
 export const MediaMenu = observer((props: RewardMenuPropsType) => {
   const {video, audio, userUuid} = props
+  const sceneStore = useSceneStore()
   const middleRoomStore = useMiddleRoomStore() 
 
   const userReward = {
@@ -43,39 +45,48 @@ export const MediaMenu = observer((props: RewardMenuPropsType) => {
 
   const handleAudioClick = async () => {
     if (props.audio) {
-      await middleRoomStore.muteAudio(props.userUuid, false)
+      await sceneStore.muteAudio(props.userUuid, false)
     } else {
-      await middleRoomStore.unmuteAudio(props.userUuid, false)
+      await sceneStore.unmuteAudio(props.userUuid, false)
     }
   }
 
   const handleVideoClick = async () => {
     if (props.video) {
-      await middleRoomStore.muteVideo(props.userUuid, false)
+      await sceneStore.muteVideo(props.userUuid, false)
     } else {
-      await middleRoomStore.unmuteVideo(props.userUuid, false)
+      await sceneStore.unmuteVideo(props.userUuid, false)
     }
   }
 
+  // TODO: 需要完善，中班课场景的发送奖励
   const sendReward = async () => {
     await middleRoomStore.sendReward(props.userUuid, userReward.reward)
+    setRewardNum(prevNumber.current + 1)
   }
 
+  // TODO: 需要完善，中班课场景的下麦
   const handleClose = async () =>{
     await middleRoomStore.sendClose(props.userUuid)
   }
 
   const StartEffect = (props: any) => {
     useTimeout(() => {
+      console.log("show effect")
       props && props.destroy()
     }, 2500)
 
     return (
-      <div className="stars-effect"></div>
+      <div className="stars-effect">
+        {/* <!-- work around use timestamp solve gif only play once --> */}
+        <img src={`${starsUrl}?${Date.now()}`}></img>
+      </div>
     )
   }
 
-  const rewardNumber = get(userReward, 'num', 1)
+  const _rewardNumber: number = +get(userReward, 'num', 1)
+
+  const [rewardNumber, setRewardNum] = useState<number>(_rewardNumber)
 
   const prevNumber = useRef<number>(rewardNumber)
 
@@ -88,6 +99,7 @@ export const MediaMenu = observer((props: RewardMenuPropsType) => {
   useEffect(() => {
     if (prevNumber.current !== rewardNumber) {
       showReward(true)
+      prevNumber.current = rewardNumber
     }
   }, [prevNumber, rewardNumber, showReward])
 
@@ -103,9 +115,9 @@ export const MediaMenu = observer((props: RewardMenuPropsType) => {
             <CustomIcon onClick={sendReward} className={"icon-hollow-white-star"} data={"reward"} />
           </> : null
         }
-        {rewardVisible ?
-        <StartEffect destroy={onDestroy} /> : null}
       </div>
+      {rewardVisible ?
+        <StartEffect destroy={onDestroy} /> : null}
     </>
   )
 })
@@ -129,10 +141,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   showHover
 }) => {
 
-  const roomStore = useRoomStore()
+  const sceneStore = useSceneStore()
 
   const handleClose = async () => {
-    await roomStore.closeStream(userUuid, local)
+    await sceneStore.closeStream(userUuid, local)
   }
 
   const handleAudioClick = async () => {
@@ -140,9 +152,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       return handleClickAudio(userUuid, local)
     }
     if (audio) {
-      await roomStore.muteAudio(userUuid, local)
+      await sceneStore.muteAudio(userUuid, local)
     } else {
-      await roomStore.unmuteAudio(userUuid, local)
+      await sceneStore.unmuteAudio(userUuid, local)
     }
   }
 
@@ -151,9 +163,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       return handleClickVideo(userUuid, local)
     }
     if (video) {
-      await roomStore.muteVideo(userUuid, local)
+      await sceneStore.muteVideo(userUuid, local)
     } else {
-      await roomStore.unmuteVideo(userUuid, local)
+      await sceneStore.unmuteVideo(userUuid, local)
     }
   }
 
@@ -182,7 +194,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         <div className="video-profile">
           <span className="account">{account}</span>
           {showStar ? 
-            <CustomIcon onClick={() => {}} className={audio ? "icon-hollow-white-star" : "icon-inactive-star"} data={"active-star"} />
+            // <CustomIcon onClick={() => {}} className={audio ? "icon-hollow-white-star" : "icon-inactive-star"} data={"active-star"} />
+            <CustomIcon onClick={() => {}} className={"icon-hollow-white-star"} data={"active-star"} />
           : null}
           {showControls ?
             <span className="media-btn">

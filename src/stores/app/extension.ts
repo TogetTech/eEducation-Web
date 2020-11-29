@@ -1,7 +1,9 @@
-import { EduAudioSourceType, EduVideoSourceType } from '@/sdk/education/interfaces/index.d';
+import { InvitationEnum } from './../../services/middle-room-api';
+import { EduAudioSourceType, EduUser, EduVideoSourceType } from '@/sdk/education/interfaces/index.d';
 import { AppStore } from '@/stores/app/index';
 import { observable, computed, action } from 'mobx';
 import { get } from 'lodash';
+import { t } from '@/i18n';
 
 export type SetInterval = ReturnType<typeof setInterval>
 
@@ -21,6 +23,10 @@ export class ExtensionStore {
 
   constructor(appStore: AppStore) {
     this.appStore = appStore
+  }
+
+  get sceneStore() {
+    return this.appStore.sceneStore
   }
 
   @observable
@@ -103,21 +109,12 @@ export class ExtensionStore {
   }
 
   async acceptApply(userUuid: string, streamUuid: string) {
-    await this.appStore.roomStore.roomManager.userService.batchUpdateStreamAttributes([
-      {
-        streamUuid,
-        userUuid,
-        videoSourceType: EduVideoSourceType.camera,
-        audioSourceType: EduAudioSourceType.mic,
-        hasVideo: 1,
-        hasAudio: 1
-      }
-    ])
+    await this.answerAcceptInvitationApply(userUuid, streamUuid);
   }
 
   @computed
   get userRole(): string {
-    return this.appStore.roomStore.localUser.userRole
+    return this.appStore.sceneStore.localUser.userRole
   }
 
   @computed
@@ -143,6 +140,69 @@ export class ExtensionStore {
 
   @observable
   inTick: boolean = false
+
+  @computed
+  get roomManager() {
+    return this.appStore.middleRoomStore.roomManager
+  }
+
+  @computed
+  get middleRoomApi() {
+    return this.appStore.middleRoomStore.middleRoomApi
+  }
+
+  @computed
+  get teacherUuid() {
+    return this.appStore.sceneStore.teacherUuid
+  }
+
+  @action
+  async startInvitationApply () {
+    try {
+      const teacherUuid = this.teacherUuid
+      await this.middleRoomApi.setInvitation()
+      await this.middleRoomApi.handInvitationStart(
+        InvitationEnum.Apply,
+        teacherUuid,
+      )
+      const localStream = this.roomManager.userService.localStream
+      if (localStream.state === 0 && this.enableAutoHandUpCoVideo) {
+        const localStreamData = this.roomManager.data.localStreamData
+        await this.roomManager.userService.publishStream({
+          videoSourceType: EduVideoSourceType.camera,
+          audioSourceType: EduAudioSourceType.mic,
+          streamName: '',
+          streamUuid: localStream.stream.streamUuid,
+          hasVideo: true,
+          hasAudio: true,
+          userInfo: {} as EduUser
+        })
+      }
+    } catch (err) {
+      console.warn(err)
+      this.appStore.uiStore.addToast(t(`invitation.apply_failed`))
+    }
+  }
+
+  @action
+  async answerAcceptInvitationApply (userUuid: string, streamUuid: string) {
+    try {
+      await this.middleRoomApi.handInvitationEnd(
+        InvitationEnum.Accept,
+        userUuid,
+      )
+      if (this.enableCoVideo) {
+        await this.roomManager?.userService.inviteStreamBy({
+          roomUuid: this.sceneStore.roomUuid,
+          streamUuid: streamUuid,
+          userUuid: userUuid
+        })
+      }
+    } catch (err) {
+      console.warn(err)
+      this.appStore.uiStore.addToast(t(`invitation.apply_failed`))
+    }
+  }
   
   @action
   startTick() {
@@ -151,13 +211,14 @@ export class ExtensionStore {
     }
     this.tick = 3000
     this.inTick = true
-    this.interval = setInterval(() => {
-      if (this.tick === 0) {
+    this.interval = setInterval(async () => {
+      if (this.tick === 1000) {
         if (this.interval) {
           clearInterval(this.interval)
           this.interval = undefined
         }
         this.inTick = false
+        await this.startInvitationApply()
         return
       }
       this.tick -= 1000

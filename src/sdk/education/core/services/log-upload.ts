@@ -11,7 +11,6 @@ const UA = new UAParser();
 const parser = UA.getResult()
 const platform: string = window.isElectron ? 'Electron' : 'Web'
 
-//@ts-ignore
 window.platform = platform
 
 const AgoraFetchJson = async ({url, method, data, token, outHeaders}:{url?: string, method: string, data?: any, token?: string, outHeaders?: any}) => {  

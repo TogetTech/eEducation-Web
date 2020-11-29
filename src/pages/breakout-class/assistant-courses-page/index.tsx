@@ -25,7 +25,6 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 function getIpc() {
-  //@ts-ignore
   return window.ipc
 }
 

@@ -46,9 +46,7 @@ export class EduManager extends EventEmitter {
     } as any
     if (buildOption.platform === 'electron') {
       buildOption.electronLogPath = {
-        //@ts-ignore
         logPath: window.logPath,
-        //@ts-ignore
         videoSourceLogPath: window.videoSourceLogPath,
       }
     }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, HashRouter } from 'react-router-dom';
+import { Route, HashRouter, Switch } from 'react-router-dom';
 import ThemeContainer from '../containers/theme-container';
 import Home from './home';
 import {DeviceDetectPage} from './device-detect/index';
@@ -18,10 +18,8 @@ import { ReplayPage } from './replay';
 import {Provider} from 'mobx-react';
 import { AppStore } from '@/stores/app';
 import {AssistantCoursesPage} from './breakout-class/assistant-courses-page';
-// import {UIFascade} from './ui-fascade';
 
 const defaultStore = new AppStore()
-//@ts-ignore
 window.store = defaultStore
 
 export default function () {
@@ -32,45 +30,46 @@ export default function () {
           <Loading />
           <Toast />
           <RoomDialog />
+          <Switch>
           <Route path="/setting">
             <DeviceDetectPage />
           </Route>
-          <Route exact path="/classroom/one-to-one">
+          <Route path="/classroom/one-to-one">
             <RoomPage >
               <OneToOne />
             </RoomPage>
           </Route>
-          <Route exact path="/classroom/small-class">
+          <Route path="/classroom/small-class">
             <RoomPage>
               <SmallClass />
             </RoomPage>
           </Route>
-          <Route exact path="/classroom/big-class">
+          <Route path="/classroom/big-class">
             <RoomPage>
               <BigClass />
             </RoomPage>
           </Route>
-          <Route exact path="/classroom/middle-class">
+          <Route path="/classroom/middle-class">
             <MiddleRoomPage>
               <MiddleClass />
             </MiddleRoomPage>
           </Route>
-          <Route exact path="/breakout-class/assistant/courses/:course_name">
+          <Route path="/breakout-class/assistant/courses/:course_name">
             <BreakoutClassroom />
           </Route>
-          <Route exact path="/breakout-class/assistant/courses">
+          <Route path="/breakout-class/assistant/courses">
             <AssistantCoursesPage />
           </Route>
-          <Route exact path="/classroom/breakout-class">
+          <Route path="/classroom/breakout-class">
             <BreakoutClassroom />
           </Route>
           <Route path="/replay/record/:roomUuid">
             <ReplayPage />
           </Route>
-          <Route exact path="/">
-            {/* <UIFascade /> */}
+          <Route path="/">
             <Home />
           </Route>
+          </Switch>
         </HashRouter>
       </ThemeContainer>
     </Provider>
