@@ -1,5 +1,5 @@
 import { get } from "lodash";
-import { EduUser, AgoraFetchParams, ClassroomStateParams, UserQueryParams, StreamQueryParams, EduStreamParams, EduStream, ChannelMessageParams, PeerMessageParams, EduUserData, EduStreamData, EduCourseState } from "../../interfaces/index.d";
+import { EduUser, StreamType, DeleteStreamType, AgoraFetchParams, ClassroomStateParams, UserQueryParams, StreamQueryParams, EduStreamParams, EduStream, ChannelMessageParams, PeerMessageParams, EduUserData, EduStreamData, EduCourseState } from "../../interfaces/index.d";
 import { EduLogger } from '../logger';
 import { HttpClient } from '../utils/http-client';
 import { EntryRequestParams, UserStreamResponseData, UserStreamList, EduJoinRoomParams, JoinRoomResponseData } from "./interface.d";
@@ -78,17 +78,14 @@ type RemoteMediaParams = {
   // videoState: number
 }
 
-type StreamsParams = {
+type UpsertStreamsParams = {
   roomUuid: string
-  streams: Array<{
-    userUuid: string;
-    streamUuid: string;
-    streamName: string;
-    videoSourceType: number;
-    audioSourceType: number;
-    videoState: number;
-    audioState: number;
-  }>;
+  streams: Array<StreamType>
+}
+
+type DeleteStreamsParams = {
+  roomUuid: string
+  streams: Array<DeleteStreamType>
 }
 
 export class AgoraEduApi {
@@ -949,11 +946,23 @@ export class AgoraEduApi {
     return res.data
   }
 
-  // 批量新增流
-  async batchAddStudentsStream({roomUuid, streams}: StreamsParams) {
+  // 批量新增流 
+  async batchUpsertStream({roomUuid, streams}: UpsertStreamsParams) {
     let res = await this.fetch({
       url: `/scene/apps/${this.appId}/v1/rooms/${roomUuid}/streams`,
       method: 'PUT',
+      data: {
+        streams: streams
+      }
+    })
+    return res.data
+  }
+
+  // 批量删除流
+  async batchDeleteStream({roomUuid, streams}: DeleteStreamsParams) {
+    let res = await this.fetch({
+      url: `/scene/apps/${this.appId}/v1/rooms/${roomUuid}/streams`,
+      method: 'DELETE',
       data: {
         streams: streams
       }

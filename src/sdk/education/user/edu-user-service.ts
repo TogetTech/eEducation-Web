@@ -3,7 +3,7 @@ import { EduLogger } from './../core/logger/index';
 import { EduClassroomDataController } from './../room/edu-classroom-data-controller';
 import { EduClassroomManager } from '@/sdk/education/room/edu-classroom-manager';
 import { EventEmitter } from 'events';
-import { EduStreamData, EduVideoConfig, EduRoleType, EduVideoSourceType, EduAudioSourceType, EduCourseState, EduRenderConfig, EduStream, EduUser, EduSubscribeOptions, EduStreamConfig } from '../interfaces/index.d';
+import { EduStreamData, StreamType, DeleteStreamType, EduVideoConfig, EduRoleType, EduVideoSourceType, EduAudioSourceType, EduCourseState, EduRenderConfig, EduStream, EduUser, EduSubscribeOptions, EduStreamConfig } from '../interfaces/index.d';
 import { AgoraEduApi } from '../core/services/edu-api';
 
 export interface EduModelViewOption {
@@ -315,6 +315,20 @@ export class EduUserService extends EventEmitter implements IEduUserService {
       roomUuid: this.roomUuid,
       userUuid: (stream.userInfo as any).userUuid,
       streamUuid: stream.streamUuid
+    })
+  }
+
+  public async batchUpsertStream(streams: Array<StreamType>) {
+    await this.apiService.batchUpsertStream({
+      roomUuid: this.roomUuid,
+      streams: streams,
+    })
+  }
+
+  public async batchDeleteStream(streams: Array<DeleteStreamType>) {
+    await this.apiService.batchDeleteStream({
+      roomUuid: this.roomUuid,
+      streams: streams,
     })
   }
 

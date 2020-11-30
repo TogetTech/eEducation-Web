@@ -48,6 +48,7 @@ export const MiddleClass = observer(() => {
     muteControl,
     teacherStream: teacher,
     studentStreams,
+    userList,
     roomInfo,
   } = sceneStore
 
@@ -58,13 +59,15 @@ export const MiddleClass = observer(() => {
 
   const [chat, setChat] = useState<string>('')
   const [showGroupCard, setShowGroupCard] = useState<boolean>(false)
+  const [alreadyPlatform, setAlreadyPlatform] = useState<boolean>(false)
   
   const userRole = middleRoomStore.roomInfo.userRole
   const boardStore = useBoardStore()
   const {grantUsers} = boardStore
 
   const students = roomProperties.students? roomProperties.students: {}
- 
+  const userListStudents = userList.filter(item => item.role !== 'host') 
+  
   const studentInfoList = Object.keys(students).map(uuid => {
     return {
       userUuid: uuid,
@@ -72,17 +75,17 @@ export const MiddleClass = observer(() => {
     }
   })
 
-  const studentList = function() {
-    let students = {}
-    let list = studentInfoList
-    for(let i = 0; i < list.length; i++) {
-      students[list[i].userUuid] = {
-        reward: '',
-        userName: list[i].userName
-      }
-    }
-    return students
-  }
+  // const studentList = function() {
+  //   let students = {}
+  //   let list = studentInfoList
+  //   for(let i = 0; i < list.length; i++) {
+  //     students[list[i].userUuid] = {
+  //       reward: '',
+  //       userName: list[i].userName
+  //     }
+  //   }
+  //   return students
+  // }
 
   const sendMessage = async () => {
     await middleRoomStore.sendMessage(chat)
@@ -122,6 +125,11 @@ export const MiddleClass = observer(() => {
     }
 
     let properties = {
+      groupStates: {
+        state: 1,
+        interactInGroup: 0, // 组内
+        interactOutGroup: 0, // 组外讨论 包括分组，pk
+      },
       groups: backendGroups
     }
     let cause = {cmd:"102"}
@@ -133,16 +141,52 @@ export const MiddleClass = observer(() => {
   const deleteGroups = function() {
     let cause = {cmd:"101"}
     let properties: any = {
+      groupStates: {
+        state: 0,
+        interactInGroup: 0, // 组内
+        interactOutGroup: 0, // 组外讨论 包括分组，pk
+      },
       groups: {}
     }
     middleRoomStore.updateRoomBatchProperties({ properties, cause })
-
+    setShowGroupCard(false)
+    console.log('已删除当前分组')
   }
 
   // 整组上台
   const handelPlatform = function(group:any) {
-    // batchAddStudentsStream()
-    console.log('***', group)
+    if(alreadyPlatform) {
+      // 如果已经上台 则下台
+      let streams:any = []
+      group.members.forEach((item:any) => {
+        let stu = {
+          userUuid: item.userUuid,
+          streamUuid: item.streamUuid,
+        }
+        streams.push(stu)
+      })
+      console.log('***streams下台', streams)
+      // middleRoomStore.batchDeleteStream(streams)
+      setAlreadyPlatform(false)
+    } else {
+      let streams:any = []
+      group.members.forEach((item:any) => {
+        let stu = {
+          userUuid: item.userUuid,
+          streamUuid: item.streamUuid,
+          streamName: item.userUuid + 'stream',
+          videoSourceType: 1,
+          audioSourceType: 1,
+          videoState: 1,
+          audioState: 1,
+        }
+        streams.push(stu)        
+      })
+      console.log('***streams上台', streams)
+      // middleRoomStore.batchUpsertStream(streams)
+      setAlreadyPlatform(true)
+    }
+    
   }
 
   // 整组加星
@@ -238,7 +282,7 @@ export const MiddleClass = observer(() => {
               :
               <StudentList
                 userRole={userRole}
-                studentStreams={studentStreams}
+                studentStreams={userListStudents}
                 grantUsers={grantUsers}
                 handleClick={handleClick}
                 isMiddleClassRoom={true}

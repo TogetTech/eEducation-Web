@@ -567,6 +567,21 @@ export interface EduStream {
   }
 }
 
+export interface StreamType {
+  userUuid: string;
+  streamUuid: string;
+  streamName: string;
+  videoSourceType: number;
+  audioSourceType: number;
+  videoState: number;
+  audioState: number;
+}
+
+export interface DeleteStreamType {
+  userUuid: string
+  streamUuid: string
+}
+
 export interface UserGroup {
   groupUuid: string;
   groupName: string;
@@ -574,6 +589,7 @@ export interface UserGroup {
     userUuid?: string;
     userName?: string;
     reward?: number;
+    streamUuid?: any;
   }>;
 }
 

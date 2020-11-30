@@ -236,6 +236,11 @@ export const MiddleGrouping = function ({sure, dataList, deleteGroups}: any) {
   const clickCreatGroup = function() {
     setCreatePopup(true)
   }
+
+  const resetGroup = function() {
+    setCreatePopup(true)
+    setDragGrouping(false)
+  }
   
   const clickSureCreate = function() {
     setCreatePopup(false)
@@ -298,7 +303,7 @@ export const MiddleGrouping = function ({sure, dataList, deleteGroups}: any) {
           <span className="text-num">学生总数 </span>
           <div className="btn-operation">
             {
-              dragGrouping? <Button variant="contained" className="btn-reset" >重新分组</Button>
+              dragGrouping? <Button variant="contained" className="btn-reset" onClick={resetGroup}>重新分组</Button>
               : <Button variant="contained" className="btn-create" onClick={clickCreatGroup}>创建分组</Button>
             }
             <Button variant="contained" className="btn-delete" disabled={!dragGrouping} onClick={deleteGroups}>删除分组</Button>

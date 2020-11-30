@@ -18,7 +18,7 @@ import { AgoraElectronRTCWrapper } from '@/sdk/education/core/media-service/elec
 import { StartScreenShareParams, PrepareScreenShareParams } from '@/sdk/education/core/media-service/interfaces';
 import { MediaService } from '@/sdk/education/core/media-service';
 import { get } from 'lodash';
-import { EduCourseState, EduUser, EduStream, EduVideoSourceType, EduRoleType, UserGroup, RoomProperties } from '@/sdk/education/interfaces/index.d';
+import { EduCourseState, EduUser, DeleteStreamType, EduStream, StreamType, EduVideoSourceType, EduRoleType, UserGroup, RoomProperties } from '@/sdk/education/interfaces/index.d';
 import { ChatMessage } from '@/utils/types';
 import { t } from '@/i18n';
 import { DialogType } from '@/components/dialog';
@@ -591,7 +591,6 @@ export class MiddleRoomStore extends SimpleInterval {
           this.roomProperties = classroom.roomProperties
           const groups = get(classroom, 'roomProperties.groups')
           const students = get(classroom, 'roomProperties.students')
-          console.log('***监听事件')
 
           let userGroups: UserGroup[] = []
           if (groups) {
@@ -607,7 +606,8 @@ export class MiddleRoomStore extends SimpleInterval {
                 userGroup.members.push({
                   userUuid: stuUuid,
                   userName: info.userName,
-                  reward: info.reward
+                  reward: info.reward,
+                  streamUuid: info.streamUuid,
                 })
               })
               userGroups.push(userGroup)
@@ -654,18 +654,19 @@ export class MiddleRoomStore extends SimpleInterval {
       this.sceneStore.startTime = +get(roomInfo, 'roomStatus.startTime', 0)
 
       if (this.roomProperties) {
-        let cause = { cmd: "401" }
         let stuName = this.sceneStore.localUser.userName
         let stuUuid = this.sceneStore.localUser.userUuid
         let uid = this.roomProperties.students && this.roomProperties.students[stuUuid]
+        let streamUuid = this.roomManager.localUser.streams["main"].streamUuid
         if(this.sceneStore.localUser.userRole === 'student' && !uid) {
-          console.log('***学生未存在')
           let properties = {}
           properties[`students.${stuUuid}`] = {
             userName: stuName,
             reward: 0,
             avatar: "",
+            streamUuid: streamUuid,
           }
+          let cause = { cmd: "401" }
           await this.updateRoomBatchProperties({ properties, cause })
         }
       }
@@ -840,6 +841,16 @@ export class MiddleRoomStore extends SimpleInterval {
   @action
   async updateRoomBatchProperties(payload: {properties: MiddleRoomSchema, cause: CauseType}) {
     await this.roomManager.userService.updateRoomBatchProperties(payload)
+  }
+
+  @action
+  async batchUpsertStream(streams: Array<StreamType>) {
+    await this.roomManager.userService.batchUpsertStream(streams)
+  }
+
+  @action
+  async batchDeleteStream(streams: Array<DeleteStreamType>) {
+    await this.roomManager.userService.batchDeleteStream(streams)
   }
 
   @observable
