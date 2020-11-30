@@ -2,6 +2,14 @@ const BUILD_VERSION = process.env.REACT_APP_BUILD_VERSION as string;
 const build_version = BUILD_VERSION ? BUILD_VERSION : '0.0.1';
 
 const en = {
+  "extension": {
+    "grouping": "Group",
+    "hands_up": "CoVideo",
+  },
+  "switch": {
+    "enable_auto_hands_up": "HandsUp CoVideo",
+    "enable_hands_up": "HandsUp",
+  },
   "unknown": "[unknown]: ",
   "from_room": "[Room]: ",
   "student_role": "[Student]: ",
@@ -213,6 +221,7 @@ const en = {
     'password': 'Password',
   },
   'room': {
+    'hands_up': 'Hands Up',
     'show': 'Show',
     'course_list': 'Room List',
     'chat_room': 'Chat Room',
@@ -241,6 +250,12 @@ const en = {
     'data_null_text': 'There is no class currently in session, you can refresh or exit the interface',
     'refresh': 'refresh',
     'exit': 'exit',
+  },
+  "middle_room": {
+    'student_hands_up': `"{reason}" hands up'`,
+    'the_teacher_accepted': `Teacher accepted your apply`,
+    'end_covideo_by_teacher': 'CoVideo end by teacher',
+    'end_covideo_by_self': 'CoVideo end by you',
   },
   'course_recording': 'course recording',
   'build_version': `build version: ${build_version}`,

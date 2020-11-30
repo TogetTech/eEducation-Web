@@ -5,7 +5,7 @@ import { FooterMenu } from './footer-menu';
 import { FolderMenu } from './folder-menu';
 // import 'white-web-sdk/style/index.css';
 import { observer } from 'mobx-react';
-import { useBoardStore } from '@/hooks';
+import { useBoardStore, useExtensionStore } from '@/hooks';
 import { UploadNotice } from './upload/upload-notice';
 import './netless-whiteboard.scss';
 
@@ -29,7 +29,7 @@ export const Board = observer(() => {
       <FolderMenu />
       <div ref={mountToDOM} className="edu-demo-board" id="netless-board"></div>
       {boardStore.hasPermission ? <Tools /> : null}
-      <FooterMenu/>
+      <FooterMenu />
       <BoardLoading />
       <UploadNotice />
     </div>

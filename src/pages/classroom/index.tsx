@@ -21,7 +21,6 @@ export const roomTypes = [
 ];
 
 function getIpc() {
-  //@ts-ignore
   return window.ipc
 }
 

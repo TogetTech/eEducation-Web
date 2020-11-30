@@ -1,19 +1,37 @@
-import React, {useRef, useState} from 'react';
+import React, {useState} from 'react';
 import {VideoPlayer} from '@/components/video-player';
 import { ControlItem } from '@/components/control-item';
 import './middle-class.scss';
-import {ChatBoard} from '@/components/chat/board';
 import { NetlessBoard } from '@/components/netless-board';
 import { ScreenSharing } from '@/components/screen-sharing';
 import { observer } from 'mobx-react';
-import { useMiddleRoomStore, useBoardStore, useAppStore, useExtensionStore} from '@/hooks';
+import { CustomCard } from '@/components/cards';
+import { VideoMarquee } from '@/components/video-marquee';
+import { useMiddleRoomStore, useBoardStore, useExtensionStore, useUIStore, useSceneStore} from '@/hooks';
 import { MiddleGroupCard, MiddleGrouping } from '@/components/middle-grouping';
-import { BizLogger } from '@/utils/biz-logger';
 import {ChatPanel} from '@/components/chat/panel';
 import { t } from '@/i18n';
-import { EduMediaStream } from '@/stores/app/room';
 import {StudentList} from '@/components/student-list';
-import { subtract } from 'lodash';
+
+const FirstGroupVideoMarquee = observer(() => {
+  const store = useMiddleRoomStore()
+  return <VideoMarquee
+    className="group first-group"
+    canHover={true}
+    mainStream={store.groups[0].mainStream}
+    othersStreams={store.groups[0].studentStreams}
+  />
+})
+
+const SecondGroupVideoMarquee = observer(() => {
+  const store = useMiddleRoomStore()
+  return <VideoMarquee
+    className="group second-group"
+    canHover={true}
+    mainStream={store.groups[1].mainStream}
+    othersStreams={store.groups[1].studentStreams}
+  />
+})
 
 export const MiddleClass = observer(() => {
 
@@ -21,12 +39,19 @@ export const MiddleClass = observer(() => {
 
   const extensionStore = useExtensionStore()
 
+  const sceneStore = useSceneStore()
+
+  const uiStore = useUIStore()
+
   const {
     mutedChat,
     muteControl,
     teacherStream: teacher,
     studentStreams,
     roomInfo,
+  } = sceneStore
+
+  const {
     roomProperties,
     userGroups
   } = middleRoomStore
@@ -38,12 +63,12 @@ export const MiddleClass = observer(() => {
   const boardStore = useBoardStore()
   const {grantUsers} = boardStore
 
-  const sutdents = roomProperties.students? roomProperties.students: {}
+  const students = roomProperties.students? roomProperties.students: {}
  
-  const studentInfoList = Object.keys(sutdents).map(uuid => {
+  const studentInfoList = Object.keys(students).map(uuid => {
     return {
       userUuid: uuid,
-      userName: sutdents[uuid].userName
+      userName: students[uuid].userName
     }
   })
 
@@ -70,9 +95,9 @@ export const MiddleClass = observer(() => {
 
   const handleMute = async () => {
     if (mutedChat) {
-      await middleRoomStore.unmuteChat()
+      await sceneStore.unmuteChat()
     } else {
-      await middleRoomStore.muteChat()
+      await sceneStore.muteChat()
     }
   }
 
@@ -83,7 +108,7 @@ export const MiddleClass = observer(() => {
 
   const saveGroupModify = function(groups:any) {
     setShowGroupCard(true)
-    let backendGroups: object = {}
+    let backendGroups: Object[] = []
     for(let i = 0; i < groups.length; i++) {
       let groupNum: number = i + 1
       let groupItem: any = {
@@ -93,7 +118,7 @@ export const MiddleClass = observer(() => {
       }
       groupItem.groupName = "group" + groupNum
       groupItem.members = groups[i].map((stu:any) => stu.userUuid)
-      backendGroups[groupNum] = groupItem
+      backendGroups.push(groupItem)
     }
 
     let properties = {
@@ -107,7 +132,7 @@ export const MiddleClass = observer(() => {
   // 删除
   const deleteGroups = function() {
     let cause = {cmd:"101"}
-    let properties = {
+    let properties: any = {
       groups: {}
     }
     middleRoomStore.updateRoomBatchProperties({ properties, cause })
@@ -128,12 +153,18 @@ export const MiddleClass = observer(() => {
   return (
     <div className="room-container">
       <div className="live-container">
+        <FirstGroupVideoMarquee />
         <div className="biz-container">
           <NetlessBoard />
           <ScreenSharing />
           {
             extensionStore.controlGrouping ?
             <MiddleGrouping dataList={studentInfoList} sure={saveGroupModify} deleteGroups={deleteGroups}></MiddleGrouping>
+            : null
+          }
+          {
+            extensionStore.visibleCard ? 
+            <CustomCard />
             : null
           }
           <div className={`interactive ${middleRoomStore.roomInfo.userRole}`}>
@@ -144,6 +175,7 @@ export const MiddleClass = observer(() => {
             : null}
           </div>
         </div>
+        <SecondGroupVideoMarquee />
       </div>
       <div className="live-board">
         <div className="video-board">
@@ -155,26 +187,26 @@ export const MiddleClass = observer(() => {
         </div>
         <div className={`small-class chat-board`}>
           <div className="menu">
-            <div className={`item ${middleRoomStore.activeTab === 'student_list' ? 'active' : ''}`}
+            <div className={`item ${uiStore.activeTab === 'student_list' ? 'active' : ''}`}
                 onClick={() => {
-                  middleRoomStore.switchTab('student_list')
+                  uiStore.switchTab('student_list')
                 }}
               >
               {t('room.student_list')}
             </div>
-            <div className={`item ${middleRoomStore.activeTab === 'chatroom' ? 'active' : ''}`}
+            <div className={`item ${uiStore.activeTab === 'chatroom' ? 'active' : ''}`}
             onClick={() => {
-              middleRoomStore.switchTab('chatroom')
+              uiStore.switchTab('chatroom')
             }}>
               {t('room.chat_room')}
-              {middleRoomStore.activeTab !== 'chatroom' && middleRoomStore.unreadMessageCount > 0 ? <span className={`message-count`}>{middleRoomStore.unreadMessageCount}</span> : null}
+              {uiStore.activeTab !== 'chatroom' && middleRoomStore.unreadMessageCount > 0 ? <span className={`message-count`}>{middleRoomStore.unreadMessageCount}</span> : null}
             </div>
           </div>
-          <div className={`chat-container ${middleRoomStore.activeTab === 'chatroom' ? '' : 'hide'}`}>
+          <div className={`chat-container ${uiStore.activeTab === 'chatroom' ? '' : 'hide'}`}>
             <ChatPanel
-              canChat={middleRoomStore.roomInfo.userRole === 'teacher'}
-              muteControl={middleRoomStore.muteControl}
-              muteChat={middleRoomStore.mutedChat}
+              canChat={sceneStore.roomInfo.userRole === 'teacher'}
+              muteControl={sceneStore.muteControl}
+              muteChat={sceneStore.mutedChat}
               handleMute={handleMute}
               messages={middleRoomStore.roomChatMessages}
               value={chat}
@@ -183,7 +215,7 @@ export const MiddleClass = observer(() => {
                 setChat(evt.target.value)
               }} />
           </div>
-          <div className={`student-container ${middleRoomStore.activeTab !== 'chatroom' ? '' : 'hide'}`}>
+          <div className={`student-container ${uiStore.activeTab !== 'chatroom' ? '' : 'hide'}`}>
           {/* <div className="group-card-list">
                 { userGroups.map((group, index) => (
                     <MiddleGroupCard key={index} groupName={group.groupName} groupStuList={group.members}></MiddleGroupCard>

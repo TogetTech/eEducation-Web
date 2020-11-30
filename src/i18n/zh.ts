@@ -2,6 +2,17 @@ const BUILD_VERSION = process.env.REACT_APP_BUILD_VERSION as string;
 const build_version = BUILD_VERSION ? BUILD_VERSION : '0.0.1';
 
 const zhCN: any = {
+  "extension": {
+    "grouping": "分组",
+    "hands_up": "举手",
+  },
+  "invitation": {
+    "apply_failed": "申请失败",
+  },
+  "switch": {
+    "enable_auto_hands_up": "举手即上台",
+    "enable_hands_up": "开启举手功能",
+  },
   "unknown": "[未知]: ",
   "from_room": "[教室]: ",
   "student_role": "[学生]: ",
@@ -212,6 +223,7 @@ const zhCN: any = {
     'password': '密码',
   },
   'room': {
+    'hands_up': '举手',
     'show': '显示',
     'course_list': '教室列表',
     'chat_room': '消息列表',
@@ -240,6 +252,12 @@ const zhCN: any = {
     'data_null_text': '当前没有正在上课的班级，您可以刷新或者退出界面',
     'refresh': '刷新',
     'exit': '退出',
+  },
+  "middle_room": {
+    'student_hands_up': `学生："{reason}"举手了'`,
+    'the_teacher_accepted': `老师同意了举手申请`,
+    'end_covideo_by_teacher': '老师关闭了你的连麦',
+    'end_covideo_by_self': '你关闭了自己的连麦',
   },
   'course_recording': '录制回放',
   'build_version': `构建版本: ${build_version}`,

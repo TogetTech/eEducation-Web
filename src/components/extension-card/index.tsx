@@ -1,12 +1,11 @@
-import React, { useRef } from 'react';
-import {t} from '@/i18n';
+import React from 'react';
 import { observer } from 'mobx-react';
-import { useBoardStore, useExtensionStore } from '@/hooks';
-import Popper from '@material-ui/core/Popper';
+import { useExtensionStore } from '@/hooks';
 import Paper from '@material-ui/core/Paper';
 import MenuItem from '@material-ui/core/MenuItem';
 import MenuList from '@material-ui/core/MenuList';
 import './extension-card.scss'
+import { t } from '@/i18n';
 
 export const ExtensionCard: React.FC<any> = observer(() => {
 
@@ -17,7 +16,7 @@ export const ExtensionCard: React.FC<any> = observer(() => {
   }
 
   const bindMiddleHand = function() {
-    
+    extensionStore.toggleCard()
   }
 
   return (
@@ -26,11 +25,11 @@ export const ExtensionCard: React.FC<any> = observer(() => {
         <MenuList>
           <MenuItem onClick={bindMiddleGroup}>
           <div className="group-item"></div>
-          分组
+          {t('extension.grouping')}
           </MenuItem>
           <MenuItem onClick={bindMiddleHand}>
           <div className="hand-item"></div>
-          举手
+          {t('extension.hands_up')}
           </MenuItem>
         </MenuList>
       </Paper>

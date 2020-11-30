@@ -39,14 +39,17 @@ export interface EduRoomAttrs {
  * 教育SDK频道命令类型
  */
 export enum EduChannelMessageCmdType {
+  initState = 0,
   courseState = 1,
   roomMediaState = 2,
   roomChatState = 3,
   roomPropertiesStateChanged = 4,
-  roomBatchPropertiesStateChanged = 5,
+  roomPropertiesBatchUpdated = 5,
   userListChanged = 20,
   userStateUpdated = 21,
+  userListBatchUpdated = 23,
   streamListChanged = 40,
+  streamListBatchUpdated = 41,
   boardState = 60,
   boardUserState = 61,
   customMessage = 99,

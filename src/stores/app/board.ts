@@ -352,7 +352,6 @@ export class BoardStore {
     BizLogger.info("[breakout board] after join", data)
     this.online = true
     // this.updateSceneItems()
-    //@ts-ignore
     this.room.bindHtmlElement(null)
     window.addEventListener('resize', () => {
       if (this.online && this.room && this.room.isWritable) {
@@ -1139,5 +1138,10 @@ export class BoardStore {
     if (this.boardClient && this.boardClient.room) {
       this.boardClient.room.bindHtmlElement(null)
     }
+  }
+
+  @action
+  toggleExtension() {
+    this.showExtension = !this.showExtension
   }
 }

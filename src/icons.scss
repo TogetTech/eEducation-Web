@@ -7,6 +7,62 @@
   user-select: inherit !important;
 }
 
+.student_hand_tools {
+  .active_hands_up {
+    width: 37px;
+    height: 37px;
+  }
+}
+
+.teacher_hand_tools {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding-right: 8px;
+  position: relative;
+  .active_hands_up {
+    width: 37px;
+    height: 37px;
+  }
+}
+
+.hand_tools {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.active_hands_up.bg-white {
+  background: white;
+  text-align: center;
+  line-height: 37px;
+  color: #44A2FC;
+  font-size: 28px;
+}
+
+.active_hands_up {
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  background-image: url('./assets/icon-hands-up-active.png');
+}
+
+.inactive_hands_up {
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  background-image: url('./assets/icon-hands-up-inactive.png');
+}
+
 @-webkit-keyframes rotate{
   0%{
     -webkit-transform:rotate(0deg);
@@ -98,11 +154,115 @@
 .icon-speaker-on,
 .icon-speaker-off,
 .icons-camera-mute-s,
-.icons-camera-unmute-s
+.icons-camera-unmute-s,
+.icon-inactive-star,
+.icon-active-star,
+.icon-blue-star,
+.icon-new-star,
+.icon-hollow-white-star,
+.icon-hollow-white-hover-star,
+.icon-hollow-blue-star,
+.icons-close-co-video,
+.icons-lecture-board-inactive,
+.icons-lecture-board-active
+// .icons-reward-star
 {
   display: flex;
   width: 24px;
   height: 24px;
+}
+
+.icons-lecture-board-inactive::after {
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  background-image: url('./assets/icon-lecture-board-inactive.png');
+}
+
+.icons-lecture-board-active::after {
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  background-image: url('./assets/icon-lecture-board-active.png');
+}
+
+.icons-close-co-video::after {
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  background-image: url('./assets/icons-close-co-video.png');
+}
+
+.icon-blue-star::after {
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  background-image: url('./assets/icon-blue-star.png');
+}
+
+// .icon-hollow-white-::after {
+//   width: 100%;
+//   height: 100%;
+//   background-position: center;
+//   background-repeat: no-repeat;
+//   background-size: contain;
+//   content: ' ';
+//   background-image: url('./assets/icon-hollow-white-star.png');
+// }
+
+.icon-hollow-white-star::after {
+  // &:hover {
+  //   background-image: url('./assets/icon-hollow-blue-star.png')
+  // }
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  background-image: url('./assets/icon-hollow-white-star.png');
+}
+
+.icon-hollow-blue-star::after {
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  background-image: url('./assets/icon-hollow-blue-star.png');
+}
+
+.icon-inactive-star::after {
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  background-image: url('./assets/icon-inactive-star.png');
+}
+
+.icon-active-star::after {
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: ' ';
+  background-image: url('./assets/icon-active-star.png');
 }
 
 .icon-voice::after {

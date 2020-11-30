@@ -1,6 +1,6 @@
 import React from 'react'
 import { observer } from 'mobx-react'
-import { useRoomStore, useBreakoutRoomStore } from '@/hooks'
+import { useRoomStore, useBreakoutRoomStore, useSceneStore } from '@/hooks'
 import { useLocation } from 'react-router-dom';
 import { VideoPlayer } from '@/components/video-player'
 import './index.scss';
@@ -14,15 +14,15 @@ export const ScreenSharing = () => {
   )
 }
 const BasicSceneScreenSharing = observer(() => {
-  const roomStore = useRoomStore()
+  const sceneStore = useSceneStore()
   return (
-    roomStore.sharing ? 
+    sceneStore.sharing ? 
     <VideoPlayer 
       showClose={false}
       role="teacher"
       share={true}
       className="screen-sharing"
-      {...roomStore.screenShareStream}
+      {...sceneStore.screenShareStream}
     /> : null
   )
 })

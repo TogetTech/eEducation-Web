@@ -5,7 +5,7 @@ import {Dialog, DialogContent, DialogContentText} from '@material-ui/core';
 import './dialog.scss';
 import { t } from '@/i18n';
 import { observer } from 'mobx-react';
-import { useRoomStore, useUIStore, useBreakoutRoomStore } from '@/hooks';
+import { useRoomStore, useUIStore, useBreakoutRoomStore, useMiddleRoomStore } from '@/hooks';
 import { useHistory, useLocation } from 'react-router-dom';
 
 export interface DialogMessage {
@@ -72,6 +72,7 @@ function RoomDialog(
 }
 
 const DialogContainer = observer(() => {
+  const middleRoomStore = useMiddleRoomStore()
   const roomStore = useRoomStore()
   const breakoutRoomStore = useBreakoutRoomStore()
   const uiStore = useUIStore()
@@ -89,7 +90,10 @@ const DialogContainer = observer(() => {
     if (type === 'exitRoom') {
       if (location.pathname.match(/breakout/)) {
         await breakoutRoomStore.leave()
-      } else {
+      } else if (location.pathname.match(/middle-class/)) {
+        await middleRoomStore.leave()
+      }
+      else {
         await roomStore.leave()
       }
       history.push('/')

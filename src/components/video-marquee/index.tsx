@@ -1,9 +1,6 @@
 import React, { useRef, useEffect, useState, useLayoutEffect } from 'react';
 import {VideoPlayer} from '@/components/video-player';
 import './video-marquee.scss';
-import { AgoraMediaStream } from '@/utils/types';
-import { observer } from 'mobx-react';
-import { useRoomStore } from '@/hooks';
 
 const showScrollbar = () => {
   const $marquee = document.querySelector(".video-marquee .agora-video-view");
@@ -22,10 +19,16 @@ const showScrollbar = () => {
   return false;
 }
 
-export const VideoMarquee = observer(() => {
+type VideoMarqueePropsType = {
+  mainStream: any,
+  othersStreams: any[]
+  className?: string
+  showMain?: boolean
+  canHover?: boolean
+}
 
-  const {teacherStream, studentStreams} = useRoomStore()
-
+export const VideoMarquee = (props: VideoMarqueePropsType) => {
+  const {mainStream, othersStreams} = props
 
   const marqueeEl = useRef(null);
 
@@ -52,9 +55,9 @@ export const VideoMarquee = observer(() => {
   const [scrollBar, setScrollBar] = useState<boolean>(false);
 
   useLayoutEffect(() => {
-    if (!studentStreams.length) return;
+    if (!othersStreams.length) return;
     !ref.current && setScrollBar(showScrollbar());
-  }, [studentStreams]);
+  }, [othersStreams]);
 
   useEffect(() => {
     window.addEventListener('resize', (evt: any) => {
@@ -66,14 +69,15 @@ export const VideoMarquee = observer(() => {
   }, []);
 
   return (
-    <div className="video-marquee-container">
-      <div className="main">
+    <div className={`video-marquee-container ${props.className ? props.className : ''}`}>
+      {mainStream ? <div className="main">
         <VideoPlayer
+          showHover={props.canHover}
           showClose={false}
           role="teacher"
-          {...teacherStream}
+          {...mainStream}
         />
-      </div>
+      </div> : null}
       <div className="video-marquee-mask">
         <div className="video-marquee" ref={marqueeEl}>
         {scrollBar ? 
@@ -82,8 +86,9 @@ export const VideoMarquee = observer(() => {
             <div className="icon icon-right" onClick={handleScrollRight}></div>
           </div> : null
         }
-          {studentStreams.map((studentStream: any, key: number) => (
+          {othersStreams.map((studentStream: any, key: number) => (
             <VideoPlayer
+              showHover={props.canHover}
               key={key}
               showClose={false}
               role="student"
@@ -94,4 +99,4 @@ export const VideoMarquee = observer(() => {
       </div>
     </div>
   )
-})
+}

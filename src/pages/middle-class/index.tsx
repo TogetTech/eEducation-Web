@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, useHistory } from 'react-router-dom';
 import {NavController} from '@/components/nav';
 import NativeSharedWindow from '@/components/native-shared-window';
@@ -19,7 +19,6 @@ export const roomTypes = [
 ];
 
 function getIpc() {
-  //@ts-ignore
   return window.ipc
 }
 
@@ -47,6 +46,7 @@ const RoomController = observer(({children}: any) => {
 
   const history = useHistory()
 
+  // TODO: need uncomment
   useEffect(() => {
     if (!appStore.userRole) {
       history.push('/')
@@ -71,23 +71,23 @@ const RoomController = observer(({children}: any) => {
     let path = pathList[pathList.length - 1]
 
     middleRoomStore.join().then(() => {
-      uiStore.addToast(t('toast.successfully_joined_the_room'))
-      let cause = { cmd: "401" }
-      let stuName = middleRoomStore.localUser.userName
-      let stuUuid = middleRoomStore.localUser.userUuid
-      let uid = middleRoomStore.roomProperties.students && middleRoomStore.roomProperties.students[stuUuid]
-      if(middleRoomStore.localUser.userRole === 'student' && !uid) {
-        let properties = {}
-        properties[`students.${stuUuid}`] = {
-          userName: stuName,
-          reward: 0,
-          avatar: "",
-        }
-        middleRoomStore.updateRoomBatchProperties({ properties, cause })
-      }
+      // uiStore.addToast(t('toast.successfully_joined_the_room'))
+      // let cause = { cmd: "401" }
+      // let stuName = middleRoomStore.localUser.userName
+      // let stuUuid = middleRoomStore.localUser.userUuid
+      // let uid = middleRoomStore.roomProperties.students && middleRoomStore.roomProperties.students[stuUuid]
+      // if(middleRoomStore.localUser.userRole === 'student' && !uid) {
+      //   let properties = {}
+      //   properties[`students.${stuUuid}`] = {
+      //     userName: stuName,
+      //     reward: 0,
+      //     avatar: "",
+      //   }
+      //   middleRoomStore.updateRoomBatchProperties({ properties, cause })
+      // }
     }).catch((err) => {
-      BizLogger.warn(err.msg)
-      uiStore.addToast(t('toast.failed_to_join_the_room') + `${JSON.stringify(err.msg)}`)
+      // BizLogger.warn(err.msg)
+      // uiStore.addToast(t('toast.failed_to_join_the_room') + `${JSON.stringify(err.msg)}`)
     })
 
 

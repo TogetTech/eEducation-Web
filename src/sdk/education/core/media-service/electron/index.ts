@@ -126,7 +126,6 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
     if (this.logPath) {
       EduLogger.info(`[electron-log-path] set logPath: ${this.logPath}`)
       this.client.setLogFile(this.logPath)
-      //@ts-ignore
       window.setNodeAddonLogPath = this.logPath
     }
   }
@@ -651,7 +650,6 @@ export class AgoraElectronRTCWrapper extends EventEmitter implements IElectronRT
         EduLogger.info(`[electron-log-path] checkout videoSourceLogPath: ${this.videoSourceLogPath}`)
         if (this.videoSourceLogPath) {
           this.client.videoSourceSetLogFile(this.videoSourceLogPath)
-          //@ts-ignore
           window.setNodeAddonVideoSourceLogPath = this.videoSourceLogPath
           EduLogger.info(`[electron-log-path] set videoSourceLogPath: ${this.videoSourceLogPath}`)
         }

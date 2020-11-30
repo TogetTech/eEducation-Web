@@ -123,5 +123,4 @@ export class RTMRestful {
   }
 }
 
-//@ts-ignore
 window.RTMRestful = new RTMRestful(process.env.REACT_APP_AGORA_CUSTOMER_ID as string, process.env.REACT_APP_AGORA_CUSTOMER_CERTIFICATE as string);

@@ -1,3 +1,4 @@
+import { BatchStreamAttribute, CauseType, EduStreamAttribute } from './../core/services/edu-api';
 import { EduLogger } from './../core/logger/index';
 import { EduClassroomDataController } from './../room/edu-classroom-data-controller';
 import { EduClassroomManager } from '@/sdk/education/room/edu-classroom-manager';
@@ -157,6 +158,14 @@ export class EduUserService extends EventEmitter implements IEduUserService {
       remoteUser,
       roomUuid: this.roomUuid,
     })
+  }
+
+  public async updateRoomProperties2(properties: any, cause?: CauseType) {
+    await this.apiService.batchUpdateRoomAttributes(
+      this.roomUuid,
+      properties,
+      cause,
+    )
   }
 
   public async updateRoomProperties(record: Record<string, any>) {
@@ -445,6 +454,71 @@ export class EduUserService extends EventEmitter implements IEduUserService {
       remoteUser: student,
       roomUuid: this.roomUuid
     })
+  }
+
+  /**
+   * 批量更新流属性
+   * @param streams 
+   */
+  public async batchUpdateStreamAttributes(streams: EduStreamAttribute[], cause?: CauseType) {
+    await this.apiService.batchUpdateStreamAttributes(streams, cause)
+  }
+
+  /**
+   * 批量移除流属性
+   * @param streams 
+   */
+  public async batchRemoveStreamAttributes(streams: BatchStreamAttribute[], cause?: CauseType) {
+    await this.apiService.batchRemoveStreamAttributes(streams, cause)
+  }
+
+  /**
+   * 批量更新用户属性
+   * @param userUuid 
+   * @param properties 
+   */
+  public async batchUpdateUserAttributes(userUuid: string, properties: any, cause?: CauseType) {
+    await this.apiService.batchUpdateUserAttributes(
+      this.roomUuid,
+      userUuid,
+      properties,
+      cause
+    )
+  }
+
+  /**
+   * 批量移除用户属性
+   * @param userUuid 
+   * @param properties 
+   */
+  public async batchRemoveUserAttributes(userUuid: string, cause?: CauseType) {
+    await this.apiService.batchRemoveUserAttributes(
+      this.roomUuid,
+      userUuid,
+      cause
+    )
+  }
+
+  /**
+   * 批量更新房间属性
+   * @param properties 
+   */
+  public async batchUpdateRoomAttributes(properties: any, cause?: CauseType) {
+    await this.apiService.batchUpdateRoomAttributes(
+      this.roomUuid,
+      properties,
+      cause
+    )
+  }
+
+  /**
+   * 移除房间属性
+   */
+  public async batchRemoveRoomAttributes(cause?: CauseType) {
+    await this.apiService.batchRemoveRoomAttributes(
+      this.roomUuid,
+      cause
+    )
   }
 }
 

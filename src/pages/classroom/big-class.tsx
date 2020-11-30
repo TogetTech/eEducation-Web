@@ -6,10 +6,11 @@ import {ChatBoard} from '@/components/chat/board';
 import { NetlessBoard } from '@/components/netless-board';
 import { ScreenSharing } from '@/components/screen-sharing';
 import { observer } from 'mobx-react';
-import { useRoomStore } from '@/hooks';
+import { useRoomStore, useSceneStore } from '@/hooks';
 
 export const BigClass = observer(() => {
 
+  const sceneStore = useSceneStore()
   const roomStore = useRoomStore()
 
   const {
@@ -18,7 +19,7 @@ export const BigClass = observer(() => {
     teacherStream: teacher,
     studentStreams,
     roomInfo,
-  } = roomStore
+  } = sceneStore
 
   const [chat, setChat] = useState<string>('')
 
@@ -29,9 +30,9 @@ export const BigClass = observer(() => {
 
   const handleMute = async () => {
     if (mutedChat) {
-      await roomStore.unmuteChat()
+      await sceneStore.unmuteChat()
     } else {
-      await roomStore.muteChat()
+      await sceneStore.muteChat()
     }
   }
 
@@ -56,15 +57,15 @@ export const BigClass = observer(() => {
         <div className="biz-container">
           <NetlessBoard />
           <ScreenSharing />
-          <div className={`interactive ${roomStore.roomInfo.userRole}`}>
-            {roomStore.roomInfo.userRole === 'teacher' && roomStore.notice ?
+          <div className={`interactive ${sceneStore.roomInfo.userRole}`}>
+            {sceneStore.roomInfo.userRole === 'teacher' && roomStore.notice ?
               <ControlItem name={roomStore.notice.reason}
                 onClick={handleNotice}
                 active={roomStore.notice.reason ? true : false} />
             : null}
-            {roomStore.roomInfo.userRole !== 'teacher'?
+            {sceneStore.roomInfo.userRole !== 'teacher'?
               <ControlItem
-                name={roomStore.cameraEduStream ? 'hands_up_end' : 'hands_up'}
+                name={sceneStore.cameraEduStream ? 'hands_up_end' : 'hands_up'}
                 onClick={handleHandClick}
                 active={false}
                 text={''}
@@ -92,12 +93,12 @@ export const BigClass = observer(() => {
           />
         </div>
         <ChatBoard
-          name={roomStore.roomInfo.roomName}
-          canChat={roomStore.roomInfo.userRole === 'teacher'}
+          name={sceneStore.roomInfo.roomName}
+          canChat={sceneStore.roomInfo.userRole === 'teacher'}
           messages={roomStore.roomChatMessages}
-          mute={roomStore.mutedChat}
+          mute={sceneStore.mutedChat}
           value={chat}
-          messageCount={roomStore.userList.length}
+          messageCount={sceneStore.userList.length}
           sendMessage={sendMessage}
           muteControl={muteControl}
           muteChat={mutedChat}

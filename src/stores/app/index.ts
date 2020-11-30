@@ -26,6 +26,7 @@ import { AgoraWebRtcWrapper } from '@/sdk/education/core/media-service/web';
 import { AgoraElectronRTCWrapper } from '@/sdk/education/core/media-service/electron';
 import { BizLogger } from '@/utils/biz-logger';
 import { platform } from '@/utils/platform';
+import { SceneStore } from './scene';
 
 const APP_ID: string = process.env.REACT_APP_AGORA_APP_ID as string;
 BizLogger.info("APP_ID ", APP_ID)
@@ -43,6 +44,7 @@ export class AppStore {
   extensionStore!: ExtensionStore;
   replayStore!: ReplayStore;
   mediaStore!: MediaStore;
+  sceneStore!: SceneStore;
 
   eduManager!: EduManager;
 
@@ -121,10 +123,11 @@ export class AppStore {
     this.boardStore = new BoardStore(this)
     this.recordingStore = new RecordingStore(this)
     this.roomStore = new RoomStore(this)
+    this.sceneStore = new SceneStore(this)
+    this.middleRoomStore = new MiddleRoomStore(this)
     this.deviceStore = new DeviceStore(this)
     this.replayStore = new ReplayStore(this)
     this.breakoutRoomStore = new BreakoutRoomStore(this)
-    this.middleRoomStore = new MiddleRoomStore(this)
     this.extensionStore = new ExtensionStore(this)
     this._screenVideoRenderer = undefined
   }
@@ -175,33 +178,6 @@ export class AppStore {
   resetTime() {
     this.time = 0
   }
-
-  // @observable
-  // classState: boolean = false
-
-  // @action
-  // async startClass() {
-  //   try {
-  //     await this.roomManager?.userService.updateCourseState(EduCourseState.EduCourseStateStart)
-  //     // this.classState = true
-  //     this.uiStore.addToast(t('toast.course_started_successfully'))
-  //   } catch (err) {
-  //     BizLogger.info(err)
-  //     this.uiStore.addToast(t('toast.setting_start_failed'))
-  //   }
-  // }
-
-  // @action
-  // async stopClass() {
-  //   try {
-  //     await this.roomManager?.userService.updateCourseState(EduCourseState.EduCourseStateStop)
-  //     // this.classState = false
-  //     this.uiStore.addToast(t('toast.the_course_ends_successfully'))
-  //   } catch (err) {
-  //     BizLogger.info(err)
-  //     this.uiStore.addToast(t('toast.setting_ended_failed'))
-  //   }
-  // }
 
   @action
   setRoomInfo(payload: any) {

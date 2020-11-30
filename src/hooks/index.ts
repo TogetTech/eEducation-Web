@@ -1,3 +1,4 @@
+import { SceneStore } from './../stores/app/scene';
 import { MediaStore } from './../stores/app/media';
 import { MobXProviderContext } from 'mobx-react';
 import { useContext } from 'react';
@@ -33,7 +34,7 @@ export const useRoomStore = (): RoomStore => {
 
 export const useMiddleRoomStore = (): MiddleRoomStore => {
   const context = useContext<appContext>(MobXProviderContext)
-  return context.store.middleRoomStore;
+  return context.store.middleRoomStore as MiddleRoomStore;
 }
 
 export const useExtensionStore = (): ExtensionStore => {
@@ -69,4 +70,9 @@ export const useReplayStore = (): ReplayStore => {
 export const useMediaStore = (): MediaStore => {
   const context = useContext<appContext>(MobXProviderContext)
   return context.store.mediaStore
+}
+
+export const useSceneStore = (): SceneStore => {
+  const context = useContext<appContext>(MobXProviderContext)
+  return context.store.sceneStore
 }
