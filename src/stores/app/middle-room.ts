@@ -591,6 +591,7 @@ export class MiddleRoomStore extends SimpleInterval {
           this.roomProperties = classroom.roomProperties
           const groups = get(classroom, 'roomProperties.groups')
           const students = get(classroom, 'roomProperties.students')
+          console.log('***监听事件')
 
           let userGroups: UserGroup[] = []
           if (groups) {
@@ -643,15 +644,6 @@ export class MiddleRoomStore extends SimpleInterval {
           userUuid: `${this.userUuid}`,
           sceneType,
         })
-        const reward = 0
-        this.batchUpdateRoomAttributes({
-          "students": {
-            [`${this.sceneStore.localUser.userUuid}`]: {
-              "userName": `${this.sceneStore.localUser.userName}`,
-              "reward": reward,
-            },
-          }
-        })
       }
       this.sceneStore._roomManager = roomManager;
       this.appStore._boardService = new EduBoardService(roomManager.userToken, roomManager.roomUuid)
@@ -660,6 +652,23 @@ export class MiddleRoomStore extends SimpleInterval {
       const roomInfo = roomManager.getClassroomInfo()
       this.roomProperties = roomInfo.roomProperties as any
       this.sceneStore.startTime = +get(roomInfo, 'roomStatus.startTime', 0)
+
+      if (this.roomProperties) {
+        let cause = { cmd: "401" }
+        let stuName = this.sceneStore.localUser.userName
+        let stuUuid = this.sceneStore.localUser.userUuid
+        let uid = this.roomProperties.students && this.roomProperties.students[stuUuid]
+        if(this.sceneStore.localUser.userRole === 'student' && !uid) {
+          console.log('***学生未存在')
+          let properties = {}
+          properties[`students.${stuUuid}`] = {
+            userName: stuName,
+            reward: 0,
+            avatar: "",
+          }
+          await this.updateRoomBatchProperties({ properties, cause })
+        }
+      }
 
       this.middleRoomApi.setSessionInfo({
         roomName: roomManager.roomName,
@@ -871,14 +880,6 @@ export class MiddleRoomStore extends SimpleInterval {
   async batchRemoveRoomAttributes() {
     try {
       await this.roomManager?.userService.batchRemoveRoomAttributes()
-    } catch (err) {
-      BizLogger.warn(err)
-    }
-  }
-
-  async batchUpdateUserAttributes(userUuid: string, properties: any) {
-    try {
-      await this.roomManager?.userService.batchUpdateUserAttributes(userUuid, properties)
     } catch (err) {
       BizLogger.warn(err)
     }

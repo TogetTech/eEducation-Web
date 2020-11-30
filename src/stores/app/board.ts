@@ -1142,6 +1142,6 @@ export class BoardStore {
 
   @action
   toggleExtension() {
-    this.showExtension = !this.showExtension
+    this.showExtension = false
   }
 }

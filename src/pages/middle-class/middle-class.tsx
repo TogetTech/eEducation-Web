@@ -231,7 +231,6 @@ export const MiddleClass = observer(() => {
                       groupStuList={group.members} 
                       platform={() => handelPlatform(group)} 
                       addStar={handelAddStar}>
-
                       </MiddleGroupCard>
                   ))
                 }

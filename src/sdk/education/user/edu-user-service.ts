@@ -472,19 +472,19 @@ export class EduUserService extends EventEmitter implements IEduUserService {
     await this.apiService.batchRemoveStreamAttributes(streams, cause)
   }
 
-  /**
-   * 批量更新用户属性
-   * @param userUuid 
-   * @param properties 
-   */
-  public async batchUpdateUserAttributes(userUuid: string, properties: any, cause?: CauseType) {
-    await this.apiService.batchUpdateUserAttributes(
-      this.roomUuid,
-      userUuid,
-      properties,
-      cause
-    )
-  }
+  // /**
+  //  * 批量更新用户属性
+  //  * @param userUuid 
+  //  * @param properties 
+  //  */
+  // public async batchUpdateUserAttributes(userUuid: string, properties: any, cause?: CauseType) {
+  //   await this.apiService.batchUpdateUserAttributes(
+  //     this.roomUuid,
+  //     userUuid,
+  //     properties,
+  //     cause
+  //   )
+  // }
 
   /**
    * 批量移除用户属性

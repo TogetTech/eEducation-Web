@@ -998,23 +998,23 @@ export class AgoraEduApi {
     return res.data
   }
 
-  /**
-   * 批量更新用户属性
-   * @param roomUuid 房间id
-   * @param userUuid 用户id
-   * @param properties 属性
-   */
-  async batchUpdateUserAttributes(roomUuid: string, userUuid: string, properties: BatchAttributes, cause?: CauseType) {
-    let res = await this.fetch({
-      url: `/v1/rooms/${roomUuid}/users/${userUuid}/properties`,
-      method: 'PUT',
-      data: {
-        properties,
-        cause
-      }
-    })
-    return res.data;
-  }
+  // /**
+  //  * 批量更新用户属性
+  //  * @param roomUuid 房间id
+  //  * @param userUuid 用户id
+  //  * @param properties 属性
+  //  */
+  // async batchUpdateUserAttributes(roomUuid: string, userUuid: string, properties: BatchAttributes, cause?: CauseType) {
+  //   let res = await this.fetch({
+  //     url: `/v1/rooms/${roomUuid}/users/${userUuid}/properties`,
+  //     method: 'PUT',
+  //     data: {
+  //       properties,
+  //       cause
+  //     }
+  //   })
+  //   return res.data;
+  // }
 
   /**
    * 批量移除用户属性

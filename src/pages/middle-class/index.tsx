@@ -71,7 +71,7 @@ const RoomController = observer(({children}: any) => {
     let path = pathList[pathList.length - 1]
 
     middleRoomStore.join().then(() => {
-      // uiStore.addToast(t('toast.successfully_joined_the_room'))
+      uiStore.addToast(t('toast.successfully_joined_the_room'))
       // let cause = { cmd: "401" }
       // let stuName = middleRoomStore.localUser.userName
       // let stuUuid = middleRoomStore.localUser.userUuid
@@ -86,8 +86,8 @@ const RoomController = observer(({children}: any) => {
       //   middleRoomStore.updateRoomBatchProperties({ properties, cause })
       // }
     }).catch((err) => {
-      // BizLogger.warn(err.msg)
-      // uiStore.addToast(t('toast.failed_to_join_the_room') + `${JSON.stringify(err.msg)}`)
+      BizLogger.warn(err.msg)
+      uiStore.addToast(t('toast.failed_to_join_the_room') + `${JSON.stringify(err.msg)}`)
     })
 
 
