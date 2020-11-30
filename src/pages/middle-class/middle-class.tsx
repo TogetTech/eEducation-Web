@@ -154,7 +154,7 @@ export const MiddleClass = observer(() => {
   }
 
   // 整组上台
-  const handelPlatform = function(group:any) {
+  const handlePlatform = async function(group:any) {
     if(alreadyPlatform) {
       // 如果已经上台 则下台
       let streams:any = []
@@ -166,7 +166,7 @@ export const MiddleClass = observer(() => {
         streams.push(stu)
       })
       console.log('***streams下台', streams)
-      // middleRoomStore.batchDeleteStream(streams)
+      await middleRoomStore.batchDeleteStream(streams)
       setAlreadyPlatform(false)
     } else {
       let streams:any = []
@@ -183,7 +183,7 @@ export const MiddleClass = observer(() => {
         streams.push(stu)        
       })
       console.log('***streams上台', streams)
-      // middleRoomStore.batchUpsertStream(streams)
+      await middleRoomStore.batchUpsertStream(streams)
       setAlreadyPlatform(true)
     }
     
@@ -273,7 +273,7 @@ export const MiddleClass = observer(() => {
                     <MiddleGroupCard key={index} 
                       groupName={group.groupName} 
                       groupStuList={group.members} 
-                      platform={() => handelPlatform(group)} 
+                      platform={async () => await handlePlatform(group)} 
                       addStar={handelAddStar}>
                       </MiddleGroupCard>
                   ))

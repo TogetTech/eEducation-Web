@@ -949,7 +949,7 @@ export class AgoraEduApi {
   // 批量新增流 
   async batchUpsertStream({roomUuid, streams}: UpsertStreamsParams) {
     let res = await this.fetch({
-      url: `/scene/apps/${this.appId}/v1/rooms/${roomUuid}/streams`,
+      url: `/v1/rooms/${roomUuid}/streams`,
       method: 'PUT',
       data: {
         streams: streams
@@ -961,7 +961,7 @@ export class AgoraEduApi {
   // 批量删除流
   async batchDeleteStream({roomUuid, streams}: DeleteStreamsParams) {
     let res = await this.fetch({
-      url: `/scene/apps/${this.appId}/v1/rooms/${roomUuid}/streams`,
+      url: `/v1/rooms/${roomUuid}/streams`,
       method: 'DELETE',
       data: {
         streams: streams
