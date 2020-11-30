@@ -146,11 +146,7 @@ function MiddleGroup(props: MiddleGroupProps) {
   )
 }
 
-export const MiddleGroupCard = function({groupStuList, groupName}: any) {
-
-  const handleClickAddStar = function() {
-    // 整组加星奖励
-  }
+export const MiddleGroupCard = function({groupStuList, groupName, platform, addStar}: any) {
   
   return (
     <div className="middle-group-card">
@@ -161,8 +157,8 @@ export const MiddleGroupCard = function({groupStuList, groupName}: any) {
         </div>
         <div className="icon">
           <div className="microphone"></div>
-          <div className="platform"></div>
-          <div className="add-star" onClick={handleClickAddStar}></div>
+          <div className="platform" onClick={platform}></div>
+          <div className="add-star" onClick={addStar}></div>
         </div>
       </div>
       <hr />
@@ -183,7 +179,7 @@ export const MiddleGroupCard = function({groupStuList, groupName}: any) {
   )
 }
 
-export const MiddleGrouping = function ({sure, dataList}: any) {
+export const MiddleGrouping = function ({sure, dataList, deleteGroups}: any) {
   let itemList = [...dataList]
 
   const useStyles = makeStyles((theme: Theme) =>
@@ -246,36 +242,37 @@ export const MiddleGrouping = function ({sure, dataList}: any) {
   
   const clickSureCreate = function() {
     setCreatePopup(false)
-    setDragGrouping(true)
-
-    if (groupType === 1) {
-      const len = itemList.length
-      for (let i = 0; i < len; i++) {
-        let a = random(0, len - 1)
-        let b = random(0, len - 1)
-        let temp = itemList[a]
-        itemList[a] = itemList[b]
-        itemList[b] = temp
+    // 确保显示拖拽时已经得到分组数据 
+    setTimeout(() => {
+      // 增加 loading 动画
+      setDragGrouping(true)
+      if (groupType === 1) {
+        const len = itemList.length
+        for (let i = 0; i < len; i++) {
+          let a = random(0, len - 1)
+          let b = random(0, len - 1)
+          let temp = itemList[a]
+          itemList[a] = itemList[b]
+          itemList[b] = temp
+        }
       }
-    }
+      let singleGroup: Array<any> = []
+      let multGroups: Array<any> = []
+      for(let i = 0; i < itemList.length; i++) {
+        let item = itemList[i]
+        if (singleGroup.length !== groupStuNum) {
+          singleGroup.push(item)
+        } else {
+          multGroups.push(singleGroup)
+          singleGroup = [item]
+        }
+      }
 
-    let singleGroup: Array<any> = []
-    let multGroups: Array<any> = []
-    for(let i = 0; i < itemList.length; i++) {
-      let item = itemList[i]
-      if (singleGroup.length !== groupStuNum) {
-        singleGroup.push(item)
-      } else {
+      if(singleGroup.length > 0) {
         multGroups.push(singleGroup)
-        singleGroup = [item]
-      }
-    }
-
-    if(singleGroup.length > 0) {
-      multGroups.push(singleGroup)
-    } 
-    setGroups(multGroups)
-
+      } 
+      setGroups(multGroups)
+    }, 2000)
   }
   
   const clickCancelCreate = function() {
@@ -307,7 +304,7 @@ export const MiddleGrouping = function ({sure, dataList}: any) {
               dragGrouping? <Button variant="contained" className="btn-reset" >重新分组</Button>
               : <Button variant="contained" className="btn-create" onClick={clickCreatGroup}>创建分组</Button>
             }
-            <Button variant="contained" className="btn-delete" disabled={!dragGrouping}>删除分组</Button>
+            <Button variant="contained" className="btn-delete" disabled={!dragGrouping} onClick={deleteGroups}>删除分组</Button>
           </div>
           <div className="icon-reduce" onClick={reduceGroup}></div>
           <div className="icon-close" onClick={closeGroup}></div>

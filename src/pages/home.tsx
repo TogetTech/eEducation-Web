@@ -30,12 +30,20 @@ type SessionInfo = {
   role: string
 }
 
+let userName1 = 'user' + Math.ceil(Math.random()*10) + Math.ceil(Math.random()*10)
 const defaultState: SessionInfo = {
-  roomName: '',
-  roomType: 0,
+  roomName: '89uio',
+  roomType: 4,
   role: '',
-  userName: '',
+  userName: userName1,
 }
+
+// const defaultState: SessionInfo = {
+//   roomName: '',
+//   roomType: 0,
+//   role: '',
+//   userName: '',
+// }
 
 // const roomTypes = isElectron ?  UIStore.roomTypes.filter((it: any) => it.value !== 3) : UIStore.roomTypes
 const roomTypes = UIStore.roomTypes

@@ -103,6 +103,27 @@ export const MiddleClass = observer(() => {
     middleRoomStore.updateRoomBatchProperties({ properties, cause })
 
   }
+
+  // 删除
+  const deleteGroups = function() {
+    let cause = {cmd:"101"}
+    let properties = {
+      groups: {}
+    }
+    middleRoomStore.updateRoomBatchProperties({ properties, cause })
+
+  }
+
+  // 整组上台
+  const handelPlatform = function(group:any) {
+    // batchAddStudentsStream()
+    console.log('***', group)
+  }
+
+  // 整组加星
+  const handelAddStar = function() {
+
+  }
   
   return (
     <div className="room-container">
@@ -112,7 +133,7 @@ export const MiddleClass = observer(() => {
           <ScreenSharing />
           {
             extensionStore.controlGrouping ?
-            <MiddleGrouping dataList={studentInfoList} sure={saveGroupModify}></MiddleGrouping>
+            <MiddleGrouping dataList={studentInfoList} sure={saveGroupModify} deleteGroups={deleteGroups}></MiddleGrouping>
             : null
           }
           <div className={`interactive ${middleRoomStore.roomInfo.userRole}`}>
@@ -163,11 +184,23 @@ export const MiddleClass = observer(() => {
               }} />
           </div>
           <div className={`student-container ${middleRoomStore.activeTab !== 'chatroom' ? '' : 'hide'}`}>
+          {/* <div className="group-card-list">
+                { userGroups.map((group, index) => (
+                    <MiddleGroupCard key={index} groupName={group.groupName} groupStuList={group.members}></MiddleGroupCard>
+                  ))
+                }
+              </div> */}
             {
               showGroupCard ? 
               <div className="group-card-list">
                 { userGroups.map((group, index) => (
-                    <MiddleGroupCard key={index} groupName={group.groupName} groupStuList={group.members}></MiddleGroupCard>
+                    <MiddleGroupCard key={index} 
+                      groupName={group.groupName} 
+                      groupStuList={group.members} 
+                      platform={() => handelPlatform(group)} 
+                      addStar={handelAddStar}>
+
+                      </MiddleGroupCard>
                   ))
                 }
               </div>

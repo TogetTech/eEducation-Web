@@ -58,6 +58,19 @@ type RemoteMediaParams = {
   // videoState: number
 }
 
+type StreamsParams = {
+  roomUuid: string
+  streams: Array<{
+    userUuid: string;
+    streamUuid: string;
+    streamName: string;
+    videoSourceType: number;
+    audioSourceType: number;
+    videoState: number;
+    audioState: number;
+  }>;
+}
+
 export class AgoraEduApi {
 
   roomUuid: string = '';
@@ -912,6 +925,18 @@ export class AgoraEduApi {
       method: 'PUT',
       data: {
         audioState: 0
+      }
+    })
+    return res.data
+  }
+
+  // 批量新增流
+  async batchAddStudentsStream({roomUuid, streams}: StreamsParams) {
+    let res = await this.fetch({
+      url: `/scene/apps/${this.appId}/v1/rooms/${roomUuid}/streams`,
+      method: 'PUT',
+      data: {
+        streams: streams
       }
     })
     return res.data

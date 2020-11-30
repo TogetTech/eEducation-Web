@@ -1129,7 +1129,7 @@ export class MiddleRoomStore extends SimpleInterval {
           const groups = get(classroom, 'roomProperties.groups')
           const students = get(classroom, 'roomProperties.students')
 
-          this.userGroups = []
+          let userGroups: UserGroup[] = []
           if (groups) {
             Object.keys(groups).forEach(groupUuid => {
               let group = groups[groupUuid]
@@ -1146,8 +1146,9 @@ export class MiddleRoomStore extends SimpleInterval {
                   reward: info.reward
                 })
               })
-              this.userGroups.push(userGroup)
+              userGroups.push(userGroup)
             })
+            this.userGroups = userGroups
           }
       })
       roomManager.on('room-chat-message', (evt: any) => {
